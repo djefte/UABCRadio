@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Visitors GeoIP module file.
+ */
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function visitors_geoip_views_data_alter(array &$data) {
+  $data['visitors']['location_region'] = [
+    'title' => t('Region'),
+    'help' => t('The region of the visitor.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['location_city'] = [
+    'title' => t('City'),
+    'help' => t('The city of the visitor.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+}

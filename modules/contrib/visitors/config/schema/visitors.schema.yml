@@ -1,0 +1,111 @@
+visitors.config:
+  type: config_object
+  label: 'Visitors Settings'
+  mapping:
+    flush_log_timer:
+      label: 'log retention time'
+      type: integer
+    bot_retention_log:
+      label: 'How long to keep bot logs'
+      type: integer
+    items_per_page:
+      type: integer
+      label: 'items per page'
+    theme:
+      type: string
+      label: 'visitors active theme'
+    disable_tracking:
+      type: boolean
+      label: 'disable tracking'
+    track:
+      type: mapping
+      label: 'Links and downloads'
+      mapping:
+        userid:
+          type: boolean
+          label: 'Track User ID'
+    counter:
+      type: mapping
+      label: 'Links and downloads'
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Count entity views'
+        entity_types:
+          type: sequence
+          label: 'Entity types'
+          sequence:
+            type: string
+            label: 'Entity type'
+        display_max_age:
+          type: integer
+          label: 'How long any views may be cached, i.e. the refresh interval'
+    visibility:
+      type: mapping
+      label: 'Visibility'
+      mapping:
+        request_path_mode:
+          type: integer
+          label: 'Add tracking to specific pages'
+        request_path_pages:
+          type: string
+          label: 'Pages by their paths'
+        user_role_mode:
+          type: integer
+          label: 'Add tracking for specific roles'
+        user_role_roles:
+          type: sequence
+          label: 'Roles'
+          sequence:
+            type: string
+            label: 'Role'
+        user_account_mode:
+          type: integer
+          label: 'Allow users to customize tracking on their account page'
+        exclude_user1:
+          type: boolean
+          label: 'exclude user1'
+    script_type:
+      type: string
+      label: 'Script type'
+
+block.settings.visitors_popular_block:
+  type: block_settings
+  label: 'Popular content block settings'
+  mapping:
+    top_day_num:
+      type: integer
+      label: 'Number of day\s top views to display'
+    top_all_num:
+      type: integer
+      label: 'Number of all time views to display'
+    top_last_num:
+      type: integer
+      label: 'Number of most recent views to display'
+    entity_type:
+      type: string
+      label: 'Entity type'
+
+
+block.settings.visitors_online:
+  type: block_settings
+  label: 'Popular content block settings'
+  mapping:
+    now_30_minute:
+      type: boolean
+      label: 'Show online users in the last 30 minutes'
+    now_24_hour:
+      type: boolean
+      label: 'Show online users in the last 24 hours'
+    yesterday_30_minute:
+      type: boolean
+      label: 'Show online users yesterday in the last 30 minutes'
+    yesterday_24_hour:
+      type: boolean
+      label: 'Show online users yesterday in the last 24 hours'
+    last_week_30_minute:
+      type: boolean
+      label: 'Show online users last week in the last 30 minutes'
+    last_week_24_hour:
+      type: boolean
+      label: 'Show online users last week in the last 24 hours'

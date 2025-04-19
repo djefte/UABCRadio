@@ -1,0 +1,10 @@
+visitors_geoip.settings:
+  type: config_object
+  label: 'Visitors Geo IP Settings'
+  mapping:
+    geoip_path:
+      type: string
+      label: 'location of MaxMind database.'
+    license:
+      type: string
+      label: 'MaxMind license key.'

@@ -1,0 +1,225 @@
+visitors.settings:
+  path: '/admin/config/system/visitors'
+  defaults:
+    _form: '\Drupal\visitors\Form\Settings'
+    _title: 'Visitors'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors.track:
+  path: '/visitors/_track'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Visitors::track'
+    _title: 'Track'
+  methods: [GET, POST]
+  requirements:
+    # All visitors should be able to log visits.
+    _access: 'TRUE'
+
+visitors.rebuild.route:
+  path: '/admin/config/system/visitors/rebuild-route'
+  defaults:
+    _form: '\Drupal\visitors\Form\RebuildRouteForm'
+    _title: 'Rebuild Routes'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors.rebuild.ip_address:
+  path: '/admin/config/system/visitors/rebuild-ip-address'
+  defaults:
+    _form: '\Drupal\visitors\Form\RebuildIpAddressForm'
+    _title: 'Rebuild IP Addresses'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors.rebuild.device:
+  path: '/admin/config/system/visitors/rebuild-device'
+  defaults:
+    _form: '\Drupal\visitors\Form\RebuildDeviceForm'
+    _title: 'Rebuild Devices'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors.rebuild.performance:
+  path: '/admin/config/system/visitors/performance'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\PerformanceController::migrate'
+    _form: '\Drupal\visitors\Form\PerformanceForm'
+    _title: 'Legacy Performance'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors.index:
+  path: '/visitors'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Visitors'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.hits:
+  path: '/visitors/hits'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::recentViews'
+    _title: 'Recent hits'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.hit_details:
+  path: '/visitors/hits/{hit_id}'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\HitDetails::display'
+    _title: 'View access log'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.top_pages:
+  path: '/visitors/pages'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::topPages'
+    _title: 'Top pages'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.routes:
+  path: '/visitors/route'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::topRoute'
+    _title: 'Routes'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.route_hits:
+  path: '/visitors/route/{route}'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::recentRoute'
+    _title_callback: '\Drupal\visitors\Controller\Report\ReportController::getRouteTitle'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.node:
+  path: '/node/{node}/visitors'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::nodeViews'
+    _title: 'Visitors'
+  requirements:
+    _permission: 'access visitors'
+    node: \d+
+  options:
+    _node_operation_route: TRUE
+
+visitors.hosts:
+  path: '/visitors/host'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::topHost'
+    _title: 'Hosts'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.host_hits:
+  path: '/visitors/host/{host}'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::recentHost'
+    _title_callback: '\Drupal\visitors\Controller\Report\ReportController::getHostTitle'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.referrers:
+  path: '/visitors/referrers'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\Referer::display'
+    _title: 'Referrers'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.location:
+  path: '/visitors/location'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::location'
+    _title: 'Locations'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.location.continent:
+  path: '/visitors/location/continent/{continent}'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::continent'
+    _title_callback: '\Drupal\visitors\Controller\Report\ReportController::getContinentTitle'
+    continent: NULL
+  requirements:
+    _permission: 'access visitors'
+
+visitors.location.country:
+  path: '/visitors/location/country/{country}'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::country'
+    _title_callback: '\Drupal\visitors\Controller\Report\ReportController::getCountryTitle'
+    country: NULL
+  requirements:
+    _permission: 'access visitors'
+
+visitors.device:
+  path: '/visitors/device'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::device'
+    _title: 'Devices'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.software:
+  path: '/visitors/software'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::software'
+    _title: 'Software'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.times:
+  path: '/visitors/times'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::time'
+    _title: 'Times'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.report:
+  path: '/visitors/_report/{view_id}/{display_id}'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::report'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.performance:
+  path: '/visitors/performance'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::performance'
+    _title: 'Performance'
+    sequence: 'week'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.performance.day:
+  path: '/visitors/performance/day'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::performance'
+    _title: 'Performance'
+    sequence: 'day'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.performance.hour:
+  path: '/visitors/performance/hour'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\Report\ReportController::performance'
+    _title: 'Performance'
+    sequence: 'hour'
+  requirements:
+    _permission: 'access visitors'
+
+visitors.statistics_migrate:
+  path: '/admin/config/system/visitors/statistics'
+  defaults:
+    _controller: '\Drupal\visitors\Controller\StatisticsMigrateController::migrate'
+    _title: 'Visitors'
+  requirements:
+    _permission: 'administer site configuration'

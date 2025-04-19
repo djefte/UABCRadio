@@ -1,0 +1,35 @@
+// Estilo de hastags
+@mixin hashtag-style {
+    background-color: #61a60e;
+    color: #000000;
+    font-size: 1.1rem;
+    display: inline-block;
+    border-radius: 50px;
+    padding: 5px 15px;
+    line-height: 1.1;
+    text-decoration: none;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    @include media-breakpoint-up(md) {
+        font-size: 1.75rem;
+    }
+    @include media-breakpoint-up(lg) {
+        font-size: 2.5rem;
+    }
+}
+.hashtags a,
+a.hashtag {
+    @include hashtag-style;
+}
+.hashtags-mediano a,
+a.hashtag-mediano {
+    margin-right: 10px;
+    @include hashtag-style;
+    font-size: 1.5rem;
+}
+.hashtags-mini a,
+a.hashtag-mini {
+    color: #000;
+    font-weight: 300;
+    text-decoration: none;
+}

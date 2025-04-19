@@ -1,0 +1,16 @@
+services:
+  visitors_geoip.lookup:
+    class: Drupal\visitors_geoip\Service\GeoIpService
+    arguments:
+      - '@config.factory'
+      - '@file_system'
+
+  visitors_geoip.rebuild.location:
+    class: Drupal\visitors_geoip\Service\RebuildLocationService
+    arguments:
+      - '@database'
+      - '@visitors_geoip.lookup'
+
+  logger.channel.visitors_geoip:
+    parent: logger.channel_base
+    arguments: ['visitors_geoip']

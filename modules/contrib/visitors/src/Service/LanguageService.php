@@ -1,0 +1,228 @@
+<?php
+
+namespace Drupal\visitors\Service;
+
+use Drupal\Component\Render\MarkupInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\visitors\VisitorsLanguageInterface;
+
+/**
+ * The language service.
+ */
+class LanguageService implements VisitorsLanguageInterface {
+  use StringTranslationTrait;
+
+  /**
+   * List of languages.
+   *
+   * @var array
+   */
+  protected $languages = [];
+
+  /**
+   * Constructs a new LanguageService object.
+   *
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
+   *   The string translation service.
+   */
+  public function __construct(TranslationInterface $string_translation) {
+
+    $this->setStringTranslation($string_translation);
+
+    $this->languages = [
+      'ab' => $this->t('Abkhaz'),
+      'aa' => $this->t('Afar'),
+      'af' => $this->t('Afrikaans'),
+      'ak' => $this->t('Akan'),
+      'sq' => $this->t('Albanian'),
+      'am' => $this->t('Amharic'),
+      'ar' => $this->t('Arabic'),
+      'an' => $this->t('Aragonese'),
+      'hy' => $this->t('Armenian'),
+      'as' => $this->t('Assamese'),
+      'av' => $this->t('Avaric'),
+      'ae' => $this->t('Avestan'),
+      'ay' => $this->t('Aymara'),
+      'az' => $this->t('Azerbaijani'),
+      'bm' => $this->t('Bambara'),
+      'ba' => $this->t('Bashkir'),
+      'eu' => $this->t('Basque'),
+      'be' => $this->t('Belarusian'),
+      'bn' => $this->t('Bengali'),
+      'bh' => $this->t('Bihari'),
+      'bi' => $this->t('Bislama'),
+      'bs' => $this->t('Bosnian'),
+      'br' => $this->t('Breton'),
+      'bg' => $this->t('Bulgarian'),
+      'my' => $this->t('Burmese'),
+      'ca' => $this->t('Catalan'),
+      'ch' => $this->t('Chamorro'),
+      'ce' => $this->t('Chechen'),
+      'ny' => $this->t('Chichewa'),
+      'zh' => $this->t('Chinese'),
+      'cv' => $this->t('Chuvash'),
+      'kw' => $this->t('Cornish'),
+      'co' => $this->t('Corsican'),
+      'cr' => $this->t('Cree'),
+      'hr' => $this->t('Croatian'),
+      'cs' => $this->t('Czech'),
+      'da' => $this->t('Danish'),
+      'dv' => $this->t('Divehi'),
+      'nl' => $this->t('Dutch'),
+      'dz' => $this->t('Dzongkha'),
+      'en' => $this->t('English'),
+      'eo' => $this->t('Esperanto'),
+      'et' => $this->t('Estonian'),
+      'ee' => $this->t('Ewe'),
+      'fo' => $this->t('Faroese'),
+      'fj' => $this->t('Fijian'),
+      'fi' => $this->t('Finnish'),
+      'fr' => $this->t('French'),
+      'ff' => $this->t('Fula'),
+      'gl' => $this->t('Galician'),
+      'ka' => $this->t('Georgian'),
+      'de' => $this->t('German'),
+      'el' => $this->t('Greek (modern)'),
+      'gn' => $this->t('Guaraní'),
+      'gu' => $this->t('Gujarati'),
+      'ht' => $this->t('Haitian'),
+      'ha' => $this->t('Hausa'),
+      'he' => $this->t('Hebrew (modern)'),
+      'hz' => $this->t('Herero'),
+      'hi' => $this->t('Hindi'),
+      'ho' => $this->t('Hiri Motu'),
+      'hu' => $this->t('Hungarian'),
+      'ia' => $this->t('Interlingua'),
+      'id' => $this->t('Indonesian'),
+      'ie' => $this->t('Interlingue'),
+      'ga' => $this->t('Irish'),
+      'ig' => $this->t('Igbo'),
+      'ik' => $this->t('Inupiaq'),
+      'io' => $this->t('Ido'),
+      'is' => $this->t('Icelandic'),
+      'it' => $this->t('Italian'),
+      'iu' => $this->t('Inuktitut'),
+      'ja' => $this->t('Japanese'),
+      'jv' => $this->t('Javanese'),
+      'kl' => $this->t('Kalaallisut'),
+      'kn' => $this->t('Kannada'),
+      'kr' => $this->t('Kanuri'),
+      'ks' => $this->t('Kashmiri'),
+      'kk' => $this->t('Kazakh'),
+      'km' => $this->t('Khmer'),
+      'ki' => $this->t('Kikuyu'),
+      'rw' => $this->t('Kinyarwanda'),
+      'ky' => $this->t('Kyrgyz'),
+      'kv' => $this->t('Komi'),
+      'kg' => $this->t('Kongo'),
+      'ko' => $this->t('Korean'),
+      'ku' => $this->t('Kurdish'),
+      'kj' => $this->t('Kwanyama'),
+      'la' => $this->t('Latin'),
+      'lb' => $this->t('Luxembourgish'),
+      'lg' => $this->t('Ganda'),
+      'li' => $this->t('Limburgish'),
+      'ln' => $this->t('Lingala'),
+      'lo' => $this->t('Lao'),
+      'lt' => $this->t('Lithuanian'),
+      'lu' => $this->t('Luba-Katanga'),
+      'lv' => $this->t('Latvian'),
+      'gv' => $this->t('Manx'),
+      'mk' => $this->t('Macedonian'),
+      'mg' => $this->t('Malagasy'),
+      'ms' => $this->t('Malay'),
+      'ml' => $this->t('Malayalam'),
+      'mt' => $this->t('Maltese'),
+      'mi' => $this->t('Māori'),
+      'mr' => $this->t('Marathi (Marāṭhī)'),
+      'mh' => $this->t('Marshallese'),
+      'mn' => $this->t('Mongolian'),
+      'na' => $this->t('Nauruan'),
+      'nv' => $this->t('Navajo'),
+      'nd' => $this->t('Northern Ndebele'),
+      'ne' => $this->t('Nepali'),
+      'ng' => $this->t('Ndonga'),
+      'nb' => $this->t('Norwegian Bokmål'),
+      'nn' => $this->t('Norwegian Nynorsk'),
+      'no' => $this->t('Norwegian'),
+      'ii' => $this->t('Nuosu'),
+      'nr' => $this->t('Southern Ndebele'),
+      'oc' => $this->t('Occitan'),
+      'oj' => $this->t('Ojibwe'),
+      'cu' => $this->t('Old Church Slavonic'),
+      'om' => $this->t('Oromo'),
+      'or' => $this->t('Oriya'),
+      'os' => $this->t('Ossetian'),
+      'pa' => $this->t('(Eastern) Punjabi'),
+      'pi' => $this->t('Pāli'),
+      'fa' => $this->t('Persian (Farsi)'),
+      'pl' => $this->t('Polish'),
+      'ps' => $this->t('Pashto'),
+      'pt' => $this->t('Portuguese'),
+      'qu' => $this->t('Quechua'),
+      'rm' => $this->t('Romansh'),
+      'rn' => $this->t('Kirundi'),
+      'ro' => $this->t('Romanian'),
+      'ru' => $this->t('Russian'),
+      'sa' => $this->t('Sanskrit (Saṁskṛta)'),
+      'sc' => $this->t('Sardinian'),
+      'sd' => $this->t('Sindhi'),
+      'se' => $this->t('Northern Sami'),
+      'sm' => $this->t('Samoan'),
+      'sg' => $this->t('Sango'),
+      'sr' => $this->t('Serbian'),
+      'gd' => $this->t('Scottish Gaelic'),
+      'sn' => $this->t('Shona'),
+      'si' => $this->t('Sinhalese'),
+      'sk' => $this->t('Slovak'),
+      'sl' => $this->t('Slovene'),
+      'so' => $this->t('Somali'),
+      'st' => $this->t('Southern Sotho'),
+      'es' => $this->t('Spanish'),
+      'su' => $this->t('Sundanese'),
+      'sw' => $this->t('Swahili'),
+      'ss' => $this->t('Swati'),
+      'sv' => $this->t('Swedish'),
+      'ta' => $this->t('Tamil'),
+      'te' => $this->t('Telugu'),
+      'tg' => $this->t('Tajik'),
+      'th' => $this->t('Thai'),
+      'ti' => $this->t('Tigrinya'),
+      'bo' => $this->t('Tibetan Standard'),
+      'tk' => $this->t('Turkmen'),
+      'tl' => $this->t('Tagalog'),
+      'tn' => $this->t('Tswana'),
+      'to' => $this->t('Tonga (Tonga Islands)'),
+      'tr' => $this->t('Turkish'),
+      'ts' => $this->t('Tsonga'),
+      'tt' => $this->t('Tatar'),
+      'tw' => $this->t('Twi'),
+      'ty' => $this->t('Tahitian'),
+      'ug' => $this->t('Uyghur'),
+      'uk' => $this->t('Ukrainian'),
+      'ur' => $this->t('Urdu'),
+      'uz' => $this->t('Uzbek'),
+      've' => $this->t('Venda'),
+      'vi' => $this->t('Vietnamese'),
+      'vo' => $this->t('Volapük'),
+      'wa' => $this->t('Walloon'),
+      'cy' => $this->t('Welsh'),
+      'wo' => $this->t('Wolof'),
+      'fy' => $this->t('Western Frisian'),
+      'xh' => $this->t('Xhosa'),
+      'yi' => $this->t('Yiddish'),
+      'yo' => $this->t('Yoruba'),
+      'za' => $this->t('Zhuang'),
+      'zu' => $this->t('Zulu'),
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLanguageLabel($language_code): MarkupInterface {
+    return $this->languages[$language_code] ?? $this->t('Unknown');
+  }
+
+}

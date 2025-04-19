@@ -1,0 +1,10 @@
+services:
+  visitors_geoip.commands:
+    class: \Drupal\visitors_geoip\Commands\MaxMindCommands
+    arguments:
+      - '@http_client'
+      - '@config.factory'
+      - '@file_system'
+      - '@visitors_geoip.rebuild.location'
+    tags:
+      - { name: drush.command }

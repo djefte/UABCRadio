@@ -1,0 +1,30 @@
+// Estilos de botones
+
+a.boton,
+.boton a {
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 700;
+    padding: 5px 15px;
+    border-radius: 50px;
+}
+
+.boton-anaranjado {
+    background-color: #ecaa00;
+    color: #000;
+}
+.boton-verde {
+    background-color: #61a60e;
+    color: #000;
+}
+.boton-lighteal {
+    background-color: #7eca9c;
+    color: #000;
+}
+
+a.boton-grande {
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 8px 22px;
+}
+

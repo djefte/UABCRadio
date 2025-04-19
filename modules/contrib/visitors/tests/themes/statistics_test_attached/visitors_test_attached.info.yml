@@ -1,0 +1,11 @@
+name: 'Visitors test attached theme'
+type: theme
+base theme: stable9
+description: 'Theme for testing attached library'
+# version: VERSION
+core_version_requirement: ^10.1 || ^11
+
+# Information added by Drupal.org packaging script on 2025-04-01
+version: '8.x-2.28'
+project: 'visitors'
+datestamp: 1743466093

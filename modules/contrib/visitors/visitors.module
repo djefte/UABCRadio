@@ -1,0 +1,1069 @@
+<?php
+
+/**
+ * @file
+ * Logs visitors for your site.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Utility\Error;
+use Drupal\node\NodeInterface;
+use Drupal\visitors\VisitorsVisibilityInterface;
+
+/**
+ * Implements hook_help().
+ */
+function visitors_help($route_name, $route_match) {
+  switch ($route_name) {
+    case 'help.page.visitors':
+      $help = '<p><a href="https://git.drupalcode.org/project/visitors/-/commits/8.x-2.x"><img alt="coverage report" src="https://git.drupalcode.org/project/visitors/badges/8.x-2.x/coverage.svg" /></a> &nbsp;';
+      $help .= '<a href="https://git.drupalcode.org/project/visitors/-/commits/8.x-2.x"><img alt="pipeline status" src="https://git.drupalcode.org/project/visitors/badges/8.x-2.x/pipeline.svg" /></a> &nbsp;';
+      $help .= '<a href="https://www.drupal.org/project/visitors">Homepage</a> &nbsp;';
+      $help .= '<a href="https://www.drupal.org/project/issues/visitors?version=any_8.x-">Issues</a></p>';
+      $help .= '<p>' . t('The Visitors module logs all visitors to your site and provides various statistics about them.') . '</p>';
+
+      return $help;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function visitors_cron(): void {
+  \Drupal::service('visitors.cron')->execute();
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function visitors_page_attachments(array &$page) {
+  $required_permissions = ['access visitors', 'access toolbar'];
+  $current_user = \Drupal::currentUser();
+  $access = AccessResult::allowedIfHasPermissions($current_user, $required_permissions);
+  if ($access->isAllowed()) {
+    $page['#attached']['library'][] = 'visitors/menu';
+  }
+  $page['#cache']['tags'][] = 'user:' . $current_user->id();
+  $page['#cache']['tags'][] = 'config:visitors.config';
+  $page['#cache']['contexts'][] = 'user';
+
+  try {
+    /** @var \Drupal\visitors\VisitorsVisibilityInterface $visibility_service */
+    $visibility_service = \Drupal::service('visitors.visibility');
+    if (!$visibility_service->isVisible()) {
+      return NULL;
+    }
+
+    $route = \Drupal::routeMatch()->getRouteName();
+    $base_path = \Drupal::request()->getBasePath();
+    $module_path = \Drupal::service('module_handler')->getModule('visitors')->getPath();
+
+    $page['#attached']['drupalSettings']['visitors']['module'] = "$base_path/$module_path";
+    $page['#attached']['drupalSettings']['visitors']['route'] = $route;
+    $page['#attached']['drupalSettings']['visitors']['server'] = gethostname();
+    $page['#attached']['library'][] = 'visitors/visitors';
+
+    $route_array = explode('.', $route);
+    if (count($route_array) == 3 && $route_array[0] == 'entity' && $route_array[2] == 'canonical') {
+      $entity_type = $route_array[1];
+      $settings = \Drupal::config('visitors.config');
+      $entity_types = $settings->get('counter.entity_types') ?? [];
+      $is_disabled_or_not_has_entity_types = !$settings->get('counter.enabled') || !in_array($entity_type, $entity_types);
+      if ($is_disabled_or_not_has_entity_types) {
+        return NULL;
+      }
+      $entity_id = \Drupal::routeMatch()->getParameter($entity_type)->id();
+      $page['#attached']['drupalSettings']['visitors']['counter'] = "$entity_type:$entity_id";
+    }
+
+  }
+  catch (\Exception $e) {
+    $logger = \Drupal::logger('visitors');
+    Error::logException($logger, $e);
+  }
+
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Allow users to decide if tracking code will be added to pages or not.
+ */
+function visitors_form_user_form_alter(&$form, FormStateInterface $form_state) {
+
+  $config = \Drupal::config('visitors.config');
+  $visibility_users = $config->get('visibility.user_account_mode');
+
+  if ($visibility_users == VisitorsVisibilityInterface::USER_NO_PERSONALIZATION) {
+    return;
+  }
+
+  /** @var \Drupal\user\AccountForm $user_form */
+  $user_form = $form_state->getFormObject();
+  /** @var \Drupal\user\UserInterface $account */
+  $account = $user_form->getEntity();
+
+  if (!$account->hasPermission('opt-out of visitors tracking')) {
+    return;
+  }
+
+  $account_data_visitors = \Drupal::service('user.data')->get('visitors', $account->id());
+
+  $form['visitors'] = [
+    '#type' => 'details',
+    '#title' => t('Visitors settings'),
+    '#weight' => 3,
+    '#open' => TRUE,
+  ];
+  $description = '';
+  switch ($visibility_users) {
+    case VisitorsVisibilityInterface::USER_OPT_OUT:
+      $description = t('Users are tracked by default, but you are able to opt out.');
+      break;
+
+    case VisitorsVisibilityInterface::USER_OPT_IN:
+      $description = t('Users are <em>not</em> tracked by default, but you are able to opt in.');
+      break;
+  }
+
+  $default_value = $account_data_visitors['user_account_users'] ?? $visibility_users;
+  $form['visitors']['user_account_users'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Enable user tracking'),
+    '#description' => $description,
+    '#default_value' => $default_value,
+  ];
+
+  // Custom submit handler.
+  $form['actions']['submit']['#submit'][] = 'visitors_user_profile_form_submit';
+
+}
+
+/**
+ * Submit callback for user profile form to save the Visitor setting.
+ */
+function visitors_user_profile_form_submit($form, FormStateInterface $form_state) {
+  if (!$form_state->hasValue('user_account_users')) {
+    return;
+  }
+  /** @var \Drupal\user\AccountForm $user_form */
+  $user_form = $form_state->getFormObject();
+  /** @var \Drupal\user\UserInterface $account */
+  $account = $user_form->getEntity();
+
+  $value = (int) $form_state->getValue('user_account_users');
+  \Drupal::service('user.data')
+    ->set('visitors', $account->id(), 'user_account_users', $value);
+}
+
+/**
+ * Implements hook_node_links_alter().
+ */
+function visitors_node_links_alter(array &$links, NodeInterface $entity, array &$context) {
+  if ($context['view_mode'] == 'rss') {
+    return NULL;
+  }
+  $links['#cache']['contexts'][] = 'user.permissions';
+  if (!\Drupal::currentUser()->hasPermission('view visitors counter')) {
+    return NULL;
+  }
+  $settings = \Drupal::config('visitors.config');
+
+  $statistics = \Drupal::service('visitors.counter')->fetchView('node', $entity->id());
+  if ($statistics) {
+    $statistics_links['visitors_counter']['title'] = \Drupal::translation()
+      ->formatPlural($statistics->getTotalCount(), '1 view', '@count views');
+    $links['visitors'] = [
+      '#theme' => 'links__node__visitors',
+      '#links' => $statistics_links,
+      '#attributes' => ['class' => ['links', 'inline']],
+    ];
+  }
+  $links['#cache']['max-age'] = $settings->get('counter.display_max_age');
+
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function visitors_entity_delete(EntityInterface $entity) {
+
+  $entity_id = $entity->id();
+  if (!is_int($entity_id)) {
+    return;
+  }
+  $entity_type = $entity->getEntityTypeId();
+
+  \Drupal::service('visitors.counter')
+    ->deleteViews($entity_type, $entity_id);
+}
+
+/**
+ * Implements hook_ranking().
+ */
+function visitors_ranking() {
+  $settings = \Drupal::config('visitors.config');
+  $is_enabled_and_has_node_entity_type = $settings->get('counter.enabled')
+    && in_array('node', $settings->get('counter.entity_types'));
+  if ($is_enabled_and_has_node_entity_type) {
+    return [
+      'views' => [
+        'title' => t('Number of views'),
+        'join' => [
+          'type' => 'LEFT',
+          'table' => 'visitors_counter',
+          'alias' => 'visitors_counter',
+          'on' => "visitors_counter.entity_id = i.sid AND visitors_counter.entity_type = 'node'",
+        ],
+        // Inverse law that maps the highest view count on the site to 1 and 0
+        // to 0. Note that the ROUND here is necessary for PostgreSQL and SQLite
+        // in order to ensure that the :statistics_scale argument is treated as
+        // a numeric type, because the PostgreSQL PDO driver sometimes puts
+        // values in as strings instead of numbers in complex expressions like
+        // this.
+        'score' => '2.0 - 2.0 / (1.0 + visitors_counter.total * (ROUND(:statistics_scale, 4)))',
+        'arguments' => [':statistics_scale' => \Drupal::state()->get('visitors.node_counter_scale', 0)],
+      ],
+    ];
+  }
+}
+
+/**
+ * Implements hook_views_data().
+ */
+function visitors_views_data() {
+  $data = [];
+  $data['visitors_counter']['table']['group'] = t('Visitor counters');
+  $data['visitors_counter']['table']['base'] = [
+    'title' => t('Visitor Counters'),
+    'help' => t('Visitors data from visitors DB table.'),
+  ];
+  $settings = \Drupal::config('visitors.config');
+  $supported_entity_types = $settings->get('counter.entity_types') ?? [];
+  foreach (\Drupal::entityTypeManager()->getDefinitions() as $entity_type_id => $entity_type) {
+    if (!in_array($entity_type_id, $supported_entity_types) || !$entity_type->entityClassImplements(ContentEntityInterface::class) || !$entity_type->getBaseTable()) {
+      continue;
+    }
+
+    $base_table = $entity_type->getDataTable() ?: $entity_type->getBaseTable();
+    $args = ['@entity_type' => $entity_type_id];
+
+    // Multilingual properties are stored in data table.
+    if (!($table = $entity_type->getDataTable())) {
+      $table = $entity_type->getBaseTable();
+    }
+    $data[$base_table]['visitors_counter'] = [
+      'title' => t('Visitors @entity_type counter', $args),
+      'help' => t('Relate all visitor counts on the @entity_type.', $args),
+      'relationship' => [
+        'group' => t('Visitor Counters'),
+        'label' => t('Visitor counters'),
+        'base' => 'visitors_counter',
+        'base field' => 'entity_id',
+        'relationship field' => $entity_type->getKey('id'),
+        'id' => 'standard',
+        'extra' => [
+          [
+            'field' => 'entity_type',
+            'value' => $entity_type_id,
+          ],
+        ],
+      ],
+    ];
+
+    $data['visitors_counter']['table']['join'][$table] = [
+      'type' => 'LEFT',
+      'left_field' => $entity_type->getKey('id'),
+      'field' => 'entity_id',
+      'extra' => [
+        [
+          'field' => 'entity_type',
+          'value' => $entity_type_id,
+        ],
+      ],
+    ];
+
+  }
+
+  $data['visitors_counter']['total'] = [
+    'title' => t('Total views'),
+    'help' => t('The total number of times the node has been viewed.'),
+    'field' => [
+      'id' => 'visitors_numeric',
+      'click sortable' => TRUE,
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+  ];
+  $data['visitors_counter']['today'] = [
+    'title' => t('Views today'),
+    'help' => t('The total number of times the node has been viewed today.'),
+    'field' => [
+      'id' => 'visitors_numeric',
+      'click sortable' => TRUE,
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+  ];
+  $data['visitors_counter']['timestamp'] = [
+    'title' => t('Most recent visit'),
+    'help' => t('The most recent time the node has been viewed.'),
+    'field' => [
+      'id' => 'visitors_counter_timestamp',
+      'click sortable' => TRUE,
+    ],
+    'filter' => [
+      'id' => 'date',
+    ],
+    'argument' => [
+      'id' => 'date',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+  ];
+
+  $data['visitors']['table']['group'] = t('Visitors');
+  $data['visitors']['table']['base'] = [
+    'title' => t('Visitors'),
+    'help' => t('Visitors data from visitors DB table.'),
+  ];
+
+  $data['visitors']['visitors_id'] = [
+    'title' => t('Visitors ID'),
+    'help' => t('Visitors entry ID.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['visitor_id'] = [
+    'title' => t('Unique visitor'),
+    'help' => t('A unique ID for the visitor.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['visitors_uid'] = [
+    'title' => t('Visitors UID'),
+    'help' => t('The user ID of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'relationship' => [
+      'title' => t('User'),
+      'help' => t('The user entity from the visitor entry.'),
+      'base' => 'users_field_data',
+      'base field' => 'uid',
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['visitors_date_time'] = [
+    'title' => t('Visitors Date Time'),
+    'help' => t('The timestamp from the visitors entry.'),
+    'field' => [
+      'id' => 'date',
+      'click sortable' => TRUE,
+    ],
+    'filter' => [
+      'id' => 'visitors_date',
+    ],
+  ];
+  $data['visitors']['visitors_hour'] = [
+    'title' => t('Hour'),
+    'help' => t('The hour (server) of the visit.'),
+    'field' => [
+      'id' => 'visitors_hour',
+      'field' => 'visitors_date_time',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitors_month'] = [
+    'title' => t('Month'),
+    'help' => t('The month of the visit.'),
+    'field' => [
+      'id' => 'visitors_month',
+      'field' => 'visitors_date_time',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitors_day_of_week'] = [
+    'title' => t('Day of Week'),
+    'help' => t('The day of week of the visit.'),
+    'field' => [
+      'id' => 'visitors_day_of_week',
+      'field' => 'visitors_date_time',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitors_day_of_month'] = [
+    'title' => t('Day of Month'),
+    'help' => t('The day of month of the visit.'),
+    'field' => [
+      'id' => 'visitors_day_of_month',
+      'field' => 'visitors_date_time',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitors_day'] = [
+    'title' => t('Day'),
+    'help' => t('The day of the visit.'),
+    'field' => [
+      'id' => 'visitors_day',
+      'field' => 'visitors_date_time',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitors_week'] = [
+    'title' => t('Week'),
+    'help' => t('The week of the visit.'),
+    'field' => [
+      'id' => 'visitors_week',
+      'field' => 'visitors_date_time',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitor_localtime'] = [
+    'title' => t('Visitor Hour'),
+    'help' => t('The hour (client) of the visit.'),
+    'field' => [
+      'id' => 'visitors_local_hour',
+      'field' => 'visitor_localtime',
+    ],
+    'sort' => [
+      'id' => 'visitors_timestamp',
+      'field' => 'visitors_date_time',
+    ],
+  ];
+  $data['visitors']['visitors_ip'] = [
+    'title' => t('Visitors IP'),
+    'help' => t('The IP of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['server'] = [
+    'title' => t('Server'),
+    'help' => t('The server that generated the response.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['visitors_url'] = [
+    'title' => t('Visitors URL'),
+    'help' => t('The URL of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['visitors_referer'] = [
+    'title' => t('Visitors referer'),
+    'help' => t('The referer of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['visitors_path'] = [
+    'title' => t('Visitors path'),
+    'help' => t('The path of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['route'] = [
+    'title' => t('Route'),
+    'help' => t('The route of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['visitors_title'] = [
+    'title' => t('Visitors title'),
+    'help' => t('The title of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['visitors_user_agent'] = [
+    'title' => t('Visitors user agent'),
+    'help' => t('The user agent of the visitors entry.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_resolution'] = [
+    'title' => t('Resolution'),
+    'help' => t("The visitor's screen resolution."),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_pdf'] = [
+    'title' => t('PDF Support'),
+    'help' => t("The visitor's browser supports PDFs."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_flash'] = [
+    'title' => t('Flash Support'),
+    'help' => t("The visitor's browser supports Flash."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_java'] = [
+    'title' => t('Java Support'),
+    'help' => t("The visitor's browser supports Java."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_quicktime'] = [
+    'title' => t('Quicktime Support'),
+    'help' => t("The visitor's browser supports Quicktime."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_realplayer'] = [
+    'title' => t('Realplayer Support'),
+    'help' => t("The visitor's browser supports Realplayer."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_windowsmedia'] = [
+    'title' => t('Windows Media Support'),
+    'help' => t("The visitor's browser supports Windows Media."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_silverlight'] = [
+    'title' => t('Silverlight Support'),
+    'help' => t("The visitor's browser supports Silverlight."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_cookie'] = [
+    'title' => t('Cookie Support'),
+    'help' => t("The visitor's browser supports cookies."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['config_browser_engine'] = [
+    'title' => t('Browser Engine'),
+    'help' => t('The engine used by the browser.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_browser_name'] = [
+    'title' => t('Browser Name'),
+    'help' => t('The name of the browser.'),
+    'field' => [
+      'id' => 'visitors_browser',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_browser_version'] = [
+    'title' => t('Browser Version'),
+    'help' => t('The version of the browser.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_client_type'] = [
+    'title' => t('Client type'),
+    'help' => t('The type of the client.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_device_brand'] = [
+    'title' => t('Device brand'),
+    'help' => t('The brand of the device.'),
+    'field' => [
+      'id' => 'visitors_brand',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_device_model'] = [
+    'title' => t('Device model'),
+    'help' => t('The model of the device.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_device_type'] = [
+    'title' => t('Device type'),
+    'help' => t('The type of device.'),
+    'field' => [
+      'id' => 'visitors_device',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_os'] = [
+    'title' => t('Operating System'),
+    'help' => t('The operating system.'),
+    'field' => [
+      'id' => 'visitors_operating_system',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['config_os_version'] = [
+    'title' => t('OS version'),
+    'help' => t('The version of the Operating System.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['bot'] = [
+    'title' => t('Bot'),
+    'help' => t("The visit is from a bot."),
+    'field' => [
+      'id' => 'boolean',
+    ],
+    'filter' => [
+      'id' => 'boolean',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['language'] = [
+    'title' => t('Language'),
+    'help' => t('The browser language.'),
+    'field' => [
+      'id' => 'visitors_language',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['location_continent'] = [
+    'title' => t('Continent'),
+    'help' => t('The location continent.'),
+    'field' => [
+      'id' => 'visitors_continent',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+  $data['visitors']['location_country'] = [
+    'title' => t('Country'),
+    'help' => t('The location country.'),
+    'field' => [
+      'id' => 'visitors_country',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+
+  $data['visitors']['pf_network'] = [
+    'title' => t('Network'),
+    'help' => t('Network performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['pf_server'] = [
+    'title' => t('Server'),
+    'help' => t('Server performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['pf_transfer'] = [
+    'title' => t('Transfer'),
+    'help' => t('Transfer performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['pf_dom_processing'] = [
+    'title' => t('DOM Processing'),
+    'help' => t('DOM Processing performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['pf_dom_complete'] = [
+    'title' => t('DOM Complete'),
+    'help' => t('DOM Complete performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['pf_on_load'] = [
+    'title' => t('On Load'),
+    'help' => t('On Load performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+  $data['visitors']['pf_total'] = [
+    'title' => t('Total'),
+    'help' => t('Total performance.'),
+    'field' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'argument' => [
+      'id' => 'numeric',
+    ],
+  ];
+
+  $data['visitors']['visitors_display_link'] = [
+    'title' => t('Link to Visitors display'),
+    'help' => t('Displays a link to a non-path-based display of this view while keeping the filter criteria, sort criteria, pager settings and contextual filters.'),
+    'area' => [
+      'id' => 'visitors_display_link',
+    ],
+  ];
+
+  return $data;
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function visitors_token_info() {
+  $entity['total-count'] = [
+    'name' => t("Number of views"),
+    'description' => t("The number of visitors who have read the node."),
+  ];
+  $entity['day-count'] = [
+    'name' => t("Views today"),
+    'description' => t("The number of visitors who have read the node today."),
+  ];
+  $entity['last-view'] = [
+    'name' => t("Last view"),
+    'description' => t("The date on which a visitor last read the node."),
+    'type' => 'date',
+  ];
+
+  $token = [
+    'tokens' => [],
+  ];
+  $entity_types = \Drupal::config('visitors.config')
+    ->get('counter.entity_types') ?? [];
+  foreach ($entity_types as $entity_type) {
+    $token['tokens'][$entity_type] = $entity;
+  }
+
+  return $token;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function visitors_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  $token_service = \Drupal::token();
+  $entity_types = \Drupal::config('visitors.config')
+    ->get('counter.entity_types') ?? [];
+  $replacements = [];
+
+  if (!in_array($type, $entity_types) || empty($data[$type])) {
+    return $replacements;
+  }
+  $entity = $data[$type];
+
+  /** @var \Drupal\visitors\VisitorsCounterInterface $counter_storage */
+  $counter_storage = \Drupal::service('visitors.counter');
+  $entity_view = NULL;
+
+  foreach ($tokens as $name => $original) {
+    if ($name == 'total-count') {
+      $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
+      $replacements[$original] = $entity_view ? $entity_view->getTotalCount() : 0;
+    }
+    elseif ($name == 'day-count') {
+      $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
+      $replacements[$original] = $entity_view ? $entity_view->getDayCount() : 0;
+    }
+    elseif ($name == 'last-view') {
+      $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
+      $replacements[$original] = $entity_view ? \Drupal::service('date.formatter')->format($entity_view->getTimestamp()) : t('never');
+    }
+  }
+
+  if ($created_tokens = $token_service->findWithPrefix($tokens, 'last-view')) {
+    $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
+    $replacements += $token_service->generate('date', $created_tokens, ['date' => $entity_view ? $entity_view->getTimestamp() : 0], $options, $bubbleable_metadata);
+  }
+
+  return $replacements;
+}

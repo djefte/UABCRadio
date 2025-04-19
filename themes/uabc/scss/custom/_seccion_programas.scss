@@ -1,0 +1,62 @@
+// Estilo para la sección de programas
+
+.vista-seccion-programas {
+    h3 {
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 60px;
+        a {
+            border-radius: 100px;
+            color: #fff;
+            text-decoration: none;
+            padding: 0 20px 5px;
+        }
+        @include media-breakpoint-up(md) {
+            font-size: 2rem;
+        }
+        @include media-breakpoint-up(lg) {
+            font-size: 3rem;
+        }
+    }
+    h3:first-child {
+        margin-top: -20px;
+    }
+    h3 a[href="/programacion#1"] {
+        background-color: var(--color-infantil);
+    }
+    h3 a[href="/programacion#2"] {
+        background-color: var(--color-salud);
+    }
+    h3 a[href="/programacion#3"] {
+        background-color: var(--color-diversidad);
+    }
+    h3 a[href="/programacion#4"] {
+        background-color: var(--color-informativo);
+    }
+    h3 a[href="/programacion#5"] {
+        background-color: var(--color-revista);
+    }
+    h3 a[href="/programacion#6"] {
+        background-color: var(--color-cultura);
+    }
+    h3 a[href="/programacion#7"] {
+        background-color: var(--color-narrativa);
+    }
+    h3 a[href="/programacion#8"] {
+        background-color: var(--color-musicaformal);
+    }
+
+    .views-view-responsive-grid {
+        margin-bottom: 100px;
+    }
+}
+
+
+.view-taxonomy-term.view-id-taxonomy_term {
+    .field--name-field-etiquetas {
+        margin-bottom: 20px;
+        .field__item {
+            display: inline-block;
+        }
+    }
+}

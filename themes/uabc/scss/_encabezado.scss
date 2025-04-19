@@ -1,0 +1,63 @@
+body {
+    font-family: Sofia Pro, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+.navbar {
+    margin-bottom: 20px;
+    > .container {
+        justify-content: space-between;
+        margin-left: 8px;
+        margin-right: 8px;
+        margin-top: 12px;
+        @include media-breakpoint-up(md) {
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        @include media-breakpoint-up(lg) {
+            flex-direction: column;
+            justify-content: unset;
+            padding-left: calc(var(--bs-gutter-x) * 0.5);
+            padding-right: calc(var(--bs-gutter-x) * 0.5);
+        }
+    }
+    .navbar-collapse {
+        width: 100%;
+    }
+}
+.navbar-brand img {
+    max-width: 150px;
+    height: 65px;
+    margin: 0;
+    @include media-breakpoint-up(lg) {
+        margin: 20px 0;
+    }
+}
+.region-nav-main {
+    width: 100%;
+}
+.nav-link {
+    color: #000;
+    font-size: 1.4rem;
+    font-weight: 600;
+    @include media-breakpoint-up(lg) {
+        font-size: 1.1rem;
+    }
+    @include media-breakpoint-up(xl) {
+        font-size: 1.4rem;
+    }
+}
+.nav-link.active {
+    background-color: #ecaa00;
+    border-radius: 100px;
+}
+button.navbar-toggler {
+    margin-left: 20px;
+}
+
+@media screen and (min-width: 768px) {
+    .navbar-brand img {
+        max-width: 150px;
+        height: 105px;
+    }
+}

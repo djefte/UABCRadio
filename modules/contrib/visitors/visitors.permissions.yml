@@ -1,0 +1,10 @@
+access visitors:
+  title: 'Access visitors'
+  description: 'Allows to get access to visitors info.'
+
+opt-out of visitors tracking:
+  title: 'Opt-in or out of tracking'
+  description: 'Allow users to decide if there actions will be tracked.'
+
+view visitors counter:
+  title: 'View content hits'

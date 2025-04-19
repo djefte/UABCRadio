@@ -1,0 +1,46 @@
+// Estilo de podcast
+
+// Vista default o individual
+.node--type-podcast.node--view-mode-full,
+.node--type-podcast.node--view-mode-podcast {
+    > h2 {
+        display: none;
+    }
+    .node__meta {
+        display: none;
+    }
+    .autor {
+        span:before {
+            content: 'Por ';
+        }
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+    }
+    .fecha {
+        text-transform: lowercase;
+        span:before {
+            content: ' el ';
+        }
+    }
+}
+
+.podcast-encabezado {
+    margin-bottom: 30px;
+}
+.podcast-contenido {
+    margin-bottom: 30px;
+}
+@media screen and (min-width: 768px) {
+    .podcast-contenido {
+        .layout__region--second {
+            padding-left: 30px;
+        }
+    }
+}
+
+
+.view-campos-de-podcast .views-view-responsive-grid__item {
+    margin-bottom: 50px;
+}

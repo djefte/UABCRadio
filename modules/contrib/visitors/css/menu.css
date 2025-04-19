@@ -1,0 +1,10 @@
+/**
+ * Main menu icons.
+ */
+.toolbar-icon-visitors-index::before {
+  background-image: url(../icons/visitors-inactive.svg);
+}
+.toolbar-icon-visitors-index:active::before,
+.toolbar-icon-visitors-index.is-active::before {
+  background-image: url(../icons/visitors-active.svg);
+}

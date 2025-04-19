@@ -1,0 +1,185 @@
+// Estilo de campos
+
+
+// Fecha
+.fecha,
+.hora {
+    font-size: 1rem;
+}
+.fecha-mini,
+.hora-mini {
+    font-size: 0.8rem;
+}
+
+// Estilos de título
+.titulo-contenido {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 15px;
+    a {
+        color: #000;
+        text-decoration: none;
+    }
+}
+
+.titulo-principal,
+.titulo-principal h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 30px;
+    a {
+        color: #000;
+        text-decoration: none;
+    }
+    @include media-breakpoint-up(lg) {
+        font-size: 3rem;
+    }
+}
+
+.titulo-mini {
+    a {
+        color: #000;
+        font-size: 1.1rem;
+        text-decoration: none;
+    }
+}
+
+
+.fecha-mini {
+    font-size: 0.9rem;
+}
+
+// Autor
+.autor {
+    font-size: 1rem;
+}
+
+
+// Inline
+.inline,
+.inline-blocks {
+    display: inline-block;
+}
+
+// Descripción
+.descripcion {
+    margin: 30px 0;
+}
+
+// Audio
+.reproductor-podcast {
+    background-color: #fafafa;
+    margin-bottom: 30px;
+}
+
+// Enlace cuadrado
+.enlace-cuadrado {
+    display: flex;
+    a {
+        border: 3px solid #61a60e;
+        color: #888;
+        text-decoration: none;
+        display: flex;
+        width: 220px;
+        height: 220px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        border-radius: 30px;
+    }
+}
+// Enlace cuadrado plano
+.enlace-cuadrado-plano {
+    display: flex;
+    a {
+        background-color: #d8efe1;
+        border: 3px solid #d8efe1;
+        color: #000;
+        line-height: 1.25;
+        text-decoration: none;
+        display: flex;
+        width: 220px;
+        height: 220px;
+        align-items: center;
+        padding: 20px;
+        border-radius: 30px;
+    }
+}
+
+.info-programacion {
+
+    .etiqueta {
+        color: #ecaa00;
+        padding-right: 12px;
+        display: block;
+        @include media-breakpoint-up(lg) {
+            display: initial;
+        }
+    }
+    .valor a {
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+        display: block;
+        @include media-breakpoint-up(lg) {
+            display: initial;
+        }
+    }
+}
+
+.icono-envivo .etiqueta {
+    position: relative;
+    @include media-breakpoint-up(lg) {
+        padding-left: 60px;
+    }
+}
+.icono-envivo .etiqueta::before {
+    content: ' ';
+    background-image: url(../img/icono-anaranjado-signal.svg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    text-indent: -9999999px;
+    left: calc(50% - 15px);
+    top: -30px;
+    @include media-breakpoint-up(lg) {
+        width: 50px;
+        height: 50px;
+        left: 0;
+        top: unset;
+    }
+}
+
+
+.icono-acontinuacion .etiqueta {
+    position: relative;
+    padding-left: 20px;
+    @include media-breakpoint-up(lg) {
+        padding-left: 50px;
+    }
+}
+.icono-acontinuacion .etiqueta::before {
+    content: ' ';
+    background-image: url(../img/icono-anaranjado-siguiente.svg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    width: 30px;
+    height: 40px;
+    text-indent: -9999999px;
+    left: calc(50% - 8px);
+    top: -30px;
+    @include media-breakpoint-up(lg) {
+        width: 50px;
+        height: 50px;
+        left: 0;
+        top: unset;
+    }
+}

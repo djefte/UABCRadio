@@ -1,0 +1,131 @@
+views.field.visitors_numeric:
+  type: views.field.numeric
+  label: 'Numeric values from the visitors module'
+
+views.field.visitors_counter_timestamp:
+  type: views.field.date
+  label: 'The most recent time the node has been viewed'
+
+views.filter.visitors_date:
+  type: views.filter.date
+  label: 'Visitors Date'
+  mapping:
+    value:
+      type: views.filter_value.date
+
+views.area.visitors_display_link:
+  type: views_area
+  label: 'Visitors display link'
+  mapping:
+    display_id:
+      type: string
+      label: 'The display ID of the view display to link to.'
+    label:
+      type: label
+      label: 'The label of the link.'
+
+views.field.visitors_brand:
+  type: views_field
+  label: 'Visitors Brand'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the brand.'
+
+views.field.visitors_device:
+  type: views_field
+  label: 'Visitors Device'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the device.'
+
+views.field.visitors_browser:
+  type: views_field
+  label: 'Visitors Browser'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the browser.'
+
+views.field.visitors_operating_system:
+  type: views_field
+  label: 'Visitors Operating System'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the OS.'
+
+views.field.visitors_continent:
+  type: views_field
+  label: 'Visitors Continent'
+  mapping:
+    abbreviation:
+      type: boolean
+      label: 'The abbreviation of the continent.'
+
+views.field.visitors_country:
+  type: views_field
+  label: 'Visitors Country'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The flag of the country.'
+    text:
+      type: boolean
+      label: 'The name of the country.'
+    abbreviation:
+      type: boolean
+      label: 'The abbreviation of the country.'
+    set_precision:
+      type: boolean
+      label: 'Round'
+    precision:
+      type: integer
+      label: 'Precision'
+    decimal:
+      type: string
+      label: 'Decimal point'
+    separator:
+      type: string
+      label: 'Thousands marker'
+    format_plural:
+      type: boolean
+      label: 'Format plural'
+    format_plural_string:
+      type: plural_label
+      label: 'Plural variants'
+      constraints:
+        Regex:
+          # Normally, labels cannot contain invisible control characters. In this particular
+          # case, an invisible character (ASCII 3, 0x03) is used to encode translation
+          # information, so carve out an exception for that only.
+          # @see \Drupal\views\Plugin\views\field\NumericField
+          pattern: '/([^\PC\x03])/u'
+          match: false
+          message: 'Labels are not allowed to span multiple lines or contain control characters.'
+    prefix:
+      type: label
+      label: 'Prefix'
+    suffix:
+      type: label
+      label: 'Suffix'
+
+views.field.visitors_language:
+  type: views_field
+  label: 'Visitors language'
+  mapping:
+    code:
+      type: boolean
+      label: 'Show the language code.'
+
+views.argument_default.visitors_path:
+  type: mapping
+  label: 'Path'
+  mapping:
+    pop:
+      type: integer
+      label: 'Path items to pop from the current path'
+    route:
+      type: boolean
+      label: 'Convert the path to a route'

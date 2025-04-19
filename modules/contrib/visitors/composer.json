@@ -1,0 +1,44 @@
+{
+  "name": "drupal/visitors",
+  "description": "Visitors is a native drupal web analytics software.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev",
+  "homepage": "https://drupal.org/project/visitors",
+  "authors": [
+    {
+      "name": "Steven Ayers (bluegeek9)",
+      "homepage": "https://www.drupal.org/u/bluegeek9",
+      "role": "Maintainer"
+    }
+  ],
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/visitors?version=8.x",
+    "source": "https://git.drupalcode.org/project/visitors",
+    "docs": "https://www.drupal.org/docs/8/modules/visitors",
+    "forum": "https://drupal.stackexchange.com/questions/tagged/visitors"
+  },
+  "require": {
+    "drupal/core": "^10 || ^11",
+    "geoip2/geoip2": "~2.0",
+    "matomo/device-detector": "^6.1",
+    "drupal/charts": "^5"
+  },
+  "require-dev": {
+    "drush/drush": "^12 || ^13",
+    "drupal/statistics": "~1"
+  },
+  "extra": {
+    "drush": {
+      "services": {
+        "drush.services.yml": ">=9"
+      }
+    }
+  },
+  "repositories": {
+    "drupal": {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+    }
+  }
+}

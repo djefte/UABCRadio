@@ -1,0 +1,6 @@
+.visitors-main .layout-row {
+  display: flex;
+}
+.visitors-main .layout-column--half.views-element-container {
+  display: table-cell;
+}

@@ -1,0 +1,5 @@
+visitors_geoip.settings:
+  base_route: visitors.settings
+  route_name: visitors_geoip.settings
+  title: 'Geo IP'
+  weight: 75

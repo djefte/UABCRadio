@@ -1,0 +1,35 @@
+visitors.node_tab:
+  base_route: entity.node.canonical
+  route_name: visitors.node
+  title: 'Visitors'
+  weight: 75
+
+visitors.settings:
+  base_route: visitors.settings
+  route_name: visitors.settings
+  title: 'Settings'
+  weight: 0
+
+visitors.location:
+  base_route: visitors.location
+  route_name: visitors.location
+  title: 'Locations'
+  weight: 0
+
+visitors.performance:
+  base_route: visitors.performance
+  route_name: visitors.performance
+  title: 'Weekly'
+  weight: 0
+
+visitors.performance.day:
+  base_route: visitors.performance
+  route_name: visitors.performance.day
+  title: 'Daily'
+  weight: 20
+
+visitors.performance.hour:
+  base_route: visitors.performance
+  route_name: visitors.performance.hour
+  title: 'Hourly'
+  weight: 40

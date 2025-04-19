@@ -1,0 +1,207 @@
+
+
+.view-hashtags {
+
+    display: flex;
+    flex-direction: column;
+
+    .view-filters {
+        order: 2;
+    }
+    .view-content {
+        order: 1;
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+    .pager {
+        order: 3;
+        float: right;
+        
+        @include media-breakpoint-up(lg) {
+            margin-top: -80px;
+        }
+    }
+
+}
+
+
+.view-id-lo_mas_reciente.view-display-id-block_1 {
+    position: relative;
+    .more-link {
+        aspect-ratio: 1/1;
+        display: flex;
+        text-align: right;
+        background: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        @include media-breakpoint-up(sm) {
+            width: calc(50% - 5px);
+        }
+        @include media-breakpoint-up(md) {
+            width: calc(33% - 5px);
+        }
+        @include media-breakpoint-up(lg) {
+            width: calc(24.7% - 5px);
+            right: calc(50% + 5px);
+        }
+        @include media-breakpoint-up(xl) {
+            width: calc(19.7% - 5px);
+            right: calc(80.2% + 5px);
+        }
+        @include media-breakpoint-up(xxl) {
+            width: 205px;
+            right: 0;
+        }
+        a {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    }
+}
+
+.view-podcast-de-programa-individual .view-content {
+    margin-top: 30px;
+    @include media-breakpoint-up(md) {
+        margin-top: 0;
+    }
+}
+
+.minusculas {
+    text-transform: lowercase;
+}
+
+.imagen-edificio {
+    width: 100%;
+    height: auto;
+    margin-bottom: 30px;
+}
+@media screen and (min-width: 768px) {
+    .imagen-edificio {
+        width: 50%;
+        float: right;
+        margin-left: 50px;
+    }
+}
+@media screen and (min-width: 992px) {
+    .imagen-edificio {
+        width: 40%;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .columnas {
+        display: flex;
+    }
+    .columnas-33-67 {
+        .columna-izq {
+            flex: 1 1 33%;
+            max-width: 33%;
+        }
+        .columna-der {
+            flex: 1 2 67%;
+            max-width: 67%;
+        }
+    }
+}
+
+
+li::marker {
+    color: #61a60e;
+}
+ul.sublista {
+    li {
+        font-weight: 300;
+    }
+    li::marker {
+        color: #ecaa00;
+    }
+}
+ul.cc-list {
+    li::marker {
+        color: #7eca9c;
+    }
+}
+
+
+.seccion-infantil-contenido {
+    margin-top: 20px;
+    @include media-breakpoint-up(lg) {
+        margin-top: 0;
+    }
+}
+
+.fotos-consejociudadano {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.foto-consejero {
+    display: inline-block;
+    width: 200px;
+    margin: 10px;
+    text-align: center;
+    img {
+        max-width: 180px;
+        width: 100%;
+        height: auto;
+        border: 5px solid #7eca9c;
+        border-radius: 200px;
+    }
+    .puesto {
+        margin-top: 10px;
+        color: #7eca9c;
+        font-weight: 700;
+        display: block;
+    }
+    .nombre-consejero {
+        font-size: 1.05em;
+        display: block;
+    }
+}
+.cc-link {
+    background-image: url(../img/flecha-cc.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: right top;
+    color: #000;
+    text-decoration: none;
+    padding-right: 24px;
+}
+img.logo-cc {
+    width: 100%;
+    height: auto;
+    max-width: 400px;
+}
+
+
+.tarjeta-persona {
+    .columna-der {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        @include media-breakpoint-up(md) {
+            padding: 30px;
+        }
+    }
+    .puesto {
+        font-weight: 700;
+        color: #7eca9c;
+        margin: 0;
+    }
+    .nombre {
+        color: #888;
+        font-size: 1.75rem;
+        margin: 0;
+    }
+    a.boton {
+        font-weight: normal;
+    }
+}

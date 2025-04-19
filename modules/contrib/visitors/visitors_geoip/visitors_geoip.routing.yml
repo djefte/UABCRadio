@@ -1,0 +1,36 @@
+visitors_geoip.settings:
+  path: '/admin/config/system/visitors/geoip'
+  defaults:
+    _form: '\Drupal\visitors_geoip\Form\SettingsForm'
+    _title: 'Visitors'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors_geoip.rebuild.location:
+  path: '/admin/config/system/visitors/rebuild-location'
+  defaults:
+    _form: '\Drupal\visitors_geoip\Form\RebuildLocationForm'
+    _title: 'Rebuild Locations'
+  requirements:
+    _permission: 'administer site configuration'
+
+visitors.location.region:
+  path: '/visitors/location/region/{country}/{region}'
+  defaults:
+    _controller: '\Drupal\visitors_geoip\Controller\ReportController::region'
+    _title_callback: '\Drupal\visitors_geoip\Controller\ReportController::getRegionTitle'
+    country: NULL
+    region: NULL
+  requirements:
+    _permission: 'access visitors'
+
+visitors.location.city:
+  path: '/visitors/location/city/{country}/{region}/{city}'
+  defaults:
+    _controller: '\Drupal\visitors_geoip\Controller\ReportController::city'
+    _title_callback: '\Drupal\visitors_geoip\Controller\ReportController::getCityTitle'
+    country: NULL
+    region: NULL
+    city: NULL
+  requirements:
+    _permission: 'access visitors'

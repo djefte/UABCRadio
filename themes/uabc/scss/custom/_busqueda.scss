@@ -1,0 +1,194 @@
+// Búsqueda
+
+// Estilo del buscador
+#search-form,
+#search-block-form {
+    @include media-breakpoint-up(lg) {
+        justify-content: flex-end;
+    }
+}
+#search-block-form input,
+#search-form input,
+.estilo-buscador-input {
+    background-color: #eee;
+    border-color: #999;
+    border-radius: 50px;
+    font-size: 1.5rem;
+    padding: 0.375rem 3rem 0.375rem 1.75rem;
+}
+#search-form input#edit-submit,
+#search-block-form input#edit-submit,
+.estilo-buscador-boton {
+    font-size: 1.5rem;
+    background-image: url(../img/icono-buscar.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 30px;
+    background-color: transparent;
+    border-color: transparent;
+    text-indent: -9999999px;
+    width: 80px;
+    margin-left: -80px;
+}
+
+
+#search-form {
+    margin-bottom: 30px;
+}
+
+#edit-help-link {
+    display: none;
+}
+.form-item.form-type-search {
+    label {
+        display: none;
+    }
+}
+
+// Estilo del ordenador
+.form-type-select {
+    min-width: 280px;
+
+    /* Ocultar la etiqueta con css igual a .visually-hidden */
+    label {
+        position: absolute;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+    }
+}
+select.form-select {
+    font-size: 2rem;
+    border: none;
+}
+
+
+
+
+
+
+// Aplicarlo a elementos de buscador y de filtros expuestos
+.vista-con-buscador {
+    .view-filters {
+        .form--inline {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            @include media-breakpoint-up(lg) {
+                flex-direction: row;
+                position: unset;
+            }
+        }
+        .form-item-name,
+        .form-item-title {
+            display: flex;
+            label {
+                font-size: 0;
+                line-height: 0;
+                color: transparent;
+            }
+            input.form-text {
+                @extend .estilo-buscador-input;
+            }
+        }
+        .form-actions {
+            input.button {
+                @extend .estilo-buscador-boton;
+            }
+        }
+    }
+}
+
+.vista-con-etiquetas {
+    .bef-links {
+        ul {
+            padding: 0;
+            li {
+                display: inline-block;
+                margin-right: 10px;
+                margin-bottom: 10px;
+            }
+        }
+    }
+    .bef-link {
+        @include hashtag-style;
+        font-size: 1.5rem !important;
+    }
+}
+
+
+
+.flotar-buscador {
+    position: relative;
+    > h2 {
+        @include media-breakpoint-up(lg) {
+            max-width: 55%;
+        }
+    }
+    .form-item-name,
+    .form-item-title {
+        @include media-breakpoint-up(lg) {
+            position: absolute;
+            top: 0;
+            right: 0;
+            max-width: 50%;
+        }
+    }
+    input.button {
+        //@include media-breakpoint-up(lg) {
+            position: absolute;
+            top: 17px;
+            right: 0;
+        //}
+    }
+}
+// Cambiar el tamaño del buscador de la sección de noticias
+.flotar-buscador.seccion-noticias {
+    > h2 {
+        max-width: 75%;
+    }
+    .form-item-name,
+    .form-item-title {
+        max-width: 100%;
+        @include media-breakpoint-up(lg) {
+            max-width: 25%;
+        }
+    }
+}
+.flotar-buscador.block-views-blockseccion-programas-block-1 {
+    .vista-seccion-programas {
+        h3:first-child {
+            max-width: 100%;
+            @include media-breakpoint-up(lg) {
+                max-width: 75%;
+            }
+        }
+    }
+    .form-item-name,
+    .form-item-title {
+        max-width: 100%;
+        @include media-breakpoint-up(lg) {
+            max-width: 25%;
+        }
+    }
+}
+
+
+
+.view-id-seccion_podcast.view-display-id-block_1 {
+    .view-filters {
+        input.button {
+            bottom: 140px;
+            top: unset;
+            @include media-breakpoint-up(lg) {
+                top: 17px;
+                bottom: unset;
+            }
+        }
+    }
+}

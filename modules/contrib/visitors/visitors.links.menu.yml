@@ -1,0 +1,76 @@
+visitors.settings:
+  title: Visitors
+  route_name: visitors.settings
+  parent: system.admin_config_system
+  description: 'Configure visitors settings.'
+
+visitors.index:
+  title: 'Visitors'
+  route_name: visitors.index
+  parent: system.admin
+  description: 'Web analytics reports.'
+  weight: 5
+
+visitors.hits:
+  title: 'Recent hits'
+  route_name: visitors.hits
+  parent: visitors.index
+  description: 'View pages that have recently been visited.'
+
+visitors.top_pages:
+  title: 'Top pages'
+  route_name: visitors.top_pages
+  parent: visitors.index
+  description: 'View pages that have been hit frequently.'
+
+visitors.hosts:
+  title: 'Hosts'
+  route_name: visitors.hosts
+  parent: visitors.index
+  description: 'View pages count per host.'
+
+visitors.routes:
+  title: 'Routes'
+  route_name: visitors.routes
+  parent: visitors.index
+  description: 'View pages count per route.'
+
+visitors.referrers:
+  title: 'Referrers'
+  route_name: visitors.referrers
+  parent: visitors.index
+  description: 'View referer list.'
+
+visitors.location:
+  title: 'Locations'
+  route_name: visitors.location
+  parent: visitors.index
+  description: 'Location reports.'
+  weight: 80
+
+visitors.device:
+  title: 'Devices'
+  route_name: visitors.device
+  parent: visitors.index
+  description: 'Device reports.'
+  weight: 90
+
+visitors.software:
+  title: 'Software'
+  route_name: visitors.software
+  parent: visitors.index
+  description: 'Software reports.'
+  weight: 100
+
+visitors.times:
+  title: 'Times'
+  route_name: visitors.times
+  parent: visitors.index
+  description: 'Visits by hour, local, and day of week.'
+  weight: 110
+
+visitors.performance:
+  title: 'Performance'
+  route_name: visitors.performance
+  parent: visitors.index
+  description: 'Performance metrics.'

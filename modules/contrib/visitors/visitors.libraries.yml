@@ -1,0 +1,24 @@
+visitors.admin:
+  js:
+    js/visitors.admin.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+
+visitors:
+  js:
+    js/visitors.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+visitors.report:
+  css:
+    layout:
+      css/report.css: {}
+
+menu:
+  css:
+    theme:
+      css/menu.css: { }

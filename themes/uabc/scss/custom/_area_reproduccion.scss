@@ -1,0 +1,203 @@
+// Area de reproducción de la señal en vivo
+// Portada
+
+
+// Muestra el radio en una columna e información en la otra columna
+.layout--twocol-section.area-reproduccion {
+    background-color: #000;
+    color: #fff;
+    padding: 1rem 1rem 2rem;
+    @include media-breakpoint-up(lg) {
+        flex-wrap: nowrap;
+    }
+
+    
+    .layout__region--first {
+        background-image: url(../img/radio-verde.svg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        padding-top: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        aspect-ratio: 1/0.9;
+        flex: 0 1 100%;
+        
+        @include media-breakpoint-up(lg) {
+            flex: 0 1 50%;
+            background-size: 500px;
+            background-position: left 20px center;
+            min-height: 510px;
+            padding-top: 40px;
+        }
+        @include media-breakpoint-up(xxl) {
+            background-size: 550px;
+            background-position: center;
+            padding-top: 60px;
+        }
+    }
+    .layout__region--second {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        flex: 0 1 100%;
+        
+        @include media-breakpoint-up(lg) {
+            flex: 0 1 50%;
+            text-align: left;
+        }
+    }
+    img.radio-placeholder {
+        width: 140px;
+        height: auto;
+        @include media-breakpoint-up(sm) {
+            width: 180px;
+        }
+        @include media-breakpoint-up(md) {
+            width: 150px;
+        }
+        @include media-breakpoint-up(lg) {
+            width: 230px;
+            margin-left: -50px;
+        }
+        @include media-breakpoint-up(xl) {
+            width: 240px;
+            margin-left: -20px;
+        }
+        @include media-breakpoint-up(xxl) {
+            width: 270px;
+            margin-left: initial;
+        }
+    }
+    .view-id-al_aire {
+        .hashtags {
+            margin-top: 10px;
+        }
+    }
+}
+
+// Muestra el programa al aire y a continuación
+.area-reproduccion-programacion {
+    background-color: #000;
+    color: #fff;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 20px 20px 40px;
+    @include media-breakpoint-up(lg) {
+        margin-bottom: 70px;
+        //margin-top: 10px;
+        margin-top: -100px;
+        padding: 0;
+    }
+    
+    .layout__region--second {
+        text-align: center;
+        //display: none;
+        margin-top: 30px;
+        @include media-breakpoint-up(md) {
+            display: block;
+            margin-top: 0;
+        }
+        @include media-breakpoint-up(lg) {
+            text-align: left;
+        }
+    }
+}
+
+.radio-verde {
+    margin: auto;
+    width: 50vw;
+    @include media-breakpoint-up(sm) {
+        width: 45vw;
+        padding-top: 20px;
+    }
+    @include media-breakpoint-up(md) {
+        width: 361px;
+        iframe {
+            width: 100%;
+            aspect-ratio: 1/0.6;
+        }
+    }
+    @include media-breakpoint-up(lg) {
+        width: 300px;
+        margin-left: -20px;
+    }
+    @include media-breakpoint-up(xxl) {
+        margin-left: auto;
+        padding-top: 0;
+    }
+}
+@media screen and (min-width: 640px) and (max-width: 767px) {
+    .radio-verde {
+        width: 42vw;
+        iframe {
+            width: 98%;
+            aspect-ratio: 1/0.6;
+        }
+    }
+}
+
+// Area de radio infantil
+.area-radio-infantil {
+    background-color: #000;
+    background-image: url(../img/cable-amarillo-02.png),
+                      url(../img/cable-amarillo-03.png),
+                      url(../img/radio-anaranjado.svg);
+    background-position: top left, bottom left, top 200px center;
+    background-repeat: no-repeat;
+    background-size: 60%, 85%, 0%;
+    color: #fff;
+    min-height: 60vh;
+    margin-bottom: 80px;
+    @include media-breakpoint-up(lg) {
+        background-position: top left, bottom left, center right 60px;
+        background-size: 340px, 340px, 55%;
+    }
+
+    h2 {
+        color: #61a60e;
+        font-size: 3rem;
+        line-height: 1;
+        max-width: 450px;
+        @include media-breakpoint-up(lg) {
+            font-size: 4.5rem;
+        }
+    }
+
+    .layout__region--first {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 30px 0;
+        @include media-breakpoint-up(lg) {
+            padding: 40px;
+        }
+        @include media-breakpoint-up(xl) {
+            padding: 60px;
+        }
+    }
+    img.radio-placeholder {
+        width: 270px;
+        height: auto;
+    }
+    .layout__region--second {
+        padding: 0 30px 120px;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        @include media-breakpoint-up(lg) {
+            padding: 120px 190px 60px 10px;
+            align-items: center;
+        }
+
+        iframe {
+            width: 100%;
+        }
+
+        .info-programacion {
+            margin-top: 50px;
+        }
+    }
+}

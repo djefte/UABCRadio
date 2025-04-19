@@ -1,0 +1,29 @@
+// Tipografías
+@import 'custom/tipografia';
+
+// Sub theme styling.
+@import 'variables_drupal';
+
+// Bootstrap overridden variables.
+// @see https://getbootstrap.com/docs/5.2/customize/sass/#variable-defaults.
+@import 'variables_bootstrap';
+
+// Include bootstrap.
+@import '/themes/contrib/bootstrap5/scss/style';
+
+// Incluir estilo de UABC Radio
+@import 'encabezado';
+@import 'piedepag';
+
+@import 'custom/area_reproduccion';
+@import 'custom/campos';
+@import 'custom/estilos_texto';
+@import 'custom/hashtags';
+@import 'custom/botones';
+@import 'custom/miniaturas';
+@import 'custom/busqueda';
+@import 'custom/paginacion';
+@import 'custom/miscelaneo';
+@import 'custom/seccion_programas';
+@import 'custom/barra_de_programacion';
+@import 'custom/podcast';

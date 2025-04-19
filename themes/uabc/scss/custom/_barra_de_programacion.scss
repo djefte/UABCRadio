@@ -1,0 +1,98 @@
+// Estilo de la barra de programación
+
+.cell--infantil {
+    background-color: var(--color-infantil);
+    border-top: 5px solid #fff;
+    color: #fff;
+}
+.cell--salud {
+    background-color: var(--color-salud);
+    border-top: 5px solid #fff;
+    color: #fff;
+}
+.cell--diversidad {
+    background-color: var(--color-diversidad);
+    border-top: 5px solid #fff;
+    color: #fff;
+}
+.cell--informativo {
+    background-color: var(--color-informativo);
+    border-top: 5px solid #fff;
+    border-right: 5px solid #fff;
+    color: #fff;
+}
+.cell--revista {
+    background-color: var(--color-revista);
+    border-top: 5px solid #fff;
+    color: #fff;
+}
+.cell--cultura {
+    background-color: var(--color-cultura);
+    border-top: 5px solid #fff;
+    color: #fff;
+}
+.cell--narrativa {
+    background-color: var(--color-narrativa);
+    border-top: 5px solid #fff;
+    border-right: 5px solid #fff;
+    color: #fff;
+}
+.cell--musicaformal {
+    background-color: var(--color-musicaformal);
+    border-top: 5px solid #fff;
+    color: #fff;
+}
+.barra-de-programacion th,
+.barra-de-programacion td {
+    height: 55px;
+    font-weight: bold;
+    font-size: 1rem;
+    line-height: 1.15;
+    position: relative;
+    overflow: hidden;
+    @include media-breakpoint-up(lg) {
+        font-size: 2.25rem;
+        height: 80px;
+    }
+}
+.barra-de-programacion th.celda-dia {
+    font-size: 1rem;
+    font-weight: 600;
+    @include media-breakpoint-up(lg) {
+        font-size: 3.5rem;
+    }
+}
+.barra-de-programacion td.col-hora {
+    padding-left: initial;
+    width: 45px;
+    font-size: 1rem;
+    font-weight: 600;
+    @include media-breakpoint-up(lg) {
+        font-size: 2.5rem;
+        width: 130px;
+    }
+}
+.barra-de-programacion td.thin {
+    height: 10px;
+}
+.barra-de-programacion a.link-interno {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    padding-left: 20px;
+    color: #fff;
+    text-decoration: none;
+    @include media-breakpoint-up(lg) {
+        padding-left: 80px;
+    }
+}
+.barra-de-programacion a.celda-vacia {
+    font-size: 1px;
+    line-height: 0;
+    color: transparent;
+    padding-left: 0;
+}

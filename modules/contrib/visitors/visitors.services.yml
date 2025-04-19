@@ -1,0 +1,102 @@
+services:
+  visitors.negotiator:
+    class: Drupal\visitors\Theme\VisitorThemeNegotiator
+    arguments:
+      - '@config.factory'
+      - '@current_user'
+    tags:
+      - { name: theme_negotiator, priority: -50 }
+
+  visitors.tracker:
+    class: Drupal\visitors\Service\TrackerService
+    arguments:
+      - '@database'
+
+  visitors.visibility:
+    class: Drupal\visitors\Service\VisibilityService
+    arguments:
+      - '@config.factory'
+      - '@path.current'
+      - '@?path_alias.manager'
+      - '@path.matcher'
+      - '@user.data'
+      - '@request_stack'
+      - '@current_user'
+
+  visitors.report:
+    class: Drupal\visitors\Service\ReportService
+    arguments:
+      - '@database'
+      - '@config.factory'
+      - '@request_stack'
+      - '@renderer'
+      - '@date.formatter'
+      - '@entity_type.manager'
+      - '@module_handler'
+      - '@visitors.date_range'
+
+  visitors.counter:
+    class: Drupal\visitors\Service\CounterService
+    arguments:
+      - '@database'
+      - '@datetime.time'
+      - '@state'
+
+  visitors.rebuild.route:
+    class: Drupal\visitors\Service\RebuildRouteService
+    arguments:
+      - '@database'
+      - '@router.no_access_checks'
+      - '@logger.channel.visitors'
+
+  visitors.rebuild.ip_address:
+    class: Drupal\visitors\Service\RebuildIpAddressService
+    arguments:
+      - '@database'
+      - '@logger.channel.visitors'
+
+  visitors.cookie:
+    class: Drupal\visitors\Service\CookieService
+    arguments:
+      - '@request_stack'
+
+  visitors.device:
+    class: Drupal\visitors\Service\DeviceService
+    arguments:
+      - '@database'
+
+  logger.channel.visitors:
+    parent: logger.channel_base
+    arguments: ['visitors']
+
+  visitors.location:
+    class: Drupal\visitors\Service\LocationService
+    arguments:
+      - '@string_translation'
+
+  visitors.language:
+    class: Drupal\visitors\Service\LanguageService
+    arguments:
+      - '@string_translation'
+
+  visitors.date_range:
+    class: Drupal\visitors\Service\DateRangeService
+    arguments:
+      - '@date.formatter'
+      - '@request_stack'
+      - '@config.factory'
+
+  visitors.online:
+    class: Drupal\visitors\Service\OnlineService
+    arguments:
+      - '@database'
+      - '@datetime.time'
+
+  visitors.cron:
+    class: Drupal\visitors\Service\CronService
+    arguments:
+      - '@config.factory'
+      - '@database'
+      - '@state'
+      - '@datetime.time'
+      - '@visitors.counter'
