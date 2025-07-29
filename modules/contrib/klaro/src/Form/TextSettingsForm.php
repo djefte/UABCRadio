@@ -52,7 +52,7 @@ class TextSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Title', [], ['context' => 'klaro']),
       '#default_value' => $config->get('consentNotice.title'),
-      '#description' => $this->t('Title of consent notice', [], ['context' => 'klaro']),
+      '#description' => $this->t('Title of consent notice. To hide the title, check <i>Settings > Styling > Show title</i> in notice dialog.', [], ['context' => 'klaro']),
     ];
     $form['initial']['description'] = [
       '#type' => 'textarea',
@@ -155,11 +155,12 @@ class TextSettingsForm extends ConfigFormBase {
         '%placeholders' => '{privacyPolicy}',
       ], ['context' => 'klaro']),
     ];
+
     $form['manage_apps']['powered_by'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Powered by', [], ['context' => 'klaro']),
       '#default_value' => $config->get('poweredBy'),
-      '#description' => $this->t('Uncheck to remove from the consent dialog modal.', [], ['context' => 'klaro']),
+      '#description' => $this->t('Displayed in the consent dialog modal.', [], ['context' => 'klaro']),
     ];
 
     // "Toggle all" slider.

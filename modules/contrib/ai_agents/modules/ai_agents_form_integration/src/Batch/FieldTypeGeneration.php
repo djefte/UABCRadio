@@ -30,6 +30,7 @@ class FieldTypeGeneration {
     $solvability = $agent->determineSolvability();
     if ($solvability == AiAgentInterface::JOB_SOLVABLE) {
       $agent->solve();
+      \Drupal::messenger()->addMessage('Fields has been created successfully.');
     }
     elseif ($solvability == AiAgentInterface::JOB_INFORMS) {
       \Drupal::messenger()->addMessage('Information: ' . $agent->inform());
@@ -53,7 +54,7 @@ class FieldTypeGeneration {
    * Finished.
    */
   public static function finished($success, $results, $operations) {
-    $route = 'entity.' . $results['entity_type'] . '.field_ui_fields';
+    $route_name = $route = 'entity.' . $results['entity_type'] . '.field_ui_fields';
     // Get the parameters for the route.
     $route_provider = \Drupal::service('router.route_provider');
     $route = $route_provider->getRouteByName($route);
@@ -63,8 +64,7 @@ class FieldTypeGeneration {
     if (isset($parameters[0])) {
       $arguments[$parameters[0]] = $results['bundle'];
     }
-
-    return new RedirectResponse(Url::fromRoute($route, $arguments)->toString());
+    return new RedirectResponse(Url::fromRoute($route_name, $arguments)->toString());
   }
 
 }

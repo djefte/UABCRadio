@@ -68,7 +68,7 @@ class StatusCheckTest extends AutomaticUpdatesFunctionalTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml');
+    $this->setReleaseMetadata(static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml');
     $this->mockActiveCoreVersion('9.8.1');
 
     $this->reportViewerUser = $this->createUser([
@@ -492,7 +492,7 @@ class StatusCheckTest extends AutomaticUpdatesFunctionalTestBase {
     // during it. The Update button is displayed because the form does its own
     // status check (without storing the results), and the checker is no
     // longer raising an error.
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $assert_session->buttonExists('Update to 9.8.1');
     // Ensure that the previous results are still displayed on another admin
     // page, to confirm that the updater form is not discarding the previous
@@ -500,7 +500,7 @@ class StatusCheckTest extends AutomaticUpdatesFunctionalTestBase {
     $this->drupalGet('/admin/structure');
     $assert_session->pageTextContains($message->render());
     // Proceed with the update.
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update to 9.8.1');
     $this->checkForMetaRefresh();
     $this->assertUpdateReady('9.8.1');

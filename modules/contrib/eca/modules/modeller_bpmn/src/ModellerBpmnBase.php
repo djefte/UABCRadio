@@ -652,7 +652,7 @@ abstract class ModellerBpmnBase extends ModellerBase {
       ],
     ];
     $extraDescriptions = [];
-    foreach ($this->prepareConfigFields($form, $extraDescriptions) as $field) {
+    foreach ($this->prepareConfigFields($plugin, $form, $extraDescriptions) as $field) {
       if (!isset($field['value'])) {
         $value = '';
       }
@@ -798,6 +798,9 @@ abstract class ModellerBpmnBase extends ModellerBase {
   /**
    * Helper function preparing config fields for events, conditions and actions.
    *
+   * @param \Drupal\Component\Plugin\PluginInspectionInterface $plugin
+   *   The event, condition or action plugin for which the template should
+   *   be build.
    * @param array $form
    *   The array to which the fields should be added.
    * @param array $extraDescriptions
@@ -807,7 +810,7 @@ abstract class ModellerBpmnBase extends ModellerBase {
    * @return array
    *   The prepared config fields.
    */
-  protected function prepareConfigFields(array $form, array &$extraDescriptions): array {
+  protected function prepareConfigFields(PluginInspectionInterface $plugin, array $form, array &$extraDescriptions): array {
     // @todo Add support for nested form fields like e.g. in container/fieldset.
     $fields = [];
     foreach ($form as $key => $definition) {
@@ -842,7 +845,15 @@ abstract class ModellerBpmnBase extends ModellerBase {
           break;
 
         case 'checkbox':
-          $fields[] = $this->checkbox($key, $label, $weight, $description, $value);
+          if (!is_bool($value)) {
+            $this->logger->error('Found config field %field in %plugin with non-supported value.', [
+              '%field' => $key,
+              '%plugin' => $plugin->getPluginId(),
+            ]);
+          }
+          else {
+            $fields[] = $this->checkbox($key, $label, $weight, $description, $value);
+          }
           continue 2;
 
         case 'checkboxes':

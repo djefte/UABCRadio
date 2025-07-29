@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[AiAgent(
   id: 'node_content_type_agent',
   label: new TranslatableMarkup('Node Content Type Agent'),
+  module_dependencies: ['node'],
 )]
 class ContentType extends AiAgentBase {
 
@@ -120,28 +121,6 @@ class ContentType extends AiAgentBase {
   /**
    * {@inheritDoc}
    */
-  public function isAvailable() {
-    // Check if node module is installed.
-    return $this->agentHelper->isModuleEnabled('node');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isNotAvailableMessage() {
-    return $this->t('You need to enable the node module to do this.');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getRetries() {
-    return 2;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public function getData() {
     return $this->data;
   }
@@ -193,8 +172,6 @@ class ContentType extends AiAgentBase {
     switch ($this->taskType) {
       case 'create':
       case 'blueprint':
-        return AiAgentInterface::JOB_SOLVABLE;
-
       case 'edit':
         return AiAgentInterface::JOB_SOLVABLE;
 

@@ -29,7 +29,7 @@ class DeleteExistingUpdateTest extends UpdaterFormTestBase {
     $this->mockActiveCoreVersion('9.8.0');
     $this->checkForUpdates();
 
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update to 9.8.1');
     $this->checkForMetaRefresh();
     $this->assertUpdateStagedTimes(1);
@@ -40,7 +40,7 @@ class DeleteExistingUpdateTest extends UpdaterFormTestBase {
 
     // If we try to return to the start page, we should be redirected back to
     // the confirmation page.
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $this->assertUpdateReady('9.8.1');
 
     // Delete the existing update.

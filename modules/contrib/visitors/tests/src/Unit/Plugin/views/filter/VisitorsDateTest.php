@@ -32,6 +32,13 @@ class VisitorsDateTest extends UnitTestCase {
   protected $dateRange;
 
   /**
+   * The cache contexts manager.
+   *
+   * @var \Drupal\Core\Cache\Context\CacheContextsManager|\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected $cacheContextsManager;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -44,6 +51,9 @@ class VisitorsDateTest extends UnitTestCase {
 
     $this->dateRange = $this->createMock('Drupal\visitors\VisitorsDateRangeInterface');
     $container->set('visitors.date_range', $this->dateRange);
+
+    $this->cacheContextsManager = $this->createMock('Drupal\Core\Cache\Context\CacheContextsManager');
+    $container->set('cache_contexts_manager', $this->cacheContextsManager);
 
     \Drupal::setContainer($container);
 
@@ -223,6 +233,20 @@ class VisitorsDateTest extends UnitTestCase {
     $reflection->setAccessible(TRUE);
 
     $reflection->invoke($this->plugin, $field);
+  }
+
+  /**
+   * Test the getCacheContexts method.
+   *
+   * @covers ::getCacheContexts
+   */
+  public function testGetCacheContext() {
+    $this->plugin->value['type'] = 'global';
+    $this->cacheContextsManager->expects($this->once())
+      ->method('assertValidTokens')
+      ->with(['visitors_date_range'])
+      ->willReturn(TRUE);
+    $this->assertEquals(['visitors_date_range'], $this->plugin->getCacheContexts());
   }
 
 }

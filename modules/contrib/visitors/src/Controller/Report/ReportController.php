@@ -170,6 +170,14 @@ class ReportController extends ReportBaseController {
       ],
     ];
 
+    $third_row['browser_plugin_list'] = [
+      '#view_id'      => 'visitors',
+      '#view_display' => 'browser_plugin_list',
+      '#attributes'   => [
+        'class' => ['layout-column--half'],
+      ],
+    ];
+
     return [
       'visitors_date_filter_form' => $form,
       'main' => [
@@ -182,6 +190,9 @@ class ReportController extends ReportBaseController {
         ],
         '2' => [
           $this->renderViews($second_row, 'layout-row'),
+        ],
+        '3' => [
+          $this->renderViews($third_row, 'layout-row'),
         ],
       ],
       '#attached' => [

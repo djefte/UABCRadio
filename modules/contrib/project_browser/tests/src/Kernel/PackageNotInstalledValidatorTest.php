@@ -4,18 +4,24 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\project_browser\Kernel;
 
-use Drupal\package_manager\Event\PreOperationStageEvent;
+use Drupal\package_manager\Event\SandboxValidationEvent;
+use Drupal\project_browser\ComposerInstaller\Validator\PackageNotInstalledValidator;
 use Drupal\Tests\package_manager\Kernel\PackageManagerKernelTestBase;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\project_browser\ComposerInstaller\Installer;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @covers \Drupal\project_browser\ComposerInstaller\Validator\PackageNotInstalledValidator
+ * Tests the PackageNotInstalledValidator class.
  *
  * @group project_browser
  */
+#[CoversClass(PackageNotInstalledValidator::class)]
+#[Group('project_browser')]
 final class PackageNotInstalledValidatorTest extends PackageManagerKernelTestBase {
 
   /**
@@ -59,9 +65,8 @@ final class PackageNotInstalledValidatorTest extends PackageManagerKernelTestBas
    *   The packages to install.
    * @param \Drupal\package_manager\ValidationResult|null $expected_result
    *   The expected validation result if any, otherwise NULL.
-   *
-   * @dataProvider providerPreRequireException
    */
+  #[DataProvider('providerPreRequireException')]
   public function testPreRequireException(array $packages, ?ValidationResult $expected_result): void {
     (new ActiveFixtureManipulator())
       ->addPackage([
@@ -96,9 +101,9 @@ final class PackageNotInstalledValidatorTest extends PackageManagerKernelTestBas
       // If we did not get an exception, ensure we didn't expect any results.
       $this->assertNull($expected_result);
     }
-    catch (StageEventException $e) {
+    catch (SandboxEventException $e) {
       $this->assertNotNull($expected_result);
-      assert($e->event instanceof PreOperationStageEvent);
+      assert($e->event instanceof SandboxValidationEvent);
       $this->assertValidationResultsEqual([$expected_result], $e->event->getResults());
     }
   }

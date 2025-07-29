@@ -45,6 +45,19 @@ function hook_leaflet_views_feature_alter(array &$feature, ResultRow $row, ?View
 }
 
 /**
+ * Adjust the array representing a leaflet single features.
+ *
+ * @param array $features
+ *   The leaflet single features definition.
+ * @param \Drupal\views\Plugin\views\ViewsPluginInterface $view_style
+ *   The Leaflet Map View Style.
+ */
+function hook_leaflet_views_features_alter(array &$features, ViewsPluginInterface &$view_style): void {
+  // Make custom alterations to $features, eventually using the $view_style
+  // context.
+}
+
+/**
  * Adjust the array representing a leaflet feature group.
  *
  * @param array $group

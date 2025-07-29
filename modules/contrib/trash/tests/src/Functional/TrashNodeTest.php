@@ -70,6 +70,7 @@ class TrashNodeTest extends BrowserTestBase {
       'edit any page content',
       'delete any page content',
       'administer nodes',
+      'administer content types',
       'bypass node access',
       'access trash',
       'view deleted entities',
@@ -192,6 +193,39 @@ class TrashNodeTest extends BrowserTestBase {
     $this->assertSession()->statusMessageContains('The content item ' . $node->getTitle() . ' has been permanently deleted.', 'status');
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->pageTextContains('There are no deleted content items.');
+  }
+
+  /**
+   * Test deleting a content type with trashed nodes.
+   */
+  public function testDeletingNodeTypeWithTrashedNodes(): void {
+    $this->drupalLogin($this->adminUser);
+
+    // Create a content type programmatically.
+    $type = $this->drupalCreateContentType();
+
+    // Create and trash a node.
+    $node = $this->drupalCreateNode([
+      'type' => $type->id(),
+      'title' => $this->randomMachineName(8),
+    ]);
+    $this->drupalGet('node/' . $node->id() . '/delete');
+    $this->submitForm([], 'Delete');
+
+    // Attempt to delete the content type, which should not be allowed.
+    $this->drupalGet('admin/structure/types/manage/' . $type->id() . '/delete');
+    $this->assertSession()->pageTextContains("{$type->label()} is used by 1 piece of content on your site. You can not remove this content type until you have removed all of the {$type->label()} content.");
+    $this->assertSession()->pageTextNotContains('This action cannot be undone.');
+
+    // Purge the node.
+    $this->drupalGet('/admin/content/trash');
+    $this->clickLink('Purge');
+    $this->submitForm([], 'Confirm');
+
+    // Attempt to delete the content type, which should now be allowed.
+    $this->drupalGet('admin/structure/types/manage/' . $type->label() . '/delete');
+    $this->assertSession()->pageTextContains("Are you sure you want to delete the content type {$type->label()}?");
+    $this->assertSession()->pageTextContains('This action cannot be undone.');
   }
 
   /**

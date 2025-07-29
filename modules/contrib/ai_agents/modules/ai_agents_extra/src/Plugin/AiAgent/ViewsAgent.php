@@ -26,6 +26,7 @@ use Symfony\Component\Yaml\Yaml;
 #[AiAgent(
   id: 'views_agent',
   label: new TranslatableMarkup('Views Agent'),
+  module_dependencies: ['views'],
 )]
 class ViewsAgent extends AiAgentBase {
 
@@ -171,28 +172,6 @@ class ViewsAgent extends AiAgentBase {
         ],
       ],
     ];
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isAvailable() {
-    // Check if node module is installed.
-    return $this->agentHelper->isModuleEnabled('views');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isNotAvailableMessage() {
-    return $this->t('You need to enable the Views module to do this.');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getRetries() {
-    return 2;
   }
 
   /**

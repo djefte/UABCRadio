@@ -98,7 +98,7 @@ class GeocoderProviderCreationForm extends FormBase {
       '#value' => $this->t('Add'),
     ];
 
-    $providers = $this->link->generate($this->t('list of all available Geocoder providers'), Url::fromUri('https://packagist.org/providers/geocoder-php/provider-implementation', [
+    $providers = $this->link->generate($this->t('List of all possible Geocoder providers|packages'), Url::fromUri('https://packagist.org/providers/geocoder-php/provider-implementation', [
       'absolute' => TRUE,
       'attributes' => ['target' => 'blank'],
     ]));
@@ -107,7 +107,7 @@ class GeocoderProviderCreationForm extends FormBase {
       'caption' => [
         '#type' => 'html_tag',
         '#tag' => 'p',
-        '#value' => $this->t('If the provider of your choice does not appear in the dropdown, make sure that it is installed using Composer. Here is the @providers_list.', [
+        '#value' => $this->t('If the provider of your choice does not appear in the dropdown, make sure that it is installed using Composer.<br>@providers_list.<br><b>Note: </b> Only the ones listed in the "src/Plugin/Geocoder/Provider" folder are supported by the Geocoder module at the moment. Missing ones need specific additional plugin implementation, eventually shared with the Drupal community as new Geocoder module public issue.', [
           '@providers_list' => $providers,
         ]),
       ],

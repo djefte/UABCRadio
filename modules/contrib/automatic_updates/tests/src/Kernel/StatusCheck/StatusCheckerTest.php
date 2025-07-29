@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\automatic_updates\Kernel\StatusCheck;
 
 use Drupal\automatic_updates\CronUpdateRunner;
-use Drupal\automatic_updates\ConsoleUpdateStage;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\ConsoleUpdateSandboxManager;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\automatic_updates\Validation\StatusChecker;
 use Drupal\automatic_updates\Validator\StagedProjectsValidator;
 use Drupal\automatic_updates_test\EventSubscriber\TestSubscriber1;
@@ -62,20 +62,21 @@ class StatusCheckerTest extends AutomaticUpdatesKernelTestBase {
     TestSubscriber1::setTestResult($checker_1_expected, StatusCheckEvent::class);
     TestSubscriber2::setTestResult($checker_2_expected, StatusCheckEvent::class);
     $expected_results_all = array_merge($checker_1_expected, $checker_2_expected);
-    $this->assertCheckerResultsFromManager($expected_results_all, TRUE);
+    /** @var \Drupal\automatic_updates\Validation\StatusChecker $status_checker */
+    $status_checker = $this->container->get(StatusChecker::class);
+    $this->assertValidationResultsEqual($expected_results_all, $status_checker->run()->getResults());
 
-    // Define a constant flag that will cause the status checker service
-    // priority to be altered.
-    define('PACKAGE_MANAGER_TEST_VALIDATOR_PRIORITY', 1);
-    // Rebuild the container to trigger the service to be altered.
-    $kernel = $this->container->get('kernel');
-    $this->container = $kernel->rebuildContainer();
+    // Rebuild the container and ensure the stored results are still returned.
+    $this->container = $this->container->get('kernel')->rebuildContainer();
+    /** @var \Drupal\automatic_updates\Validation\StatusChecker $status_checker */
+    $status_checker = $this->container->get(StatusChecker::class);
     // The stored results should be returned, even though the validators' order
     // has been changed and the container has been rebuilt.
-    $this->assertValidationResultsEqual($expected_results_all, $this->getResultsFromManager());
-    // Confirm that after calling run() the expected results order has changed.
-    $expected_results_all_reversed = array_reverse($expected_results_all);
-    $this->assertCheckerResultsFromManager($expected_results_all_reversed, TRUE);
+    $this->assertValidationResultsEqual($expected_results_all, $status_checker->getResults());
+    // Remove some of the fake results and confirm that the results have changed
+    // if we call run().
+    TestSubscriber2::setTestResult(NULL, StatusCheckEvent::class);
+    $this->assertValidationResultsEqual($checker_1_expected, $status_checker->run()->getResults());
 
     $checker_1_expected = [
       'checker 1 errors' => $this->createValidationResult(SystemManager::REQUIREMENT_ERROR),
@@ -87,21 +88,21 @@ class StatusCheckerTest extends AutomaticUpdatesKernelTestBase {
     ];
     TestSubscriber1::setTestResult($checker_1_expected, StatusCheckEvent::class);
     TestSubscriber2::setTestResult($checker_2_expected, StatusCheckEvent::class);
-    $expected_results_all = array_merge($checker_2_expected, $checker_1_expected);
-    $this->assertCheckerResultsFromManager($expected_results_all, TRUE);
+    $expected_results_all = array_merge($checker_1_expected, $checker_2_expected);
+    $this->assertValidationResultsEqual($expected_results_all, $status_checker->run()->getResults());
 
     // Confirm that filtering by severity works.
     $warnings_only_results = [
-      $checker_2_expected['checker 2 warnings'],
       $checker_1_expected['checker 1 warnings'],
+      $checker_2_expected['checker 2 warnings'],
     ];
-    $this->assertCheckerResultsFromManager($warnings_only_results, FALSE, SystemManager::REQUIREMENT_WARNING);
+    $this->assertValidationResultsEqual($warnings_only_results, $status_checker->getResults(SystemManager::REQUIREMENT_WARNING));
 
     $errors_only_results = [
-      $checker_2_expected['checker 2 errors'],
       $checker_1_expected['checker 1 errors'],
+      $checker_2_expected['checker 2 errors'],
     ];
-    $this->assertCheckerResultsFromManager($errors_only_results, FALSE, SystemManager::REQUIREMENT_ERROR);
+    $this->assertValidationResultsEqual($errors_only_results, $status_checker->getResults(SystemManager::REQUIREMENT_ERROR));
   }
 
   /**
@@ -206,19 +207,19 @@ class StatusCheckerTest extends AutomaticUpdatesKernelTestBase {
    */
   public function testCronSetting(): void {
     $this->enableModules(['automatic_updates']);
-    $stage = NULL;
-    $listener = function (StatusCheckEvent $event) use (&$stage): void {
-      $stage = $event->stage;
+    $sandbox_manager = NULL;
+    $listener = function (StatusCheckEvent $event) use (&$sandbox_manager): void {
+      $sandbox_manager = $event->sandboxManager;
     };
     $this->addEventTestListener($listener, StatusCheckEvent::class);
     $this->container->get(StatusChecker::class)->run();
     // By default, updates will be enabled on cron.
-    $this->assertInstanceOf(ConsoleUpdateStage::class, $stage);
+    $this->assertInstanceOf(ConsoleUpdateSandboxManager::class, $sandbox_manager);
     $this->config('automatic_updates.settings')
       ->set('unattended.level', CronUpdateRunner::DISABLED)
       ->save();
     $this->container->get(StatusChecker::class)->run();
-    $this->assertInstanceOf(UpdateStage::class, $stage);
+    $this->assertInstanceOf(UpdateSandboxManager::class, $sandbox_manager);
   }
 
   /**
@@ -228,7 +229,7 @@ class StatusCheckerTest extends AutomaticUpdatesKernelTestBase {
     $this->getStageFixtureManipulator()->setCorePackageVersion('9.8.1');
     $this->setCoreVersion('9.8.0');
     $this->setReleaseMetadata([
-      'drupal' => __DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
     ]);
     $this->container->get('module_installer')->install(['automatic_updates']);
 
@@ -252,12 +253,12 @@ class StatusCheckerTest extends AutomaticUpdatesKernelTestBase {
     $validator = $this->container->get(StagedProjectsValidator::class);
     $this->container->get('event_dispatcher')->removeSubscriber($validator);
 
-    $stage = $this->container->get(UpdateStage::class);
-    $stage->begin(['drupal' => '9.8.1']);
-    $stage->stage();
-    $stage->apply();
-    $stage->postApply();
-    $stage->destroy();
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $sandbox_manager->stage();
+    $sandbox_manager->apply();
+    $sandbox_manager->postApply();
+    $sandbox_manager->destroy();
 
     // The status validation manager shouldn't have any stored results.
     $this->assertEmpty($manager->getResults());

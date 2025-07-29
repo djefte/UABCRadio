@@ -102,7 +102,7 @@ display:
         type: none
         options: {  }
       cache:
-        type: none
+        type: tag
         options: {  }
       empty: {  }
       sorts:
@@ -261,6 +261,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   browser_engine_pie:
     id: browser_engine_pie
@@ -456,6 +457,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   browser_engine_table:
     id: browser_engine_table
@@ -586,6 +588,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   browser_name_table:
     id: browser_name_table
@@ -717,6 +720,463 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
+      tags: {  }
+  browser_plugin_list:
+    id: browser_plugin_list
+    display_title: 'Browser Plugins'
+    display_plugin: embed
+    position: 39
+    display_options:
+      title: 'Browser Plugins'
+      fields:
+        config_cookie:
+          id: config_cookie
+          table: visitors
+          field: config_cookie
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_cookie
+          label: Cookie
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-cookie-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_pdf:
+          id: config_pdf
+          table: visitors
+          field: config_pdf
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_pdf
+          label: PDF
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-pdf-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_flash:
+          id: config_flash
+          table: visitors
+          field: config_flash
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_flash
+          label: Flash
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-flash-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_java:
+          id: config_java
+          table: visitors
+          field: config_java
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_java
+          label: Java
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-java-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_silverlight:
+          id: config_silverlight
+          table: visitors
+          field: config_silverlight
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_silverlight
+          label: Silverlight
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-silverlight-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_windowsmedia:
+          id: config_windowsmedia
+          table: visitors
+          field: config_windowsmedia
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_windowsmedia
+          label: 'Windows Media'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-windows-media-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_quicktime:
+          id: config_quicktime
+          table: visitors
+          field: config_quicktime
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_quicktime
+          label: Quicktime
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-quicktime-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+        config_realplayer:
+          id: config_realplayer
+          table: visitors
+          field: config_realplayer
+          relationship: none
+          group_type: sum
+          admin_label: ''
+          plugin_id: visitors_realplayer
+          label: Realplayer
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: .visitors-realplayer-plugin-icon
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: true
+          empty_zero: true
+          hide_alter_empty: true
+          icon: false
+      pager:
+        type: none
+        options:
+          offset: 0
+      sorts: {  }
+      style:
+        type: default
+        options:
+          grouping: {  }
+          row_class: ''
+          default_row_class: true
+      row:
+        type: fields
+        options:
+          default_field_elements: true
+          inline: {  }
+          separator: ''
+          hide_empty: false
+      defaults:
+        title: false
+        pager: false
+        style: false
+        row: false
+        fields: false
+        sorts: false
+        header: false
+        footer: false
+      display_description: ''
+      header: {  }
+      footer:
+        area_text_custom:
+          id: area_text_custom
+          table: views
+          field: area_text_custom
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: text_custom
+          empty: false
+          content: 'Note: Plugin detection does not work in Internet Explorer before 11. This report is only based on non-IE browsers and newer versions of IE.'
+          tokenize: false
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   browser_version_table:
     id: browser_version_table
@@ -897,6 +1357,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   continent_pie:
     id: continent_pie
@@ -1092,6 +1553,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   continent_table:
     id: continent_table
@@ -1273,6 +1735,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   country_table:
     id: country_table
@@ -1488,6 +1951,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - visitors_date_range
       tags: {  }
   daily_column:
     id: daily_column
@@ -1691,6 +2155,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   day_of_month_column:
     id: day_of_month_column
@@ -1905,6 +2370,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   day_of_month_table:
     id: day_of_month_table
@@ -2097,6 +2563,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   day_of_week_column:
     id: day_of_week_column
@@ -2311,6 +2778,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   day_of_week_table:
     id: day_of_week_table
@@ -2503,6 +2971,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   device_brand_table:
     id: device_brand_table
@@ -2621,6 +3090,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   device_config_table:
     id: device_config_table
@@ -2851,6 +3321,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   device_model_table:
     id: device_model_table
@@ -3068,6 +3539,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   device_resolution_table:
     id: device_resolution_table
@@ -3198,6 +3670,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   device_type_table:
     id: device_type_table
@@ -3316,6 +3789,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   distinct_countries_list:
     id: distinct_countries_list
@@ -3412,6 +3886,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   hour_column:
     id: hour_column
@@ -3626,6 +4101,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   hour_table:
     id: hour_table
@@ -3818,6 +4294,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   language_code_table:
     id: language_code_table
@@ -3951,6 +4428,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   language_table:
     id: language_table
@@ -4083,6 +4561,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   local_hour_column:
     id: local_hour_column
@@ -4297,6 +4776,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   local_hour_table:
     id: local_hour_table
@@ -4489,6 +4969,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   monthly_column:
     id: monthly_column
@@ -4703,6 +5184,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   monthly_table:
     id: monthly_table
@@ -4895,6 +5377,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   os_family_table:
     id: os_family_table
@@ -5026,6 +5509,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   os_version_table:
     id: os_version_table
@@ -5206,6 +5690,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   performance_daily_column:
     id: performance_daily_column
@@ -5720,6 +6205,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   performance_hourly_column:
     id: performance_hourly_column
@@ -6234,6 +6720,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   performance_weekly_column:
     id: performance_weekly_column
@@ -6748,6 +7235,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   recent_view_table:
     id: recent_view_table
@@ -7372,6 +7860,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - visitors_date_range
       tags: {  }
   referrer_table:
     id: referrer_table
@@ -7741,6 +8230,7 @@ display:
         - url
         - url.path
         - url.query_args
+        - visitors_date_range
       tags: {  }
   top_host_table:
     id: top_host_table
@@ -7868,6 +8358,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   top_path_table:
     id: top_path_table
@@ -7999,6 +8490,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   top_route_table:
     id: top_route_table
@@ -8301,6 +8793,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - visitors_date_range
       tags: {  }
   weekly_column:
     id: weekly_column
@@ -8504,6 +8997,7 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }
   weekly_table:
     id: weekly_table
@@ -8682,4 +9176,5 @@ display:
       max-age: -1
       contexts:
         - 'languages:language_interface'
+        - visitors_date_range
       tags: {  }

@@ -12,7 +12,7 @@ optional_dependencies:
   - simple_crawler:simple_crawler
   - unstructured:unstructured
 
-# Information added by Drupal.org packaging script on 2025-02-07
-version: '1.0.2'
+# Information added by Drupal.org packaging script on 2025-07-17
+version: '1.1.2'
 project: 'ai_agents'
-datestamp: 1738909481
+datestamp: 1752741526

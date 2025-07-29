@@ -24,13 +24,13 @@ final class BatchProcessor {
   public const STAGE_ID_SESSION_KEY = '_automatic_updates_extensions_stage_id';
 
   /**
-   * Gets the update stage service.
+   * Gets the update sandbox manager service.
    *
-   * @return \Drupal\automatic_updates_extensions\ExtensionUpdateStage
-   *   The update stage service.
+   * @return \Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager
+   *   The update sandbox manager service.
    */
-  private static function getStage(): ExtensionUpdateStage {
-    return \Drupal::service(ExtensionUpdateStage::class);
+  private static function getSandboxManager(): ExtensionUpdateSandboxManager {
+    return \Drupal::service(ExtensionUpdateSandboxManager::class);
   }
 
   /**
@@ -58,11 +58,11 @@ final class BatchProcessor {
    * @param array $context
    *   The current context of the batch job.
    *
-   * @see \Drupal\automatic_updates_extensions\ExtensionUpdateStage::begin()
+   * @see \Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager::begin()
    */
   public static function begin(array $project_versions, array &$context): void {
     try {
-      $stage_id = static::getStage()->begin($project_versions);
+      $stage_id = static::getSandboxManager()->begin($project_versions);
       \Drupal::service('session')->set(static::STAGE_ID_SESSION_KEY, $stage_id);
     }
     catch (\Throwable $e) {
@@ -76,17 +76,17 @@ final class BatchProcessor {
    * @param array $context
    *   The current context of the batch job.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::stage()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::stage()
    */
   public static function stage(array &$context): void {
     $stage_id = \Drupal::service('session')->get(static::STAGE_ID_SESSION_KEY);
     try {
-      static::getStage()->claim($stage_id)->stage();
+      static::getSandboxManager()->claim($stage_id)->stage();
     }
     catch (\Throwable $e) {
       // If the stage was not already destroyed because of this exception
       // destroy it.
-      if (!static::getStage()->isAvailable()) {
+      if (!static::getSandboxManager()->isAvailable()) {
         static::clean($stage_id, $context);
       }
       static::handleException($e, $context);
@@ -101,11 +101,11 @@ final class BatchProcessor {
    * @param array $context
    *   The current context of the batch job.
    *
-   * @see \Drupal\automatic_updates_extensions\ExtensionUpdateStage::apply()
+   * @see \Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager::apply()
    */
   public static function commit(string $stage_id, array &$context): void {
     try {
-      static::getStage()->claim($stage_id)->apply();
+      static::getSandboxManager()->claim($stage_id)->apply();
       // The batch system does not allow any single request to run for longer
       // than a second, so this will force the next operation to be done in a
       // new request. This helps keep the running code in as consistent a state
@@ -129,11 +129,11 @@ final class BatchProcessor {
    * @param array $context
    *   The current context of the batch job.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::postApply()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::postApply()
    */
   public static function postApply(string $stage_id, array &$context): void {
     try {
-      static::getStage()->claim($stage_id)->postApply();
+      static::getSandboxManager()->claim($stage_id)->postApply();
     }
     catch (\Throwable $e) {
       static::handleException($e, $context);
@@ -148,11 +148,11 @@ final class BatchProcessor {
    * @param array $context
    *   The current context of the batch job.
    *
-   * @see \Drupal\automatic_updates_extensions\ExtensionUpdateStage::destroy()
+   * @see \Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager::destroy()
    */
   public static function clean(string $stage_id, array &$context): void {
     try {
-      static::getStage()->claim($stage_id)->destroy();
+      static::getSandboxManager()->claim($stage_id)->destroy();
     }
     catch (\Throwable $e) {
       static::handleException($e, $context);

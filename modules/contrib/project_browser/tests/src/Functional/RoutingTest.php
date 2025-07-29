@@ -7,12 +7,14 @@ namespace Drupal\Tests\project_browser\Functional;
 use Drupal\Core\Url;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\Tests\BrowserTestBase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests routing of source plugins.
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class RoutingTest extends BrowserTestBase {
 
   /**

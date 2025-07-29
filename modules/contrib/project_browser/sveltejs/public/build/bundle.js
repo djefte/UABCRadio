@@ -921,7 +921,7 @@
     };
 
     const BASE_URL = `${window.location.protocol}//${window.location.host}${drupalSettings.path.baseUrl + drupalSettings.path.pathPrefix}`;
-    const FULL_MODULE_PATH = `${BASE_URL}${drupalSettings.project_browser.module_path}`;
+    const FULL_MODULE_PATH = `${window.location.protocol}//${window.location.host}${drupalSettings.path.baseUrl}${drupalSettings.project_browser.module_path}`;
     const DARK_COLOR_SCHEME =
       matchMedia('(forced-colors: active)').matches &&
       matchMedia('(prefers-color-scheme: dark)').matches;
@@ -5072,7 +5072,7 @@
     	return child_ctx;
     }
 
-    // (75:6) {#if tasks.length > 1}
+    // (81:6) {#if tasks.length > 1}
     function create_if_block$8(ctx) {
     	let li;
     	let button;
@@ -5154,7 +5154,7 @@
     	};
     }
 
-    // (86:8) {#each tasks.slice(1) as task}
+    // (92:8) {#each tasks.slice(1) as task}
     function create_each_block$2(ctx) {
     	let li;
     	let a;
@@ -5206,6 +5206,8 @@
     	let t0;
     	let a_href_value;
     	let t1;
+    	let ul_class_value;
+    	let div1_class_value;
     	let mounted;
     	let dispose;
     	let if_block = /*tasks*/ ctx[0].length > 1 && create_if_block$8(ctx);
@@ -5224,9 +5226,9 @@
     			attr(a, "class", "pb__action_button");
     			toggle_class(a, "use-ajax", /*tasks*/ ctx[0][0].ajax);
     			attr(li, "class", "dropbutton__item dropbutton-action");
-    			attr(ul, "class", "dropbutton dropbutton--extrasmall dropbutton--multiple");
+    			attr(ul, "class", ul_class_value = "dropbutton dropbutton--extrasmall dropbutton--" + (/*tasks*/ ctx[0].length > 1 ? 'multiple' : 'single'));
     			attr(div0, "class", "dropbutton-widget");
-    			attr(div1, "class", "dropbutton-wrapper dropbutton-multiple");
+    			attr(div1, "class", div1_class_value = "dropbutton-wrapper dropbutton-" + (/*tasks*/ ctx[0].length > 1 ? 'multiple' : 'single'));
     			attr(div1, "data-once", "dropbutton");
     		},
     		m(target, anchor) {
@@ -5267,6 +5269,14 @@
     			} else if (if_block) {
     				if_block.d(1);
     				if_block = null;
+    			}
+
+    			if (dirty & /*tasks*/ 1 && ul_class_value !== (ul_class_value = "dropbutton dropbutton--extrasmall dropbutton--" + (/*tasks*/ ctx[0].length > 1 ? 'multiple' : 'single'))) {
+    				attr(ul, "class", ul_class_value);
+    			}
+
+    			if (dirty & /*tasks*/ 1 && div1_class_value !== (div1_class_value = "dropbutton-wrapper dropbutton-" + (/*tasks*/ ctx[0].length > 1 ? 'multiple' : 'single'))) {
+    				attr(div1, "class", div1_class_value);
     			}
     		},
     		i: noop,

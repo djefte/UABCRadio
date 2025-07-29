@@ -85,7 +85,7 @@ final class SupportedBranchInstalled implements ContainerInjectionInterface {
 
     if ($in_supported_major && $allow_minor_updates) {
       $messages[] = $this->t('Use the <a href=":url">update form</a> to update to a supported version.', [
-        ':url' => Url::fromRoute('update.module_update')->toString(),
+        ':url' => Url::fromRoute('automatic_updates.update_form')->toString(),
       ]);
     }
     else {

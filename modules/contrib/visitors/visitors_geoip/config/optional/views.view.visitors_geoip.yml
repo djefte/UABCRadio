@@ -102,7 +102,7 @@ display:
         type: none
         options: {  }
       cache:
-        type: none
+        type: tag
         options: {  }
       empty: {  }
       sorts:
@@ -292,6 +292,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - visitors_date_range
       tags: {  }
   city_table:
     id: city_table
@@ -739,6 +740,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - visitors_date_range
       tags: {  }
   recent_view_table:
     id: recent_view_table
@@ -1312,6 +1314,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - visitors_date_range
       tags: {  }
   region_table:
     id: region_table
@@ -1672,4 +1675,5 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - visitors_date_range
       tags: {  }

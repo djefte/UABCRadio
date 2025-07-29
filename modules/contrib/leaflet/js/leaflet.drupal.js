@@ -1,37 +1,41 @@
-(function($, Drupal, drupalSettings) {
+(function($, Drupal, drupalSettings, once) {
+
+  "use strict";
 
   Drupal.behaviors.leaflet = {
     attach: function(context, settings) {
 
       // For each Leaflet Map/id defined process with Leaflet Map and Features
       // generation.
-      $.each(settings.leaflet, function(m, data) {
+      $.each(settings.leaflet, function(mapid, leaflet_settings) {
 
         // Ensure the Leaflet Behavior is attached only once to each Leaflet map
         // id element.
         // @see https://www.drupal.org/project/leaflet/issues/3314762#comment-15044223
-        const leaflet_elements = $(once('behaviour-leaflet', '#' + data['mapid']));
-        leaflet_elements.each(function () {
-          let map_container = $(this);
-          let mapid = data['mapid'];
+        const leaflet_elements = $(once('behaviour-leaflet', '#' + mapid,));
+        leaflet_elements.each(function() {
+          const map_container = $(this);
 
           // Function to load the Leaflet Map, based on the provided mapid.
           function loadMap(mapid) {
             // Process a new Leaflet Map only if the map container is empty.
             // Avoid reprocessing a Leaflet Map already initialised.
             if (map_container.data('leaflet') === undefined) {
-              map_container.data('leaflet', new Drupal.Leaflet(L.DomUtil.get(mapid), mapid, data.map));
-              if (data.features.length > 0) {
+              map_container.data('leaflet', new Drupal.Leaflet(L.DomUtil.get(mapid), mapid, leaflet_settings.map));
+              if (leaflet_settings.features.length > 0) {
                 // Add Leaflet Map Features.
-                map_container.data('leaflet').add_features(data.features, true);
+                map_container.data('leaflet').add_features(leaflet_settings.features, true);
               }
 
-              // Add the Leaflet map to data settings object to make it accessible.
-              // @NOTE: This is used by the Leaflet Widget module.
-              data.lMap = map_container.data('leaflet').lMap;
+              // Add the Leaflet map to data settings object to make it
+              // accessible and extendable from other Drupal.behaviors attached
+              // functions.
+              // @NOTE: i.e. this is used by the leaflet.widget.js.
+              leaflet_settings.lMap = map_container.data('leaflet').lMap;
 
-              // Add the Leaflet Map Markers to data settings object to make it accessible.
-              data.markers = map_container.data('leaflet').markers;
+              // Add the Leaflet Map Markers to data settings object to make it
+              // also accessible and extendable.
+              leaflet_settings.markers = map_container.data('leaflet').markers;
 
               // Set initial Map position to wrap its defined bounds.
               map_container.data('leaflet').fitBounds();
@@ -49,10 +53,10 @@
 
               // Add the Map Geocoder Control if requested.
               if (!Drupal.Leaflet[mapid].geocoder_control && Drupal.Leaflet.prototype.map_geocoder_control) {
-                let mapGeocoderControlDiv = document.createElement('div');
+                const mapGeocoderControlDiv = document.createElement('div');
                 Drupal.Leaflet[mapid].geocoder_control = Drupal.Leaflet.prototype.map_geocoder_control(mapGeocoderControlDiv, mapid);
-                Drupal.Leaflet[mapid].geocoder_control.addTo(Drupal.Leaflet[mapid].lMap)
-                let geocoder_settings = drupalSettings.leaflet[mapid].map.settings.geocoder.settings;
+                Drupal.Leaflet[mapid].geocoder_control.addTo(Drupal.Leaflet[mapid].lMap);
+                const geocoder_settings = drupalSettings.leaflet[mapid].map.settings.geocoder.settings;
                 Drupal.Leaflet.prototype.map_geocoder_control.autocomplete(mapid, geocoder_settings);
               }
 
@@ -62,57 +66,72 @@
               }
 
               // Add and Initialise the Map Reset View Control if requested.
-              if (!Drupal.Leaflet[mapid].reset_view_control && map_container.data('leaflet').map_settings.reset_map && map_container.data('leaflet').map_settings.reset_map.control) {
-                let map_reset_view_options = map_container.data('leaflet').map_settings.reset_map.options ? JSON.parse(map_container.data('leaflet').map_settings.reset_map.options) : {};
+              if (!Drupal.Leaflet[mapid].reset_view_control &&
+                  map_container.data('leaflet').map_settings.reset_map &&
+                  map_container.data('leaflet').map_settings.reset_map.control) {
+                const map_reset_view_options = map_container.data('leaflet').map_settings.reset_map.options ?
+                  JSON.parse(map_container.data('leaflet').map_settings.reset_map.options) : {};
                 map_reset_view_options.latlng = map_container.data('leaflet').start_center;
                 map_reset_view_options.zoom = map_container.data('leaflet').start_zoom;
-                Drupal.Leaflet[mapid].reset_view_control = L.control.resetView(map_reset_view_options).addTo(map_container.data('leaflet').lMap);
+                Drupal.Leaflet[mapid].reset_view_control = L.control.resetView(map_reset_view_options)
+                  .addTo(map_container.data('leaflet').lMap);
               }
 
               // Add and Initialise the Map Scale Control if requested.
-              if (!Drupal.Leaflet[mapid].map_scale_control && map_container.data('leaflet').map_settings.map_scale && map_container.data('leaflet').map_settings.map_scale.control) {
-                const map_scale_options = map_container.data('leaflet').map_settings.map_scale.options ? JSON.parse(map_container.data('leaflet').map_settings.map_scale.options) : {};
-                Drupal.Leaflet[mapid].map_scale_control = L.control.scale(map_scale_options).addTo(map_container.data('leaflet').lMap);
+              if (!Drupal.Leaflet[mapid].map_scale_control &&
+                  map_container.data('leaflet').map_settings.map_scale &&
+                  map_container.data('leaflet').map_settings.map_scale.control) {
+                const map_scale_options = map_container.data('leaflet').map_settings.map_scale.options ?
+                  JSON.parse(map_container.data('leaflet').map_settings.map_scale.options) : {};
+                Drupal.Leaflet[mapid].map_scale_control = L.control.scale(map_scale_options)
+                  .addTo(map_container.data('leaflet').lMap);
               }
 
               // Add the Locate Control if requested.
-              if (!Drupal.Leaflet[mapid].locate_control && map_container.data('leaflet').map_settings.locate && map_container.data('leaflet').map_settings.locate.control) {
-                let locate_options = map_container.data('leaflet').map_settings.locate.options ? JSON.parse(map_container.data('leaflet').map_settings.locate.options) : {};
-                Drupal.Leaflet[mapid].locate_control = L.control.locate(locate_options).addTo(map_container.data('leaflet').lMap);
+              if (!Drupal.Leaflet[mapid].locate_control &&
+                  map_container.data('leaflet').map_settings.locate &&
+                  map_container.data('leaflet').map_settings.locate.control) {
+                const locate_options = map_container.data('leaflet').map_settings.locate.options ?
+                  JSON.parse(map_container.data('leaflet').map_settings.locate.options) : {};
+                Drupal.Leaflet[mapid].locate_control = L.control.locate(locate_options)
+                  .addTo(map_container.data('leaflet').lMap);
 
                 // In case this Leaflet Map is not in a Widget Context, eventually perform the Automatic User Locate, if requested.
-                if (!data.hasOwnProperty('leaflet_widget') && map_container.data('leaflet').map_settings.hasOwnProperty('locate') && map_container.data('leaflet').map_settings.locate.automatic) {
+                if (!leaflet_settings.hasOwnProperty('leaflet_widget') &&
+                    map_container.data('leaflet').map_settings.hasOwnProperty('locate') &&
+                    map_container.data('leaflet').map_settings.locate.automatic) {
                   Drupal.Leaflet[mapid].locate_control.start();
                 }
               }
 
               // Add Fullscreen Control, if requested.
-              if (!Drupal.Leaflet[mapid].fullscreen_control && map_container.data('leaflet').map_settings.fullscreen && map_container.data('leaflet').map_settings.fullscreen.control) {
-                let map_fullscreen_options = map_container.data('leaflet').map_settings.fullscreen.options ? JSON.parse(map_container.data('leaflet').map_settings.fullscreen.options) : {};
-                Drupal.Leaflet[mapid].fullscreen_control = L.control.fullscreen(
-                  map_fullscreen_options
-                ).addTo(map_container.data('leaflet').lMap);
+              if (!Drupal.Leaflet[mapid].fullscreen_control &&
+                  map_container.data('leaflet').map_settings.fullscreen &&
+                  map_container.data('leaflet').map_settings.fullscreen.control) {
+                const map_fullscreen_options = map_container.data('leaflet').map_settings.fullscreen.options ?
+                  JSON.parse(map_container.data('leaflet').map_settings.fullscreen.options) : {};
+                Drupal.Leaflet[mapid].fullscreen_control = L.control.fullscreen(map_fullscreen_options)
+                  .addTo(map_container.data('leaflet').lMap);
               }
 
               // Attach Leaflet Map listeners On Popup Open.
-              data.lMap.on('popupopen', function (e) {
-
+              leaflet_settings.lMap.on('popupopen', function(e) {
                 // On leaflet-ajax-popup selector, fetch and set Ajax content.
-                let element = e.popup._contentNode;
-                let content = $('*[data-leaflet-ajax-popup]', element);
+                const element = e.popup._contentNode;
+                const content = $('*[data-leaflet-ajax-popup]', element);
                 if (content.length) {
-                  let url = content.data('leaflet-ajax-popup');
-                  Drupal.ajax({url: url}).execute().done(function (data) {
+                  const url = content.data('leaflet-ajax-popup');
+                  Drupal.ajax({url: url}).execute()
+                    .done(function(data) {
+                      // Copy the html we received via AJAX to the popup, so we won't
+                      // have to make another AJAX call (#see 3258780).
+                      e.popup.setContent(data[0].data);
 
-                    // Copy the html we received via AJAX to the popup, so we won't
-                    // have to make another AJAX call (#see 3258780).
-                    e.popup.setContent(data[0].data);
-
-                    // Attach drupal behaviors on new content.
-                    Drupal.attachBehaviors(element, drupalSettings);
-                  }).
-                    // In case of failing fetching data.
-                    fail(function () {
+                      // Attach drupal behaviors on new content.
+                      Drupal.attachBehaviors(element, drupalSettings);
+                    })
+                    .fail(function() {
+                      // In case of failing fetching data.
                       e.popup.close();
                     });
                 }
@@ -120,22 +139,24 @@
                 // Make the (eventually present) Tooltip disappear on Popup Open
                 // in case the Popup is generated from a _source.
                 if (e.popup._source) {
-                  let tooltip = e.popup._source.getTooltip();
+                  const tooltip = e.popup._source.getTooltip();
                   // not all features will have tooltips!
                   if (tooltip) {
                     // use opacity to make the tooltip disappear.
-                    e.popup._source.getTooltip().setOpacity(0);
+                    tooltip.setOpacity(0);
                   }
                 }
               });
 
               // Attach Leaflet Map listeners On Popup Close.
-              data.lMap.on('popupclose', function (e) {
+              leaflet_settings.lMap.on('popupclose', function(e) {
                 // Make the (eventually present) Tooltip re-appear on Popup Close.
                 // in case the Popup is generated from a _source.
                 if (e.popup._source) {
-                  let tooltip = e.popup._source.getTooltip();
-                  if (tooltip) tooltip.setOpacity(0.9);
+                  const tooltip = e.popup._source.getTooltip();
+                  if (tooltip) {
+                    tooltip.setOpacity(0.9);
+                  }
                 }
               });
 
@@ -145,20 +166,20 @@
               // properties and contents / features.
               // NOTE: don't change this trigger arguments,
               // to preserve backwards compatibility.
-              $(document).trigger('leafletMapInit', [data.map, data.lMap, mapid, data.markers]);
+              $(document).trigger('leafletMapInit', [leaflet_settings.map, leaflet_settings.lMap, mapid, leaflet_settings.markers]);
               // NOTE: Keep also this pre-existing event for backwards
               // compatibility with Leaflet < 2.1.0.
-              $(document).trigger('leaflet.map', [data.map, data.lMap, mapid, data.markers]);
+              $(document).trigger('leaflet.map', [leaflet_settings.map, leaflet_settings.lMap, mapid, leaflet_settings.markers]);
             }
           }
 
           // If the IntersectionObserver API is available, create an observer to load the map when it enters the viewport
           // It will be used to handle map loading instead of displaying the map on page load.
           let mapObserver = null;
-          if ('IntersectionObserver' in window){
-            mapObserver = new IntersectionObserver(function (entries, observer) {
-              for(var i = 0; i < entries.length; i++) {
-                if(entries[i].isIntersecting){
+          if ('IntersectionObserver' in window) {
+            mapObserver = new IntersectionObserver(function(entries, observer) {
+              for (let i = 0; i < entries.length; i++) {
+                if (entries[i].isIntersecting) {
                   const mapid = entries[i].target.id;
                   loadMap(mapid);
                 }
@@ -167,12 +188,11 @@
           }
 
           // Load the Leaflet Map, lazy based on the mapObserver, or not.
-          if (mapObserver && data.map.settings['map_lazy_load'] && data.map.settings['map_lazy_load']['lazy_load']) {
-            mapObserver.observe(this)
+          if (mapObserver && leaflet_settings.map.settings.map_lazy_load?.lazy_load) {
+            mapObserver.observe(this);
           } else {
             loadMap(mapid);
           }
-
         });
       });
     }
@@ -192,7 +212,6 @@
    */
   Drupal.Leaflet = function(map_container, mapid, map_definition) {
     this.mapid = mapid;
-    this.map_container = map_container;
     this.map_definition = map_definition;
     this.map_settings = this.map_definition.settings;
     this.bounds = [];
@@ -219,8 +238,8 @@
 
     // Add map layers (base and overlay layers).
     let i = 0;
-    for (let key in this.map_definition.layers) {
-      let layer = this.map_definition.layers[key];
+    for (const key in this.map_definition.layers) {
+      const layer = this.map_definition.layers[key];
       // Distinguish between "base" and "overlay" layers.
       // Default to "base" in case "layer_type" has not been defined in hook_leaflet_map_info().
       layer.layer_type = (typeof layer.layer_type === 'undefined') ? 'base' : layer.layer_type;
@@ -246,7 +265,10 @@
 
     // Set initial view, fallback to displaying the whole world.
     if (this.map_settings.center && this.map_settings.zoom) {
-      this.lMap.setView(new L.LatLng(this.map_settings.center.lat, this.map_settings.center.lon), this.map_settings.zoom);
+      this.lMap.setView(
+        new L.LatLng(this.map_settings.center.lat, this.map_settings.center.lon),
+        this.map_settings.zoom
+      );
     }
     else {
       this.lMap.fitWorld();
@@ -260,20 +282,19 @@
     // Set to refresh when first in viewport to avoid missing visibility.
     new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
-        if(entry.intersectionRatio > 0) {
+        if (entry.intersectionRatio > 0) {
           this.lMap.invalidateSize();
           observer.disconnect();
         }
       });
     }).observe(this.lMap._container);
-
   };
 
   /**
    * Initialise the Leaflet Map Layers (Overlays) Control
    */
   Drupal.Leaflet.prototype.initialise_layers_control = function() {
-    let count_layers = function(obj) {
+    const count_layers = function(obj) {
       // Browser compatibility: Chrome, IE 9+, FF 4+, or Safari 5+.
       // @see http://kangax.github.com/es5-compat-table/
       return Object.keys(obj).length;
@@ -281,10 +302,16 @@
 
     // Only add a layer switcher if it is enabled in settings, and we have
     // at least two base layers or at least one overlay.
-    if (this.layer_control == null && ((this.map_settings.layerControl && count_layers(this.base_layers) > 1 || count_layers(this.overlays) > 0))) {
+    if (this.layer_control == null &&
+        ((this.map_settings.layerControl && count_layers(this.base_layers) > 1) ||
+         count_layers(this.overlays) > 0)) {
       const base_layers = count_layers(this.base_layers) > 1 ? this.base_layers : [];
       // Instantiate layer control, using settings.layerControl as settings.
-      this.layer_control = new L.Control.Layers(base_layers, [], this.map_settings.layerControlOptions);
+      this.layer_control = new L.Control.Layers(
+        base_layers,
+        [],
+        this.map_settings.layerControlOptions
+      );
     }
   };
 
@@ -323,7 +350,7 @@
    *   The Overlay Layer Label.
    * @param layer
    *   The Leaflet Overlay.
-   * @param {bool} hidden_layer
+   * @param {boolean} hidden_layer
    *   The flag to disable the Layer from the Over Layers Control.
    */
   Drupal.Leaflet.prototype.add_overlay = function(label, layer, hidden_layer) {
@@ -344,37 +371,34 @@
       // If we already have a layer control, add the new overlay to it.
       this.layer_control.addOverlay(layer, label);
     }
-
   };
 
   /**
-   *
    * Add Leaflet Features to the Leaflet Map.
    *
-   * @param features
+   * @param {Array} features
    *   Features List definition.
-   *
-   * @param initial
+   * @param {boolean} initial
    *   Boolean to identify initial status.
    */
   Drupal.Leaflet.prototype.add_features = function(features, initial) {
     // Define Map Layers holder.
-    let layers = {};
+    const layers = {};
 
     for (let i = 0; i < features.length; i++) {
-      let feature = features[i];
+      const feature = features[i];
       let lFeature;
 
       // In case of a Features Group.
       if (feature.group) {
         // Define a named Layer Group
-        layers[feature['group_label']] = this.create_feature_group();
-        for (let groupKey in feature.features) {
-          let groupFeature = feature.features[groupKey];
+        layers[feature.group_label] = this.create_feature_group();
+        for (const groupKey in feature.features) {
+          const groupFeature = feature.features[groupKey];
           lFeature = this.create_feature(groupFeature);
           if (lFeature !== undefined) {
             // Add the lFeature to the lGroup.
-            layers[feature['group_label']].addLayer(lFeature);
+            layers[feature.group_label].addLayer(lFeature);
 
             // Allow others to do something with the feature that was just added to the map.
             $(document).trigger('leaflet.feature', [lFeature, groupFeature, this, layers]);
@@ -382,7 +406,7 @@
         }
 
         // Add the group to the layer switcher.
-        this.add_overlay(feature.group_label, layers[feature['group_label']], feature['disabled']);
+        this.add_overlay(feature.group_label, layers[feature.group_label], feature.disabled);
       }
       else {
         lFeature = this.create_feature(feature);
@@ -397,13 +421,14 @@
     }
 
     // Allow plugins to do things after features have been added.
-    $(document).trigger('leaflet.features', [initial || false, this])
+    $(document).trigger('leaflet.features', [initial || false, this]);
   };
 
   /**
    * Create a Leaflet Feature Group.
    *
-   * @returns {*}
+   * @returns {Object}
+   *   A Leaflet feature group.
    */
   Drupal.Leaflet.prototype.create_feature_group = function() {
     return new L.featureGroup();
@@ -412,10 +437,9 @@
   /**
    * Add Leaflet Popup to the Leaflet Feature.
    *
-   * @param lFeature
-   * @param lFeature
-   *   The Leaflet Feature
-   * @param feature
+   * @param {Object} lFeature
+   *   The Leaflet Feature.
+   * @param {Object} feature
    *   The Feature coming from Drupal settings.
    */
   Drupal.Leaflet.prototype.feature_bind_popup = function(lFeature, feature) {
@@ -428,15 +452,25 @@
 
   /**
    * Add Leaflet Tooltip to the Leaflet Feature.
-   * @param lFeature
-   *   The Leaflet Feature
-   * @param feature
+   *
+   * @param {Object} lFeature
+   *   The Leaflet Feature.
+   * @param {Object} feature
    *   The Feature coming from Drupal settings.
    */
   Drupal.Leaflet.prototype.feature_bind_tooltip = function(lFeature, feature) {
     // Set the Leaflet Tooltip, with its options (if the stripped value is not null).
     if (feature.tooltip && feature.tooltip.value.replace(/(<([^>]+)>)/gi, "").trim().length > 0) {
       const tooltip_options = feature.tooltip.options ? JSON.parse(feature.tooltip.options) : {};
+
+      // Cleanup tooltip className from commas, to support multivalue class fields.
+      if (tooltip_options.hasOwnProperty('className') && tooltip_options.className.length > 0) {
+        tooltip_options.className = tooltip_options.className.replaceAll(",", "");
+      }
+
+      // Need to more correctly set the tooltip_options.permanent option.
+      tooltip_options.permanent = tooltip_options.permanent === true || tooltip_options.permanent === "true";
+
       lFeature.bindTooltip(feature.tooltip.value, tooltip_options);
     }
   };
@@ -444,13 +478,21 @@
   /**
    * Set Leaflet Feature path style.
    *
-   * @param lFeature
-   *   The Leaflet Feature
-   * @param feature
+   * @param {Object} lFeature
+   *   The Leaflet Feature.
+   * @param {Object} feature
    *   The Feature coming from Drupal settings.
    */
   Drupal.Leaflet.prototype.set_feature_path_style = function(lFeature, feature) {
-    const lFeature_path_style = feature.path ? (feature.path instanceof Object ? feature.path : JSON.parse(feature.path)) : {};
+    let lFeature_path_style;
+    try {
+      lFeature_path_style = feature.path ?
+        (feature.path instanceof Object ? feature.path : JSON.parse(feature.path)) : {};
+    }
+    catch (e) {
+      lFeature_path_style = {};
+    }
+
     // Make sure that the weight property is cast into integer, for avoiding
     // polygons eventually disappearing with pan and zooming.
     // @see: https://stackoverflow.com/a/65892728/5451394
@@ -463,9 +505,9 @@
   /**
    * Extend Map Bounds with new lFeature/feature.
    *
-   * @param lFeature
-   *   The Leaflet Feature
-   * @param feature
+   * @param {Object} lFeature
+   *   The Leaflet Feature.
+   * @param {Object} feature
    *   The Feature coming from Drupal settings.
    *   (this parameter should be kept to eventually extend this method with
    *   conditional logics on feature properties)
@@ -481,16 +523,16 @@
   /**
    * Add Marker and Feature to the Drupal.Leaflet object.
    *
-   * @param lFeature
-   *   The Leaflet Feature
-   * @param feature
+   * @param {Object} lFeature
+   *   The Leaflet Feature.
+   * @param {Object} feature
    *   The Feature coming from Drupal settings.
    */
   Drupal.Leaflet.prototype.push_markers_features = function(lFeature, feature) {
-    if (feature['entity_id']) {
+    if (feature.entity_id) {
       // Generate the markers object index based on entity id (and geofield
       // cardinality), and add the marker to the markers object.
-      let entity_id = feature.entity_id;
+      const entity_id = feature.entity_id;
       if (this.map_definition.geofield_cardinality && this.map_definition.geofield_cardinality !== 1) {
         let i = 0;
         while (this.markers[entity_id + '-' + i]) {
@@ -504,17 +546,17 @@
         this.features[entity_id] = feature;
       }
     }
-  }
+  };
 
   /**
-   * Generates a Leaflet Geometry (Point or Geometry)
+   * Generates a Leaflet Geometry (Point or Geometry).
    *
-   * @param feature
+   * @param {Object} feature
    *   The feature definition coming from Drupal backend.
-   * @param map_settings
-   *   The map_settings if defined, false otherwise..
+   * @param {Object|boolean} map_settings
+   *   The map_settings if defined, false otherwise.
    *
-   * @returns {*}
+   * @returns {Object}
    *   The generated Leaflet Geometry.
    */
   Drupal.Leaflet.prototype.create_geometry = function(feature, map_settings = false) {
@@ -525,19 +567,31 @@
         break;
 
       case 'linestring':
-        lFeature = this.create_linestring(feature, map_settings ? map_settings['leaflet_markercluster']['include_path'] : false);
+        lFeature = this.create_linestring(
+          feature,
+          map_settings?.leaflet_markercluster.include_path ?? false
+        );
         break;
 
       case 'polygon':
-        lFeature = this.create_polygon(feature, map_settings ? map_settings['leaflet_markercluster']['include_path'] : false);
+        lFeature = this.create_polygon(
+          feature,
+          map_settings?.leaflet_markercluster.include_path ?? false
+        );
         break;
 
       case 'multipolygon':
-        lFeature = this.create_multipolygon(feature, map_settings ? map_settings['leaflet_markercluster']['include_path'] : false);
+        lFeature = this.create_multipolygon(
+          feature,
+          map_settings?.leaflet_markercluster.include_path ?? false
+        );
         break;
 
       case 'multipolyline':
-        lFeature = this.create_multipoly(feature, map_settings ? map_settings['leaflet_markercluster']['include_path'] : false);
+        lFeature = this.create_multipoly(
+          feature,
+          map_settings?.leaflet_markercluster.include_path ?? false
+        );
         break;
 
       // In case of singular cases where feature.type is json we use this.create_json method.
@@ -556,21 +610,20 @@
         lFeature = {};
     }
     return lFeature;
-  }
+  };
 
   /**
    * Generates a Leaflet Feature (Point or Geometry)
    * with Leaflet adds on (Tooltip, Popup, Path Styles, etc.)
    *
-   * @param feature
+   * @param {Object} feature
    *   The feature definition coming from Drupal backend.
-   * @returns {*}
+   * @returns {Object}
    *   The generated Leaflet Feature.
    */
   Drupal.Leaflet.prototype.create_feature = function(feature) {
-
-    const map_settings = this.map_settings ?? NULL;
-    let lFeature = this.create_geometry(feature, map_settings);
+    const map_settings = this.map_settings ?? null;
+    const lFeature = this.create_geometry(feature, map_settings);
 
     // Eventually add Tooltip to the lFeature.
     this.feature_bind_tooltip(lFeature, feature);
@@ -595,19 +648,20 @@
   /**
    * Generate a Leaflet Layer.
    *
-   * @param layer
+   * @param {Object} layer
    *   The Layer definition.
-   * @param key
+   * @param {string} key
    *   The Layer index/label.
    *
-   * @returns {*}
+   * @returns {Object}
+   *   The Leaflet layer object.
    */
   Drupal.Leaflet.prototype.create_layer = function(layer, key) {
-    let self = this;
+    const self = this;
     let map_layer;
     const layer_type = layer.type ?? 'base';
     const urlTemplate = layer.urlTemplate ?? '';
-    const layer_options =  layer.options ?? {};
+    const layer_options = layer.options ?? {};
 
     switch (layer_type) {
       case 'wms':
@@ -616,10 +670,10 @@
 
       case 'vector':
         map_layer = new L.maplibreGL({
-          'style': urlTemplate,
-          'attribution': layer_options.attribution ?? '',
-          'pitch': layer_options.pitch ?? '',
-          'bearing': layer_options.bearing ?? ''
+          style: urlTemplate,
+          attribution: layer_options.attribution ?? '',
+          pitch: layer_options.pitch ?? '',
+          bearing: layer_options.bearing ?? ''
         });
         break;
 
@@ -634,14 +688,14 @@
     if (layer.type === 'tilestream') {
       map_layer.getTileUrl = function(tilePoint) {
         self._adjustTilePoint(tilePoint);
-        let zoom = self._getZoomForUrl();
+        const zoom = self._getZoomForUrl();
         return L.Util.template(self._url, L.Util.extend({
           s: self._getSubdomain(tilePoint),
           z: zoom,
           x: tilePoint.x,
           y: Math.pow(2, zoom) - tilePoint.y - 1
         }, self.options));
-      }
+      };
     }
     return map_layer;
   };
@@ -649,13 +703,14 @@
   /**
    * Leaflet Icon creator.
    *
-   * @param options
+   * @param {Object} options
    *   The Icon options.
    *
-   * @returns {*}
+   * @returns {Object}
+   *   Leaflet Icon object.
    */
   Drupal.Leaflet.prototype.create_icon = function(options) {
-    let icon_options = {
+    const icon_options = {
       iconUrl: options.iconUrl,
     };
 
@@ -664,15 +719,26 @@
 
     // Icon Size.
     if (options.iconSize) {
-      icon_options.iconSize = new L.Point(parseInt(options.iconSize.x), parseInt(options.iconSize.y));
+      icon_options.iconSize = new L.Point(
+        parseInt(options.iconSize.x),
+        parseInt(options.iconSize.y)
+      );
     }
+
     // Icon Anchor.
     if (options.iconAnchor && options.iconAnchor.x && options.iconAnchor.y) {
-      icon_options.iconAnchor = new L.Point(parseInt(options.iconAnchor.x), parseInt(options.iconAnchor.y));
+      icon_options.iconAnchor = new L.Point(
+        parseInt(options.iconAnchor.x),
+        parseInt(options.iconAnchor.y)
+      );
     }
+
     // Popup Anchor.
     if (options.popupAnchor && options.popupAnchor.x && options.popupAnchor.y) {
-      icon_options.popupAnchor = new L.Point(parseInt(options.popupAnchor.x), parseInt(options.popupAnchor.y));
+      icon_options.popupAnchor = new L.Point(
+        parseInt(options.popupAnchor.x),
+        parseInt(options.popupAnchor.y)
+      );
     }
 
     // Popup ShadowUrl.
@@ -682,12 +748,18 @@
 
     // Popup ShadowSize.
     if (options.shadowSize && options.shadowSize.x && options.shadowSize.y) {
-      icon_options.shadowSize = new L.Point(parseInt(options.shadowSize.x), parseInt(options.shadowSize.y));
+      icon_options.shadowSize = new L.Point(
+        parseInt(options.shadowSize.x),
+        parseInt(options.shadowSize.y)
+      );
     }
 
     // Popup ShadowAnchor.
     if (options.shadowAnchor && options.shadowAnchor.x && options.shadowAnchor.y) {
-      icon_options.shadowAnchor = new L.Point(parseInt(options.shadowAnchor.x), parseInt(options.shadowAnchor.y));
+      icon_options.shadowAnchor = new L.Point(
+        parseInt(options.shadowAnchor.x),
+        parseInt(options.shadowAnchor.y)
+      );
     }
 
     if (options.className) {
@@ -735,43 +807,44 @@
   };
 
   /**
-   * Leaflet Point creator.
+   * Leaflet Point (Marker) creator.
    *
-   * @param marker
-   *   The Marker definition.
+   * @param feature
+   *   The feature definition.
    *
    * @returns {*}
    */
-  Drupal.Leaflet.prototype.create_point = function(marker) {
-    const latLng = new L.LatLng(marker.lat, marker.lon);
+  Drupal.Leaflet.prototype.create_point = function(feature) {
+
+    const latLng = new L.LatLng(feature.lat, feature.lon);
     let lMarker;
     // Assign the marker title value depending if a Marker simple title or a
     // Leaflet tooltip was set.
     let marker_title = '';
-    if (marker.title) {
-      marker_title = marker.title.replace(/<[^>]*>/g, '').trim()
+    if (feature.title) {
+      marker_title = feature.title.replace(/<[^>]*>/g, '').trim()
     }
-    else if (marker.tooltip && marker.tooltip.value) {
-      marker_title = marker.tooltip.value.replace(/<[^>]*>/g, '').trim();
+    else if (feature.tooltip && feature.tooltip.value) {
+      marker_title = feature.tooltip.value.replace(/<[^>]*>/g, '').trim();
     }
     let options = {
       // Define the title (as mouse hover tooltip) only in case the Leaflet Tooltip is not defined.
-      title: marker.title ? marker_title : "",
-      className: marker.className || '',
+      title: feature.title ? marker_title : "",
+      className: feature.className ? feature.className.replaceAll(",", "") : '',
       alt: marker_title,
-      group_label: marker.group_label ?? '',
+      group_label: feature.group_label ?? '',
     };
 
     lMarker = new L.Marker(latLng, options);
 
-    if (marker.icon) {
-      if (marker.icon.iconType && marker.icon.iconType === 'html' && marker.icon.html) {
-        let icon = this.create_divicon(marker.icon);
+    if (feature.icon) {
+      if (feature.icon.iconType && feature.icon.iconType === 'html' && feature.icon.html) {
+        let icon = this.create_divicon(feature.icon);
         lMarker.setIcon(icon);
       }
-      else if (marker.icon.iconType && marker.icon.iconType === 'circle_marker') {
+      else if (feature.icon.iconType && feature.icon.iconType === 'circle_marker') {
         try {
-          options = marker.icon.circle_marker_options ? JSON.parse(marker.icon.circle_marker_options) : {};
+          options = feature.icon.circle_marker_options ? JSON.parse(feature.icon.circle_marker_options) : {};
           options.radius = options.radius ? parseInt(options['radius']) : 10;
         }
         catch (e) {
@@ -779,16 +852,16 @@
         }
         lMarker = new L.CircleMarker(latLng, options);
       }
-      else if (marker.icon.iconUrl) {
-        marker.icon.iconSize = marker.icon.iconSize || {};
-        marker.icon.iconSize.x = marker.icon.iconSize.x || this.naturalWidth;
-        marker.icon.iconSize.y = marker.icon.iconSize.y || this.naturalHeight;
-        if (marker.icon.shadowUrl) {
-          marker.icon.shadowSize = marker.icon.shadowSize || {};
-          marker.icon.shadowSize.x = marker.icon.shadowSize.x || this.naturalWidth;
-          marker.icon.shadowSize.y = marker.icon.shadowSize.y || this.naturalHeight;
+      else if (feature.icon.iconUrl) {
+        feature.icon.iconSize = feature.icon.iconSize || {};
+        feature.icon.iconSize.x = feature.icon.iconSize.x || this.naturalWidth;
+        feature.icon.iconSize.y = feature.icon.iconSize.y || this.naturalHeight;
+        if (feature.icon.shadowUrl) {
+          feature.icon.shadowSize = feature.icon.shadowSize || {};
+          feature.icon.shadowSize.x = feature.icon.shadowSize.x || this.naturalWidth;
+          feature.icon.shadowSize.y = feature.icon.shadowSize.y || this.naturalHeight;
         }
-        let icon = this.create_icon(marker.icon);
+        let icon = this.create_icon(feature.icon);
         lMarker.setIcon(icon);
       }
     }
@@ -893,7 +966,7 @@
   /**
    * Leaflet Geo JSON Creator.
    *
-   * In case of singular cases where feature.type is json we use this.create_json method.
+   * In case of singular cases where feature type is json we use this.create_json method.
    * @see https://www.drupal.org/project/leaflet/issues/3377403
    * @see https://www.drupal.org/project/leaflet/issues/3186029
    *
@@ -1043,4 +1116,4 @@
     setLatLng: function () {}
   });
 
-})(jQuery, Drupal, drupalSettings);
+})(jQuery, Drupal, drupalSettings, once);

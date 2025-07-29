@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\automatic_updates_extensions_test_api;
 
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
 use Drupal\package_manager\PathLocator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ class ApiController extends PackageManagerApiController {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get(ExtensionUpdateStage::class),
+      $container->get(ExtensionUpdateSandboxManager::class),
       $container->get(PathLocator::class),
     );
   }

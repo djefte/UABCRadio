@@ -6,3 +6,5 @@
  *
  * @see \Drupal\Tests\automatic_updates\Kernel\StatusCheck\StagedDatabaseUpdateValidatorTest
  */
+
+declare(strict_types=1);

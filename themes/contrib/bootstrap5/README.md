@@ -10,7 +10,7 @@ or this theme's _variables_drupal.scss and recompile css!)
 
 ## FEATURES
 
-* Bootstrap 5 library ([5.3.3](https://blog.getbootstrap.com/2024/02/20/bootstrap-5-3-3/)
+* Bootstrap 5 library ([5.3.7](https://blog.getbootstrap.com/2025/06/17/bootstrap-5-3-7/)
   and [5.2.3](https://blog.getbootstrap.com/2022/11/22/bootstrap-5-2-3/)) included
 * Bootstrap 5 breakpoints
 * Bootstrap 5 integration with CKEditor
@@ -44,7 +44,14 @@ Head to `Appearance` and clicking bootstrap5 `settings`.
 
 #### Create a sub-theme using Drush
 
-* `drush --include="web/themes/contrib/bootstrap5/src/Drush" bootstrap5:subtheme MACHINE_NAME --subtheme-name="SUBTHEME_NAME"`
+* `drush --include="web/themes/contrib/bootstrap5/src/Drush" bootstrap5:generate-subtheme MACHINE_NAME --subtheme-name="SUBTHEME_NAME"`
+
+Replace placeholder values before running, e.g.
+
+MACHINE_NAME with my_subtheme
+"SUBTHEME_NAME" with "My Subtheme"
+
+* `drush --include="web/themes/contrib/bootstrap5/src/Drush" bootstrap5:generate-subtheme my_subtheme --subtheme-name="My Subtheme"`
 
 #### Create a sub-theme manually
 

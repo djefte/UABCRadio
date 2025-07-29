@@ -6,14 +6,16 @@ namespace Drupal\automatic_updates_extensions\Form;
 
 use Drupal\automatic_updates\Form\UpdateFormBase;
 use Drupal\package_manager\ComposerInspector;
-use Drupal\package_manager\Exception\StageFailureMarkerException;
+use Drupal\package_manager\Exception\FailureMarkerExistsException;
+use Drupal\package_manager\Exception\SandboxException;
+use Drupal\package_manager\Exception\SandboxOwnershipException;
 use Drupal\package_manager\InstalledPackage;
 use Drupal\package_manager\PathLocator;
 use Drupal\package_manager\ProjectInfo;
 use Drupal\package_manager\ValidationResult;
 use Drupal\automatic_updates_extensions\BatchProcessor;
 use Drupal\automatic_updates\BatchProcessor as AutoUpdatesBatchProcessor;
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Form\FormStateInterface;
@@ -21,8 +23,6 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\package_manager\Exception\StageException;
-use Drupal\package_manager\Exception\StageOwnershipException;
 use Drupal\system\SystemManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -36,7 +36,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 final class UpdateReady extends UpdateFormBase {
 
   public function __construct(
-    private readonly ExtensionUpdateStage $stage,
+    private readonly ExtensionUpdateSandboxManager $sandboxManager,
     MessengerInterface $messenger,
     private readonly StateInterface $state,
     private readonly ModuleExtensionList $moduleList,
@@ -60,7 +60,7 @@ final class UpdateReady extends UpdateFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get(ExtensionUpdateStage::class),
+      $container->get(ExtensionUpdateSandboxManager::class),
       $container->get('messenger'),
       $container->get('state'),
       $container->get('extension.list.module'),
@@ -76,13 +76,13 @@ final class UpdateReady extends UpdateFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, ?string $stage_id = NULL) {
     try {
-      $this->stage->claim($stage_id);
+      $this->sandboxManager->claim($stage_id);
     }
-    catch (StageOwnershipException) {
+    catch (SandboxOwnershipException) {
       $this->messenger()->addError($this->t('Cannot continue the update because another Composer operation is currently in progress.'));
       return $form;
     }
-    catch (StageFailureMarkerException $e) {
+    catch (FailureMarkerExistsException $e) {
       $this->messenger()->addError($e->getMessage());
       return $form;
     }
@@ -129,7 +129,7 @@ final class UpdateReady extends UpdateFormBase {
 
     // Don't run the status checks once the form has been submitted.
     if (!$form_state->getUserInput()) {
-      $results = $this->runStatusCheck($this->stage, $this->eventDispatcher);
+      $results = $this->runStatusCheck($this->sandboxManager, $this->eventDispatcher);
       // This will have no effect if $results is empty.
       $this->displayResults($results, $this->renderer);
       // If any errors occurred, return the form early so the user cannot
@@ -176,11 +176,11 @@ final class UpdateReady extends UpdateFormBase {
    */
   public function cancel(array &$form, FormStateInterface $form_state): void {
     try {
-      $this->stage->destroy();
+      $this->sandboxManager->destroy();
       $this->messenger()->addStatus($this->t('The update was successfully cancelled.'));
       $form_state->setRedirect('automatic_updates_extensions.report_update');
     }
-    catch (StageException $e) {
+    catch (SandboxException $e) {
       $this->messenger()->addError($e->getMessage());
     }
   }
@@ -194,12 +194,12 @@ final class UpdateReady extends UpdateFormBase {
   private function showUpdates(): array {
     // Get packages that were updated in the stage directory.
     $installed_packages = $this->composerInspector->getInstalledPackagesList($this->pathLocator->getProjectRoot());
-    $staged_packages = $this->composerInspector->getInstalledPackagesList($this->stage->getStageDirectory());
+    $staged_packages = $this->composerInspector->getInstalledPackagesList($this->sandboxManager->getSandboxDirectory());
     $updated_packages = $staged_packages->getPackagesWithDifferentVersionsIn($installed_packages);
 
     // Build a list of package names that were updated by user request.
     $updated_by_request = [];
-    foreach ($this->stage->getPackageVersions() as $group) {
+    foreach ($this->sandboxManager->getPackageVersions() as $group) {
       $updated_by_request = array_merge($updated_by_request, array_keys($group));
     }
 

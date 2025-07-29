@@ -3,6 +3,7 @@
 # This is a simple script to pull down the specified version of editoria11y from github
 
 GIT_REF="2.3.x"
+#GIT_REF="2.3.12-dev"
 
 mkdir -p tmp/
 cd tmp/
@@ -13,10 +14,6 @@ rm -rf ../library/css
 rm -rf ../library/dist
 mv js ../library/js
 mv css ../library/css
-
-# This duplicate is temporary for a few releases after 2.1.11, until everybody clears cache.
-mkdir ../library/js/dist
-cp dist/editoria11y.min.js ../library/js/dist/
 
 mv dist ../library/dist
 cd ../

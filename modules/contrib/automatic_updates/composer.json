@@ -14,12 +14,12 @@
     },
     "require": {
         "ext-json": "*",
-        "php-tuf/composer-stager": "^2-rc5",
         "composer-runtime-api": "^2.1",
         "symfony/console": "^6.2 || ^7"
     },
     "require-dev": {
-        "colinodell/psr-testlogger": "^1.2"
+        "colinodell/psr-testlogger": "^1.2",
+        "symfony/config": "^6.2 || ^7"
     },
     "conflict": {
         "php-tuf/composer-integration": "<1-alpha11"

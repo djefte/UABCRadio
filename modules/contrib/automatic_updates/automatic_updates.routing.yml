@@ -27,3 +27,15 @@ automatic_updates.finish:
   options:
     _maintenance_access: TRUE
     _automatic_updates_status_messages: skip
+
+automatic_updates.update_form:
+  path: '/admin/reports/updates/update'
+  defaults:
+    _form: '\Drupal\automatic_updates\Form\UpdaterForm'
+    _title: 'Update'
+  requirements:
+    _permission: 'administer software updates'
+  options:
+    _admin_route: true
+    _maintenance_access: true
+    _automatic_updates_status_messages: skip

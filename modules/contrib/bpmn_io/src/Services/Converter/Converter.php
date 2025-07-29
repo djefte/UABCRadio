@@ -71,7 +71,7 @@ class Converter implements ConverterInterface {
 
     // "Reset" the model data.
     /** @var \Drupal\bpmn_io\Plugin\ECA\Modeller\BpmnIo $modeller */
-    $modeller = $eca->getModeller();
+    $modeller = $eca->getModeller(FALSE);
     $id = '';
     $emptyBpmn = $modeller->prepareEmptyModelData($id);
     $emptyBpmn = str_replace($id, $eca->id(), $emptyBpmn);

@@ -46,10 +46,6 @@ props:
       title: Size
       description: Bootstrap button size
       default: ''
-      enum:
-        - ''
-        - btn-sm
-        - btn-lg
     disabled:
       type: boolean
       title: Disabled

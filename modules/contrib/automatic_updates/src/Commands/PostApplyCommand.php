@@ -41,7 +41,7 @@ final class PostApplyCommand extends AutomaticUpdatesCommandBase {
     parent::execute($input, $output);
 
     $this->io->info((string) $this->t('Running post-apply tasks and final clean-up...'));
-    $this->stage->handlePostApply($input->getArgument('stage-id'));
+    $this->sandboxManager->handlePostApply($input->getArgument('stage-id'));
 
     $message = $this->t('Drupal core was successfully updated to @version!', [
       '@version' => (new ProjectInfo('drupal'))->getInstalledVersion(),

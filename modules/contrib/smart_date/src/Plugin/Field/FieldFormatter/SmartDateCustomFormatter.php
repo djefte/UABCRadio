@@ -111,8 +111,9 @@ class SmartDateCustomFormatter extends TimestampFormatter {
 
     $form['site_time_toggle'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('Turn off site time display'),
-      '#description' => $this->t("Don't show default site time in parentheses at end of the value."),
+      '#return_value' => '1',
+      '#title' => $this->t('"Site Time" display'),
+      '#description' => $this->t("Show times in the user's preferred timezone (defaults to the site's timezone) in parentheses at end of the value if the timezone is overridden. ex. (12:00pm - 1:00pm UTC)"),
       '#default_value' => $this->getSetting('site_time_toggle'),
     ];
 

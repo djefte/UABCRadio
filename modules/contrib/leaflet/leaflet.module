@@ -5,6 +5,9 @@
  * Contains the leaflet.module file.
  */
 
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+
 /**
  * Implements hook_theme().
  */
@@ -93,4 +96,37 @@ function leaflet_leaflet_map_info() {
         ],
       ],
   ];
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function leaflet_form_alter(&$form, FormStateInterface $form_state) {
+  if (isset($form['#leaflet_widget_geojson_overlays']) &&
+    isset($form['#leaflet_widget_geojson_overlays']['widget_id']) &&
+    is_array($form['#leaflet_widget_geojson_overlays']['sources_fields'])
+  ) {
+    $ajax_array = [
+      'callback' => 'Drupal\leaflet\Plugin\Field\FieldWidget\LeafletDefaultWidget::updateLeafletWidgetGeoJsonOverlaysAjax',
+      'wrapper' => $form['#leaflet_widget_geojson_overlays']['widget_id'],
+      'event' => 'change',
+    ];
+    $source_field_text = t('<div><em>Note: This field is acting as source of Leaflet Widget Map GeoJSON Overlays.</em></div>');
+    foreach ($form['#leaflet_widget_geojson_overlays']['sources_fields'] as $form_field) {
+      if (is_string($form_field) && isset($form[$form_field])) {
+        foreach (Element::children($form[$form_field]['widget']) as &$widget_index) {
+          if ($widget_index !== 'add_more') {
+            if (isset($form[$form_field]['widget'][$widget_index]['value'])) {
+              $form[$form_field]['widget'][$widget_index]['value']['#ajax'] = $ajax_array;
+              $form[$form_field]['widget'][$widget_index]['value']['#description'] .= $source_field_text;
+            }
+            if (isset($form[$form_field]['widget'][$widget_index]['uri'])) {
+              $form[$form_field]['widget'][$widget_index]['uri']['#ajax'] = $ajax_array;
+              $form[$form_field]['widget'][$widget_index]['uri']['#description'] .= $source_field_text;
+            }
+          }
+        }
+      }
+    }
+  }
 }

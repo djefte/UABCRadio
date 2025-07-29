@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates\Build;
 
+use Drupal\Component\Serialization\Yaml;
 use Drupal\Component\Utility\Html;
 use Drupal\Tests\package_manager\Build\TemplateProjectTestBase;
 
@@ -14,11 +15,50 @@ use Drupal\Tests\package_manager\Build\TemplateProjectTestBase;
  */
 abstract class UpdateTestBase extends TemplateProjectTestBase {
 
+  // BEGIN: DELETE FROM CORE MERGE REQUEST
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUpstreamCoreVersion(string $version): void {
+    require_once static::getDrupalRoot() . '/composer/Composer.php';
+    parent::setUpstreamCoreVersion($version);
+  }
+
+  // END: DELETE FROM CORE MERGE REQUEST
+
   /**
    * {@inheritdoc}
    */
   protected function createTestProject(string $template): void {
     parent::createTestProject($template);
+
+    // BEGIN: DELETE FROM CORE MERGE REQUEST
+    // List the info files that need to be made compatible with our fake version
+    // of Drupal core.
+    $info_files = [
+      'modules/contrib/automatic_updates/automatic_updates.info.yml',
+      'modules/contrib/automatic_updates/automatic_updates_extensions/automatic_updates_extensions.info.yml',
+    ];
+    // Install Automatic Updates into the test project and ensure it wasn't
+    // symlinked.
+    $automatic_updates_dir = dirname(__FILE__, 4);
+    if (basename($automatic_updates_dir) === 'automatic_updates') {
+      $dir = 'project';
+      $this->runComposer("composer config repo.automatic_updates path $automatic_updates_dir", $dir);
+      $output = $this->runComposer('composer require --update-with-all-dependencies psr/http-message "drupal/automatic_updates:@dev"', $dir);
+      $this->assertStringNotContainsString('Symlinking', $output);
+    }
+    foreach ($info_files as $path) {
+      $path = $this->getWebRoot() . $path;
+      $this->assertFileIsWritable($path);
+      $info = file_get_contents($path);
+      $info = Yaml::decode($info);
+      $info['core_version_requirement'] .= ' || ^9.7';
+      file_put_contents($path, Yaml::encode($info));
+    }
+    // END: DELETE FROM CORE MERGE REQUEST
+
     // @todo Remove in https://www.drupal.org/project/automatic_updates/issues/3284443
     $code = <<<END
 \$config['automatic_updates.settings']['unattended']['level'] = 'security';

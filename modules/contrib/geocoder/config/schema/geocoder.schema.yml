@@ -12,6 +12,10 @@ geocoder.settings:
       type: boolean
       label: "Should we cache the results ?"
       description: "To prevent sending multiple times the same request, you can enable to cache to save temporarily the result of the geocode and reverse geocode in the cache."
+    queue:
+      type: boolean
+      label: 'Should we Queue the Geocode processes?'
+      description: 'Enable this to use Queue Worker ("Geocoder Field Queue Process") & Cron to process the geocoder data to reduce delays while saving the entity.'
 
 geocoder.geocoder_provider.*:
   type: config_entity
@@ -153,6 +157,15 @@ geocoder_provider.configuration.ipinfodb:
       nullable: true
       label: "Precision (optional)"
       description: 'Either "city" or "country" (faster). Defaults to "city".'
+
+geocoder_provider.configuration.locationiq:
+  type: geocoder_provider_configuration
+  label: "LocationIQ arguments"
+  mapping:
+    apiKey:
+      type: string
+      label: "Access Token"
+      description: 'Get an Access Token by creating a free account at <a href="https://my.locationiq.com/register" target="blank">https://my.locationiq.com/register</a>'
 
 geocoder_provider.configuration.mapbox:
   type: geocoder_provider_configuration

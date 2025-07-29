@@ -41,7 +41,7 @@ props:
       type: string
       description: 'The label of the node.'
     url:
-      type: string
+      type: ['string', 'null']
       description: 'The URL to the node.'
     node_classes:
       type: array

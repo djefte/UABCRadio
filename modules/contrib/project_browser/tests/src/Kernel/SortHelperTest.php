@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\project_browser\Kernel;
 
+use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Extension\ModuleInstallerInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\project_browser\Plugin\ProjectBrowserSource\SortHelper;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\project_browser\Plugin\ProjectBrowserSource\SortHelper
+ * Tests the SortHelper class.
+ *
  * @group project_browser
  */
+#[CoversClass(SortHelper::class)]
+#[Group('project_browser')]
 final class SortHelperTest extends KernelTestBase {
 
   /**
@@ -28,7 +34,7 @@ final class SortHelperTest extends KernelTestBase {
   /**
    * Tests returning projects in an order defined by configuration.
    *
-   * @covers ::sortInDefinedOrder
+   * @legacy-covers ::sortInDefinedOrder
    */
   public function testDefinableOrder(): void {
     $projects = $this->container->get(ProjectBrowserSourceManager::class)
@@ -38,6 +44,7 @@ final class SortHelperTest extends KernelTestBase {
 
     $original_order = array_column($projects, 'id');
     $configured_order = array_slice($original_order, -3);
+    assert(!empty($configured_order) && Inspector::assertAllNotEmpty($configured_order));
     SortHelper::sortInDefinedOrder($projects, $configured_order);
     $sorted_order = array_column($projects, 'id');
     $this->assertSame($configured_order, array_slice($sorted_order, 0, 3));

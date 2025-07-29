@@ -40,12 +40,12 @@ final class CoreNotUpdatedValidator implements EventSubscriberInterface {
    *   The event object.
    */
   public function validateCoreNotUpdated(PreApplyEvent $event): void {
-    $stage = $event->stage;
-    if (!$stage instanceof Installer) {
+    $sandbox_manager = $event->sandboxManager;
+    if (!$sandbox_manager instanceof Installer) {
       return;
     }
     $active_dir = $this->pathLocator->getProjectRoot();
-    $stage_dir = $stage->getStageDirectory();
+    $stage_dir = $sandbox_manager->getSandboxDirectory();
     $active_packages = $this->composerInspector->getInstalledPackagesList($active_dir);
     $staged_packages = $this->composerInspector->getInstalledPackagesList($stage_dir);
     $updated_packages = $staged_packages->getPackagesWithDifferentVersionsIn($active_packages);

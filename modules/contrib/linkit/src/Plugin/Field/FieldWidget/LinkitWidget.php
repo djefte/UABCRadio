@@ -3,11 +3,8 @@
 namespace Drupal\linkit\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\file\FileInterface;
 use Drupal\link\Plugin\Field\FieldWidget\LinkWidget;
 use Drupal\linkit\Utility\LinkitHelper;
@@ -34,6 +31,13 @@ class LinkitWidget extends LinkWidget {
   protected $currentUser;
 
   /**
+   * The entity repository.
+   *
+   * @var \Drupal\Core\Entity\EntityRepositoryInterface
+   */
+  protected $entityRepository;
+
+  /**
    * The linkit profile storage service.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -41,45 +45,22 @@ class LinkitWidget extends LinkWidget {
   protected $linkitProfileStorage;
 
   /**
+   * The file URL generator.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $plugin_id,
-      $plugin_definition,
-      $configuration['field_definition'],
-      $configuration['settings'],
-      $configuration['third_party_settings'],
-      $container->get('current_user'),
-      $container->get('entity_type.manager')
-    );
-  }
-
-  /**
-   * Constructs a new Linkit field widget.
-   *
-   * @param string $plugin_id
-   *   The plugin_id for the formatter.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
-   *   The definition of the field to which the formatter is associated.
-   * @param array $settings
-   *   The widget settings.
-   * @param array $third_party_settings
-   *   The widget third party settings.
-   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
-   *   The current user.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   The entity type manager service.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, AccountProxyInterface $currentUser, EntityTypeManagerInterface $entityTypeManager) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
-    $this->currentUser = $currentUser;
-    $this->linkitProfileStorage = $entityTypeManager->getStorage('linkit_profile');
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $instance->currentUser = $container->get('current_user');
+    $instance->entityRepository = $container->get('entity.repository');
+    $instance->linkitProfileStorage = $container->get('entity_type.manager')->getStorage('linkit_profile');
+    $instance->fileUrlGenerator = $container->get('file_url_generator');
+    return $instance;
   }
 
   /**
@@ -149,10 +130,16 @@ class LinkitWidget extends LinkWidget {
     $item = $items[$delta];
     $uri = $item->uri ?? NULL;
 
-    // Try to fetch entity information from the URI.
-    $default_allowed = !$item->isEmpty() && ($this->currentUser->hasPermission('link to any page') || $item->getUrl()->access());
+    try {
+      // Try to fetch entity information from the URI.
+      $default_allowed = !$item->isEmpty() && ($this->currentUser->hasPermission('link to any page') || $item->getUrl()->access());
+    }
+    catch (\InvalidArgumentException $e) {
+      // Make sure we render the form if InvalidArgumentException is thrown.
+    }
+
     if (!empty($item->options['data-entity-type']) && !empty($item->options['data-entity-uuid'])) {
-      $entity = \Drupal::service('entity.repository')->loadEntityByUuid($item->options['data-entity-type'], $item->options['data-entity-uuid']);
+      $entity = $this->entityRepository->loadEntityByUuid($item->options['data-entity-type'], $item->options['data-entity-uuid']);
     }
     else {
       $entity = $default_allowed && $uri ? LinkitHelper::getEntityFromUri($uri) : NULL;
@@ -160,7 +147,7 @@ class LinkitWidget extends LinkWidget {
     // Display entity URL consistently across all entity types.
     if ($entity instanceof FileInterface) {
       // File entities are anomalies, so we handle them differently.
-      $element['uri']['#default_value'] = \Drupal::service('file_url_generator')->generateString($entity->getFileUri());
+      $element['uri']['#default_value'] = $this->fileUrlGenerator->generateString($entity->getFileUri());
     }
     elseif ($entity instanceof EntityInterface) {
       $uri_parts = parse_url($uri);
@@ -184,8 +171,13 @@ class LinkitWidget extends LinkWidget {
       'linkit_profile_id' => $this->getSetting('linkit_profile'),
     ];
 
-    // Add a class to the title field.
+    // Add class to the URI fields item wrapper.
+    $element['uri']['#wrapper_attributes']['class'][] = 'form-item--linkit-widget-uri';
+
+    // Add a class to the title field and its item wrapper.
     $element['title']['#attributes']['class'][] = 'linkit-widget-title';
+    $element['title']['#wrapper_attributes']['class'][] = 'form-item--linkit-widget-title';
+
     if ($this->getSetting('linkit_auto_link_text')) {
       $element['title']['#attributes']['data-linkit-widget-title-autofill-enabled'] = TRUE;
     }
@@ -208,6 +200,10 @@ class LinkitWidget extends LinkWidget {
       '#default_value' => $entity ? ($entity->getEntityTypeId() === 'file' ? 'file' : 'canonical') : '',
     ];
 
+    // Add custom css for the widget representation:
+    $element['#attached']['library'][] = 'linkit/linkit.widget';
+    // Add a custom class to the parent container:
+    $element['#attributes']['class'][] = 'linkit-widget-container';
     return $element;
   }
 

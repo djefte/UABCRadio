@@ -10,6 +10,7 @@ use Drupal\bootstrap5\SettingsManager;
 use Drupal\bootstrap5\SubthemeFormManager;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\views\Form\ViewsForm;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -189,6 +190,22 @@ function bootstrap5_preprocess_datetime_form(&$variables) {
 }
 
 /**
+ * Implements hook_preprocess_HOOK() for media library wrapper.
+ */
+function bootstrap5_preprocess_media_library_wrapper(&$variables) {
+  $variables['attributes']['class'][] = "d-flex";
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for links in media library menu.
+ */
+function bootstrap5_preprocess_links__media_library_menu(&$variables) {
+  foreach ($variables['links'] as &$link) {
+    $link['link']['#options']['attributes']['class'][] = 'nav-link';
+  }
+}
+
+/**
  * Implements theme_preprocess_views_ui_display_tab_setting().
  */
 function bootstrap5_preprocess_views_ui_display_tab_setting(&$variables) {
@@ -352,5 +369,21 @@ function bootstrap5_theme_suggestions_menu_alter(array &$suggestions, array $var
     $region = $variables['attributes']['data-block']['region'];
     $suggestions[] = $variables['theme_hook_original'] . '__' . $region;
     $suggestions[] = 'menu__' . $region;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function bootstrap5_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Copied from claro.theme claro_form_alter().
+  $form_object = $form_state->getFormObject();
+  if ($form_object instanceof ViewsForm && strpos($form_object->getBaseFormId(), 'views_form_media_library') === 0) {
+    if (isset($form['header'])) {
+      $form['header']['#attributes']['class'][] = 'media-library-views-form__header';
+      $form['header']['media_bulk_form']['#attributes']['class'][] = 'media-library-views-form__bulk_form';
+    }
+    $form['actions']['submit']['#attributes']['class'] = ['media-library-select'];
+    $form['#attributes']['class'][] = 'media-library-views-form';
   }
 }

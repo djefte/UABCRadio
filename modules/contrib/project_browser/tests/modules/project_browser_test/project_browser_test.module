@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use Drupal\Core\Asset\AttachedAssetsInterface;
+use Drupal\Core\Extension\Extension;
 
 /**
  * Implements hook_js_settings_alter().
@@ -26,4 +27,15 @@ function project_browser_test_config_schema_info_alter(array &$definitions): voi
     'type' => 'boolean',
     'label' => 'Whether to simulate preview mode',
   ];
+}
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function project_browser_system_info_alter(array &$info, Extension $extension, string $type): void {
+  // Expose core's Package Manager in the UI so it can be installed in
+  // Nightwatch tests.
+  if ($type === 'module' && $extension->getName() === 'package_manager') {
+    $info['hidden'] = FALSE;
+  }
 }

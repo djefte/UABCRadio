@@ -45,7 +45,7 @@ class UpdaterFormNoRecommendedReleaseMessageTest extends AutomaticUpdatesFunctio
    *   The test cases.
    */
   public static function providerMessages(): array {
-    $dir = __DIR__ . '/../../../package_manager/tests/fixtures/release-history';
+    $dir = static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history';
 
     return [
       'current' => [

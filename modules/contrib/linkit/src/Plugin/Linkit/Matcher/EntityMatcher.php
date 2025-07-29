@@ -3,16 +3,11 @@
 namespace Drupal\linkit\Plugin\Linkit\Matcher;
 
 use Drupal\Component\Utility\Html;
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
-use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\linkit\ConfigurableMatcherBase;
 use Drupal\linkit\MatcherTokensTrait;
@@ -20,7 +15,6 @@ use Drupal\linkit\SubstitutionManagerInterface;
 use Drupal\linkit\Suggestion\EntitySuggestion;
 use Drupal\linkit\Suggestion\SuggestionCollection;
 use Drupal\linkit\Utility\LinkitXss;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -98,40 +92,47 @@ class EntityMatcher extends ConfigurableMatcherBase {
   protected $substitutionManager;
 
   /**
-   * {@inheritdoc}
+   * The token service.
+   *
+   * @var \Drupal\Core\Utility\Token
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, Connection $database, EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityRepositoryInterface $entity_repository, ModuleHandlerInterface $module_handler, AccountInterface $current_user, SubstitutionManagerInterface $substitution_manager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  protected $token;
 
-    if (empty($plugin_definition['target_entity'])) {
-      throw new \InvalidArgumentException("Missing required 'target_entity' property for a matcher.");
-    }
-    $this->database = $database;
-    $this->entityTypeManager = $entity_type_manager;
-    $this->entityTypeBundleInfo = $entity_type_bundle_info;
-    $this->entityRepository = $entity_repository;
-    $this->moduleHandler = $module_handler;
-    $this->currentUser = $current_user;
-    $this->targetType = $plugin_definition['target_entity'];
-    $this->substitutionManager = $substitution_manager;
-  }
+  /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * The request context.
+   *
+   * @var \Drupal\Core\Routing\RequestContext
+   */
+  protected $requestContext;
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('database'),
-      $container->get('entity_type.manager'),
-      $container->get('entity_type.bundle.info'),
-      $container->get('entity.repository'),
-      $container->get('module_handler'),
-      $container->get('current_user'),
-      $container->get('plugin.manager.linkit.substitution')
-    );
+    if (empty($plugin_definition['target_entity'])) {
+      throw new \InvalidArgumentException("Missing required 'target_entity' property for a matcher.");
+    }
+
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $instance->database = $container->get('database');
+    $instance->entityTypeManager = $container->get('entity_type.manager');
+    $instance->entityTypeBundleInfo = $container->get('entity_type.bundle.info');
+    $instance->entityRepository = $container->get('entity.repository');
+    $instance->moduleHandler = $container->get('module_handler');
+    $instance->currentUser = $container->get('current_user');
+    $instance->targetType = $plugin_definition['target_entity'];
+    $instance->substitutionManager = $container->get('plugin.manager.linkit.substitution');
+    $instance->token = $container->get('token');
+    $instance->configFactory = $container->get('config.factory');
+    $instance->requestContext = $container->get('router.request_context');
+    return $instance;
   }
 
   /**
@@ -457,7 +458,7 @@ class EntityMatcher extends ConfigurableMatcherBase {
    *   The metadata for this entity.
    */
   protected function buildDescription(EntityInterface $entity) {
-    $description = \Drupal::token()->replace($this->configuration['metadata'], [$this->targetType => $entity], ['clear' => TRUE]);
+    $description = $this->token->replace($this->configuration['metadata'], [$this->targetType => $entity], ['clear' => TRUE]);
     return LinkitXss::descriptionFilter($description);
   }
 
@@ -499,7 +500,7 @@ class EntityMatcher extends ConfigurableMatcherBase {
     // strip '/edit' from the end of the canonical URL returned
     // by $entity->toUrl().
     if ($entity->getEntityTypeId() == 'media') {
-      $standalone_url = \Drupal::config('media.settings')->get('standalone_url');
+      $standalone_url = $this->configFactory->get('media.settings')->get('standalone_url');
       if (!$standalone_url) {
         // Strip "/edit".
         $path = substr($path, 0, -5);
@@ -520,7 +521,7 @@ class EntityMatcher extends ConfigurableMatcherBase {
   protected function buildStatus(EntityInterface $entity) {
     $entity_type = $entity->getEntityTypeId();
     if ($entity->getEntityType()->hasKey('status')) {
-      $entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($entity->id());
+      $entity = $this->entityTypeManager->getStorage($entity_type)->load($entity->id());
       return $entity->isPublished() ? 'published' : 'unpublished';
     }
     return '';
@@ -531,21 +532,34 @@ class EntityMatcher extends ConfigurableMatcherBase {
    *
    * @param string $user_input
    *   The string to url parse.
+   * @param string $base_url
+   *   The site base url. Typically this is only used for testing.
    *
    * @return array
    *   An array with an entity id if the input can be parsed as an internal url
    *   and a match is found, otherwise an empty array.
    */
-  protected function findEntityIdByUrl($user_input) {
-    $result = [];
+  public function findEntityIdByUrl($user_input, $base_url = '') {
+    if (empty($base_url)) {
+      $base_url = $this->requestContext->getCompleteBaseUrl();
+    }
+    $is_absolute_local_url = UrlHelper::isExternal($user_input)
+      && UrlHelper::isValid($user_input, TRUE)
+      && UrlHelper::externalIsLocal($user_input, $base_url);
 
+    if ($is_absolute_local_url) {
+      // The link points to this domain. Make it relative so it can be
+      // matched in Url::fromUserInput().
+      $user_input = substr($user_input, strlen($base_url));
+    }
+    $result = [];
     try {
       $params = Url::fromUserInput($user_input)->getRouteParameters();
-      if (key($params) === $this->targetType) {
-        $result = [end($params)];
+      if (!empty($params[$this->targetType])) {
+        $result = [$params[$this->targetType]];
       }
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       // Do nothing.
     }
 

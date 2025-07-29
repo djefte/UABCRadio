@@ -11,6 +11,7 @@ use Drupal\easy_email\Event\EasyEmailEvent;
 use Drupal\easy_email\Event\EasyEmailEvents;
 use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
+use Drupal\file\FileRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -42,18 +43,27 @@ class EmailAttachmentEvaluator implements EmailAttachmentEvaluatorInterface {
   protected $configFactory;
 
   /**
-   * Constructs the EmailTokenEvaluator
+   * @var \Drupal\file\FileRepositoryInterface
+   */
+  protected $fileRepository;
+
+  /**
+   * Constructs the EmailAttachmentEvaluator
    *
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
    * @param \Drupal\Core\File\FileSystemInterface $fileSystem
    * @param \Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser $mimeTypeGuesser
+   * @param \Psr\Log\LoggerInterface $logger
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   * @param \Drupal\file\FileRepositoryInterface $fileRepository
    */
-  public function __construct(EventDispatcherInterface $eventDispatcher, FileSystemInterface $fileSystem, MimeTypeGuesser $mimeTypeGuesser, LoggerInterface $logger, ConfigFactoryInterface $configFactory) {
+  public function __construct(EventDispatcherInterface $eventDispatcher, FileSystemInterface $fileSystem, MimeTypeGuesser $mimeTypeGuesser, LoggerInterface $logger, ConfigFactoryInterface $configFactory, FileRepositoryInterface $fileRepository) {
     $this->fileSystem = $fileSystem;
     $this->mimeTypeGuesser = $mimeTypeGuesser;
     $this->eventDispatcher = $eventDispatcher;
     $this->logger = $logger;
     $this->configFactory = $configFactory;
+    $this->fileRepository = $fileRepository;
   }
 
   /**
@@ -85,6 +95,20 @@ class EmailAttachmentEvaluator implements EmailAttachmentEvaluatorInterface {
             $this->logger->warning('Attachment not in allowed path: @attachment', ['@attachment' => $attachment->getFileUri()]);
             continue;
           }
+          if (!$this->isAllowedFileType($attachment->getFilename(), $attachment->getMimeType())) {
+            $this->logger->warning('Attachment file type not allowed: @attachment (@mime)', [
+              '@attachment' => $attachment->getFileUri(),
+              '@mime' => $attachment->getMimeType()
+            ]);
+            continue;
+          }
+          if (!$this->isAllowedFileSize($realpath)) {
+            $this->logger->warning('Attachment file size too large: @attachment (@size bytes)', [
+              '@attachment' => $attachment->getFileUri(),
+              '@size' => filesize($realpath)
+            ]);
+            continue;
+          }
           $file = [
             'filepath' => $attachment->getFileUri(),
             'filename' => $attachment->getFilename(),
@@ -113,6 +137,21 @@ class EmailAttachmentEvaluator implements EmailAttachmentEvaluatorInterface {
             $this->logger->warning('Attachment not in allowed path: @attachment', ['@attachment' => $path]);
             continue;
           }
+          $mime_type = $this->mimeTypeGuesser->guessMimeType($path);
+          if (!$this->isAllowedFileType($this->fileSystem->basename($path), $mime_type)) {
+            $this->logger->warning('Attachment file type not allowed: @attachment (@mime)', [
+              '@attachment' => $path,
+              '@mime' => $mime_type
+            ]);
+            continue;
+          }
+          if (!$this->isAllowedFileSize($realpath)) {
+            $this->logger->warning('Attachment file size too large: @attachment (@size bytes)', [
+              '@attachment' => $path,
+              '@size' => filesize($realpath)
+            ]);
+            continue;
+          }
 
           if (!empty($save_attachments_to) && $email->hasField('attachment')) {
             $this->saveAttachment($email, $realpath, $save_attachments_to);
@@ -121,7 +160,7 @@ class EmailAttachmentEvaluator implements EmailAttachmentEvaluatorInterface {
           $file = [
             'filepath' => $path,
             'filename' => $this->fileSystem->basename($path),
-            'filemime' => $this->mimeTypeGuesser->guessMimeType($path),
+            'filemime' => $mime_type,
           ];
           $files[] = $file;
         }
@@ -147,14 +186,94 @@ class EmailAttachmentEvaluator implements EmailAttachmentEvaluatorInterface {
     if (empty($allowed_paths)) {
       return FALSE;
     }
+
+    // Resolve the full real path to prevent path traversal attacks
+    $real_path = $this->fileSystem->realpath($path);
+    if ($real_path === FALSE) {
+      return FALSE;
+    }
+
     foreach ($allowed_paths as $allowed_path) {
       $allowed_realpath = $this->fileSystem->realpath($allowed_path);
-      if ($this->pcreFnmatch($allowed_realpath, $path)) {
+      if ($allowed_realpath === FALSE) {
+        continue;
+      }
+
+      if ($this->pcreFnmatch($allowed_realpath, $real_path)) {
         return TRUE;
       }
     }
     return FALSE;
   }
+
+  /**
+   * Validate whether a file type is allowed for attachments.
+   *
+   * @param string $filename
+   *   The filename to check.
+   * @param string $mime_type
+   *   The MIME type to check.
+   *
+   * @return bool
+   *   TRUE if the file type is allowed, FALSE otherwise.
+   */
+  protected function isAllowedFileType(string $filename, string $mime_type): bool {
+    $config = $this->configFactory->get('easy_email.settings');
+    $allowed_extensions = $config->get('allowed_attachment_extensions') ?: [];
+    $blocked_extensions = $config->get('blocked_attachment_extensions') ?: [];
+    $allowed_mime_types = $config->get('allowed_attachment_mime_types') ?: [];
+    $blocked_mime_types = $config->get('blocked_attachment_mime_types') ?: [];
+
+    // Get file extension
+    $extension = mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+    // Check blocked extensions first (security priority)
+    if (in_array($extension, $blocked_extensions, TRUE)) {
+      return FALSE;
+    }
+
+    // Check blocked MIME types
+    if (in_array($mime_type, $blocked_mime_types, TRUE)) {
+      return FALSE;
+    }
+
+    // If allowed extensions are configured, file must be in the list
+    if (!empty($allowed_extensions) && !in_array($extension, $allowed_extensions, TRUE)) {
+      return FALSE;
+    }
+
+    // If allowed MIME types are configured, file must be in the list
+    if (!empty($allowed_mime_types) && !in_array($mime_type, $allowed_mime_types, TRUE)) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  /**
+   * Validate whether a file size is within allowed limits.
+   *
+   * @param string $file_path
+   *   The file path to check.
+   *
+   * @return bool
+   *   TRUE if the file size is allowed, FALSE otherwise.
+   */
+  protected function isAllowedFileSize(string $file_path): bool {
+    $max_size_mb = $this->configFactory->get('easy_email.settings')->get('max_attachment_size');
+
+    // If no limit is configured, allow any size
+    if (empty($max_size_mb)) {
+      return TRUE;
+    }
+
+    // Convert megabytes to bytes for comparison
+    $max_size_bytes = $max_size_mb * 1048576;
+
+    $file_size = filesize($file_path);
+    return $file_size !== FALSE && $file_size <= $max_size_bytes;
+  }
+
 
   /**
    * Helper function to replace fnmatch().
@@ -191,8 +310,8 @@ class EmailAttachmentEvaluator implements EmailAttachmentEvaluatorInterface {
    * @param \Drupal\file\FileInterface $file
    */
   protected function saveAttachment(EasyEmailInterface $email, $source, $dest_directory) {
-    \Drupal::service('file_system')->prepareDirectory($dest_directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
-    $file_entity = \Drupal::service('file.repository')->writeData(file_get_contents($source), $dest_directory . '/' . $this->fileSystem->basename($source));
+    $this->fileSystem->prepareDirectory($dest_directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+    $file_entity = $this->fileRepository->writeData(file_get_contents($source), $dest_directory . '/' . $this->fileSystem->basename($source));
     $email->addAttachment($file_entity->id());
   }
 

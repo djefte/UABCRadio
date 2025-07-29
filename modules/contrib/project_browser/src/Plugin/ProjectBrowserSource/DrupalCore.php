@@ -2,6 +2,7 @@
 
 namespace Drupal\project_browser\Plugin\ProjectBrowserSource;
 
+use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ModuleExtensionList;
@@ -149,8 +150,9 @@ final class DrupalCore extends ProjectBrowserSourceBase {
     if (!empty($query['page']) && !empty($query['limit'])) {
       $projects = array_chunk($projects, $query['limit'])[$query['page']] ?? [];
     }
-    if (array_key_exists('order', $this->configuration)) {
-      SortHelper::sortInDefinedOrder($projects, $this->configuration['order']);
+    if (array_key_exists('order', $this->configuration) && is_array($this->configuration['order'])) {
+      assert(Inspector::assertAllStrings($this->configuration['order']) && Inspector::assertAllNotEmpty($this->configuration['order']));
+      SortHelper::sortInDefinedOrder($projects, array_values($this->configuration['order']));
     }
     return $this->createResultsPage($projects, $project_count);
   }

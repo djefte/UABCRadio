@@ -55,12 +55,18 @@
 </script>
 
 <div
-  class="dropbutton-wrapper dropbutton-multiple"
+  class="dropbutton-wrapper dropbutton-{tasks.length > 1
+    ? 'multiple'
+    : 'single'}"
   data-once="dropbutton"
   bind:this={thisElement}
 >
   <div class="dropbutton-widget">
-    <ul class="dropbutton dropbutton--extrasmall dropbutton--multiple">
+    <ul
+      class="dropbutton dropbutton--extrasmall dropbutton--{tasks.length > 1
+        ? 'multiple'
+        : 'single'}"
+    >
       <li class="dropbutton__item dropbutton-action">
         <a
           class:use-ajax={tasks[0].ajax}

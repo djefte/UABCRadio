@@ -41,7 +41,6 @@ services:
         vendor/bin/drush role:perm:add anonymous 'access visitors'
         vendor/bin/drush role:perm:add anonymous 'access toolbar'
         vendor/bin/drush config:set system.site page.front /visitors
-        vendor/bin/drush config:set visitors.config performance true
 
       build: |
         set -eux

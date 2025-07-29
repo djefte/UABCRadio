@@ -13,3 +13,5 @@ friendlycaptcha.api_puzzle:
   # @todo Implement access control according to Polite::cors()
   requirements:
     _permission: 'access content'
+  options:
+    _maintenance_access: TRUE

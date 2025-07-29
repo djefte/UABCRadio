@@ -8,6 +8,7 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\project_browser_test\Plugin\ProjectBrowserSource\ProjectBrowserTestMock;
+use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class ProjectBrowserTestMockTest extends UnitTestCase {
 
   /**

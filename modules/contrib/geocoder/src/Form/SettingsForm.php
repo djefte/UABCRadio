@@ -60,6 +60,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('cache'),
     ];
 
+    $form['queue'] = [
+      '#type' => 'checkbox',
+      '#title' => $geocoder_config_schema['queue']['label'],
+      '#description' => $geocoder_config_schema['queue']['description'],
+      '#default_value' => $config->get('queue'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -78,6 +85,7 @@ class SettingsForm extends ConfigFormBase {
     $config = $this->config('geocoder.settings');
     $config->set('geocoder_presave_disabled', $form_state_values['geocoder_presave_disabled']);
     $config->set('cache', $form_state_values['cache']);
+    $config->set('queue', $form_state_values['queue']);
     $config->save();
 
     parent::submitForm($form, $form_state);

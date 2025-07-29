@@ -1,0 +1,16 @@
+site_name: Visitors
+theme:
+  name: material
+  logo: logo.png
+  favicon: logo.png
+  features:
+    - navigation.footer
+    - navigation.instant
+
+nav:
+  - Home: index.md
+  - Code Coverage: coverage/index.html
+
+repo_url: https://git.drupalcode.org/project/visitors
+extra:
+  generator: false

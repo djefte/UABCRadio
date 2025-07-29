@@ -9,6 +9,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\ai\Event\PostGenerateResponseEvent;
 use Drupal\ai\Service\PromptJsonDecoder\PromptJsonDecoderInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * The event that is triggered after a response is generated.
@@ -88,7 +89,20 @@ class PostRequestEventSubscriber implements EventSubscriberInterface {
       }
       $storage = $this->entityTypeManager->getStorage('ai_agent_decision');
       $response = $this->jsonPromptHandler->decode($event->getOutput()->getNormalized());
+      $normalized = $event->getOutput()->getNormalized();
       $formatted = is_array($response) ? Json::encode($response) : $response;
+      $response_given = is_string($formatted) ? $formatted : $formatted->getText();
+      if (!empty($normalized->getTools())) {
+        $response_given = '';
+        $tools = $normalized->getTools();
+        foreach ($tools as $tool) {
+          $response_given .= 'Tool: ' . $tool->getName() . "\n";
+          foreach ($tool->getArguments() as $argument) {
+            $response_given .= $argument->getName() . ': ' . Yaml::dump($argument->getValue(), 10, 2) . "\n";
+          }
+          $response_given .= "\n";
+        }
+      }
       $decision = $storage->create([
         'label' => 'Ran ' . $file . '.yaml',
         'runner_id' => $runner_id,
@@ -97,7 +111,7 @@ class PostRequestEventSubscriber implements EventSubscriberInterface {
         'log_status' => 'notice',
         'question' => $event->getInput()->getMessages()[0]->getText(),
         'prompt_used' => $event->getDebugData()['chat_system_role'] ?? '',
-        'response_given' => is_string($formatted) ? $formatted : $formatted->getText(),
+        'response_given' => $response_given,
         'detailed_output' => Json::encode($event->getOutput()->getRawOutput()),
       ]);
       $decision->save();

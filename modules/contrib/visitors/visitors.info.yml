@@ -1,6 +1,6 @@
 name: Visitors
-description: 'This module used for displaying a visitors info.'
-package: 'Visitors'
+description: "Logs visitor's actions."
+package: 'Analytics'
 core_version_requirement: ^10.1 || ^11
 type: module
 configure: visitors.settings
@@ -9,7 +9,7 @@ dependencies:
   - drupal:path
   - charts:charts_chartjs
 
-# Information added by Drupal.org packaging script on 2025-04-01
-version: '8.x-2.28'
+# Information added by Drupal.org packaging script on 2025-05-31
+version: '8.x-2.31'
 project: 'visitors'
-datestamp: 1743466093
+datestamp: 1748725097

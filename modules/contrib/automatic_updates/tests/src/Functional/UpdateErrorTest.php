@@ -47,7 +47,7 @@ class UpdateErrorTest extends UpdaterFormTestBase {
     $page = $session->getPage();
     $this->mockActiveCoreVersion('9.8.0');
     $this->checkForUpdates();
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update to 9.8.1');
     $this->checkForMetaRefresh();
     $this->assertUpdateStagedTimes(1);
@@ -111,7 +111,7 @@ class UpdateErrorTest extends UpdaterFormTestBase {
 
     // If a validator raises an error during status checking, the form should
     // not have a submit button.
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $this->assertNoUpdateButtons();
     // Since this is an administrative page, the error message should be visible
     // thanks to automatic_updates_page_top(). The status checks were re-run
@@ -174,7 +174,7 @@ class UpdateErrorTest extends UpdaterFormTestBase {
 
     $this->mockActiveCoreVersion('9.8.0');
     $this->checkForUpdates();
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
 
     // StatusCheckEvent runs very early, before we can even start the update.
     // If it raises the error we're expecting, we're done.
@@ -205,7 +205,7 @@ class UpdateErrorTest extends UpdaterFormTestBase {
       $page->clickLink('the error page');
       $assert_session->statusMessageContains($expected_message, 'error');
       // We should be on the start page.
-      $assert_session->addressEquals('/admin/modules/update');
+      $assert_session->addressEquals('/admin/reports/updates/update');
 
       // If we failed during post-create, the stage is not destroyed, so we
       // should not be able to start the update anew without destroying the

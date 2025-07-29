@@ -1,0 +1,7 @@
+Configure media library importer:
+  title: 'Configure media library importer'
+  description: 'Permission to configure and use media library importer'
+
+Import files into media library:
+  title: 'Import files into media library'
+  description: 'Permission to import files into media library'

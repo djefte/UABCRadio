@@ -22,11 +22,11 @@ class SuccessfulUpdateTest extends UpdaterFormTestBase {
   public static function providerSuccessfulUpdate(): array {
     return [
       'Modules page, maintenance mode on' => [
-        '/admin/modules/update',
+        '/admin/reports/updates/update',
         TRUE,
       ],
       'Modules page, maintenance mode off' => [
-        '/admin/modules/update',
+        '/admin/reports/updates/update',
         FALSE,
       ],
       'Reports page, maintenance mode on' => [

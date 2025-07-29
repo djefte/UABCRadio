@@ -6,7 +6,7 @@ namespace Drupal\Tests\automatic_updates\Functional;
 
 use Drupal\automatic_updates\CronUpdateRunner;
 use Drupal\automatic_updates\CommandExecutor;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\fixture_manipulator\StageFixtureManipulator;
 use Drupal\Tests\automatic_updates\Traits\TestSetUpTrait;
 use Drupal\Tests\BrowserTestBase;
@@ -44,6 +44,16 @@ abstract class AutomaticUpdatesFunctionalTestBase extends BrowserTestBase {
       ->set('unattended.level', CronUpdateRunner::SECURITY)
       ->save();
     $this->mockActiveCoreVersion('9.8.0');
+
+    // Allow Package Manager to be installed in the test site.
+    $this->writeSettings([
+      'settings' => [
+        'testing_package_manager' => (object) [
+          'value' => TRUE,
+          'required' => TRUE,
+        ],
+      ],
+    ]);
   }
 
   /**
@@ -54,7 +64,7 @@ abstract class AutomaticUpdatesFunctionalTestBase extends BrowserTestBase {
     $service_ids = [
       // If automatic_updates is installed, ensure any stage directory created
       // during the test is cleaned up.
-      UpdateStage::class,
+      UpdateSandboxManager::class,
     ];
     foreach ($service_ids as $service_id) {
       if ($this->container->has($service_id)) {

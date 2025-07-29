@@ -78,14 +78,14 @@ final class UpdateReleaseValidator implements EventSubscriberInterface {
    *   The event object.
    */
   public function checkRelease(PreCreateEvent $event): void {
-    $stage = $event->stage;
+    $sandbox_manager = $event->sandboxManager;
     // This check only works with Automatic Updates Extensions.
-    if ($stage->getType() !== 'automatic_updates_extensions:attended') {
+    if ($sandbox_manager->getType() !== 'automatic_updates_extensions:attended') {
       return;
     }
 
     $active_packages = $this->composerInspector->getInstalledPackagesList($this->pathLocator->getProjectRoot());
-    $all_versions = $stage->getPackageVersions();
+    $all_versions = $sandbox_manager->getPackageVersions();
     $messages = [];
     foreach (['production', 'dev'] as $package_type) {
       foreach ($all_versions[$package_type] as $package_name => $sematic_version) {

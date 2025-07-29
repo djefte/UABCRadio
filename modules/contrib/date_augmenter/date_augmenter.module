@@ -13,17 +13,17 @@ use Drupal\Core\Plugin\PluginFormInterface;
  *
  * Adds extra configuration fields to compatible date fields.
  */
-function date_augmenter_field_formatter_third_party_settings_form($plugin, $field_definition, $form_mode, $form, $form_state) {
+function date_augmenter_field_formatter_third_party_settings_form($plugin, $field_definition, $form_mode, $form, $form_state): array {
   // Check if the formatter has explicitly delcared support.
   if (!method_exists($plugin, 'supportsDateAugmenter') || !$sets = $plugin->supportsDateAugmenter()) {
-    return;
+    return [];
   }
 
   // Make sure the service is available.
   $dateAugmenterManager = \Drupal::service('plugin.manager.dateaugmenter');
   if (!$dateAugmenterManager) {
     // @todo throw an error here?
-    return;
+    return [];
   }
   $augmenters = $dateAugmenterManager->getDefinitions();
 

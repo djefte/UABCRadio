@@ -22,6 +22,7 @@ use Symfony\Component\Yaml\Yaml;
 #[AiAgent(
   id: 'field_type_agent',
   label: new TranslatableMarkup('Field Type Agent'),
+  module_dependencies: ['field'],
 )]
 class FieldType extends AiAgentBase implements ContainerFactoryPluginInterface {
 
@@ -144,30 +145,8 @@ class FieldType extends AiAgentBase implements ContainerFactoryPluginInterface {
   /**
    * {@inheritDoc}
    */
-  public function isAvailable() {
-    // Check if field module is installed.
-    return $this->agentHelper->isModuleEnabled('field');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public function askQuestions() {
     return $this->questions;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isNotAvailableMessage() {
-    return $this->t('You need to enable the field module to do this.');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getRetries() {
-    return 2;
   }
 
   /**

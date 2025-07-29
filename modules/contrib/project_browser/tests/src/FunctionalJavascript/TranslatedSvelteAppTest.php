@@ -6,6 +6,7 @@ namespace Drupal\Tests\project_browser\FunctionalJavascript;
 
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+use PHPUnit\Framework\Attributes\Group;
 
 // cspell:ignore soorch foor moodools
 
@@ -14,6 +15,7 @@ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class TranslatedSvelteAppTest extends WebDriverTestBase {
 
   use ProjectBrowserUiTestTrait;
@@ -90,6 +92,11 @@ final class TranslatedSvelteAppTest extends WebDriverTestBase {
     $this->submitForm($edit, 'Save translations');
     $this->drupalGet("/$prefix/admin/modules/browse/drupalorg_jsonapi");
     $this->svelteInitHelper('text', $translate_to);
+
+    // Assert that images don't have a language prefix.
+    $module_path = \Drupal::service('module_handler')->getModule('project_browser')->getPath();
+    $imgPath = $this->baseUrl . '/' . $module_path . '/images/blue-security-shield-icon.svg';
+    $this->assertNotNull($this->assertSession()->waitForElement('css', 'img[src^="' . $imgPath . '"]'));
   }
 
 }

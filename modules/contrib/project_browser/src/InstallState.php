@@ -75,25 +75,29 @@ final class InstallState {
    */
   public function setState(string $project_id, ?string $status): void {
     $this->keyValue->setIfNotExists('__timestamp', $this->time->getRequestTime());
+    $normalized_id = Project::normalizeId($project_id);
     if (is_string($status)) {
-      $this->keyValue->set($project_id, ['status' => $status]);
+      $this->keyValue->set($normalized_id, [
+        'status' => $status,
+        'project_id' => $project_id,
+      ]);
     }
     else {
-      $this->keyValue->delete($project_id);
+      $this->keyValue->delete($normalized_id);
     }
   }
 
   /**
    * Retrieves the install state of a project.
    *
-   * @param \Drupal\project_browser\ProjectBrowser\Project $project
-   *   The project object for which to retrieve the install state.
+   * @param string $project_id
+   *   The project ID to retrieve.
    *
    * @return string|null
    *   The current install status of the project, or NULL if not found.
    */
-  public function getStatus(Project $project): ?string {
-    $project_data = $this->keyValue->get($project->id);
+  public function getStatus(string $project_id): ?string {
+    $project_data = $this->keyValue->get(Project::normalizeId($project_id));
     return $project_data['status'] ?? NULL;
   }
 

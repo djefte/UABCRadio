@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates_extensions\Kernel\Validator;
 
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\Tests\automatic_updates_extensions\Kernel\AutomaticUpdatesExtensionsKernelTestBase;
+use Drupal\Tests\update\Functional\UpdateTestTrait;
 
 /**
  * @coversDefaultClass \Drupal\automatic_updates_extensions\Validator\RequestedUpdateValidator
@@ -16,6 +17,8 @@ use Drupal\Tests\automatic_updates_extensions\Kernel\AutomaticUpdatesExtensionsK
  * @internal
  */
 class RequestedUpdateValidatorTest extends AutomaticUpdatesExtensionsKernelTestBase {
+
+  use UpdateTestTrait;
 
   /**
    * Tests error messages if requested updates were not staged.
@@ -45,23 +48,25 @@ class RequestedUpdateValidatorTest extends AutomaticUpdatesExtensionsKernelTestB
       }
     }
 
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
     $this->setReleaseMetadata([
       'semver_test' => __DIR__ . '/../../../fixtures/release-history/semver_test.1.1.xml',
-      'drupal' => __DIR__ . '/../../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
-      'aaa_update_test' => __DIR__ . "/../../../../../package_manager/tests/fixtures/release-history/aaa_update_test.1.1.xml",
+      'drupal' => "$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml",
+      'aaa_update_test' => "$package_manager_dir/tests/fixtures/release-history/aaa_update_test.1.1.xml",
     ]);
     // Set the project version to '8.0.1' so that there 2 versions of above this
     // that will be in the list of supported releases, 8.1.0 and 8.1.1.
     (new ActiveFixtureManipulator())
       ->setVersion('drupal/semver_test', '8.0.1')
       ->commitChanges();
-    // @todo Replace with use of the trait from the Update module in https://drupal.org/i/3348234.
-    $module_info = ['version' => '8.0.1', 'project' => 'semver_test'];
-    $this->config('update_test.settings')
-      ->set("system_info.semver_test", $module_info)
-      ->save();
+    $this->mockInstalledExtensionsInfo([
+      'semver_test' => [
+        'version' => '8.0.1',
+        'project' => 'semver_test',
+      ],
+    ]);
 
-    $stage = $this->container->get(ExtensionUpdateStage::class);
+    $stage = $this->container->get(ExtensionUpdateSandboxManager::class);
     $stage->begin([
       'semver_test' => '8.1.1',
       'aaa_update_test' => '8.x-1.1',
@@ -72,7 +77,7 @@ class RequestedUpdateValidatorTest extends AutomaticUpdatesExtensionsKernelTestB
       $stage->apply();
       $this->fail('Expecting an exception.');
     }
-    catch (StageEventException $exception) {
+    catch (SandboxEventException $exception) {
       $this->assertExpectedResultsFromException($expected_results, $exception);
     }
   }

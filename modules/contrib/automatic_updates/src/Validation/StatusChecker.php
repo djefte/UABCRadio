@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Drupal\automatic_updates\Validation;
 
 use Drupal\automatic_updates\CronUpdateRunner;
-use Drupal\automatic_updates\ConsoleUpdateStage;
+use Drupal\automatic_updates\ConsoleUpdateSandboxManager;
 use Drupal\automatic_updates\StatusCheckMailer;
 use Drupal\Core\Config\ConfigCrudEvent;
 use Drupal\Core\Config\ConfigEvents;
 use Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface;
 use Drupal\package_manager\StatusCheckTrait;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
 use Drupal\package_manager\Event\PostApplyEvent;
@@ -36,8 +36,8 @@ final class StatusChecker implements EventSubscriberInterface {
     KeyValueExpirableFactoryInterface $key_value_expirable_factory,
     private readonly TimeInterface $time,
     private readonly EventDispatcherInterface $eventDispatcher,
-    private readonly UpdateStage $updateStage,
-    private readonly ConsoleUpdateStage $consoleUpdateStage,
+    private readonly UpdateSandboxManager $updateStage,
+    private readonly ConsoleUpdateSandboxManager $consoleUpdateStage,
     private readonly CronUpdateRunner $cronUpdateRunner,
     private readonly int $resultsTimeToLive,
   ) {
@@ -54,12 +54,12 @@ final class StatusChecker implements EventSubscriberInterface {
     // provided by this module. This will allow validators to run specific
     // validation for conditions that only affect cron updates.
     if ($this->cronUpdateRunner->getMode() === CronUpdateRunner::DISABLED) {
-      $stage = $this->updateStage;
+      $sandbox_manager = $this->updateStage;
     }
     else {
-      $stage = $this->consoleUpdateStage;
+      $sandbox_manager = $this->consoleUpdateStage;
     }
-    $results = $this->runStatusCheck($stage, $this->eventDispatcher);
+    $results = $this->runStatusCheck($sandbox_manager, $this->eventDispatcher);
 
     $this->keyValueExpirable->setWithExpire(
       'status_check_last_run',

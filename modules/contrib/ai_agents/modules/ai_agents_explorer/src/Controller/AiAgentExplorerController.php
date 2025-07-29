@@ -2,12 +2,14 @@
 
 namespace Drupal\ai_agents_explorer\Controller;
 
+use Drupal\ai_agents\PluginInterfaces\ConfigAiAgentInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\ai\AiProviderPluginManager;
 use Drupal\ai_agents\PluginInterfaces\AiAgentInterface;
 use Drupal\ai_agents\PluginManager\AiAgentManager;
 use Drupal\ai_agents\Task\Task;
+use Drupal\Core\Utility\Token;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,7 +51,13 @@ class AiAgentExplorerController extends ControllerBase {
   /**
    * Constructor.
    */
-  final public function __construct(AiProviderPluginManager $ai_manager, AiAgentManager $agents_manager, Request $request, EntityTypeManagerInterface $entity_type_manager) {
+  final public function __construct(
+    AiProviderPluginManager $ai_manager,
+    AiAgentManager $agents_manager,
+    Request $request,
+    EntityTypeManagerInterface $entity_type_manager,
+    private readonly Token $token,
+  ) {
     $this->providerManager = $ai_manager;
     $this->agentsManager = $agents_manager;
     $this->currentRequest = $request;
@@ -65,6 +73,7 @@ class AiAgentExplorerController extends ControllerBase {
       $container->get('plugin.manager.ai_agents'),
       $container->get('request_stack')->getCurrentRequest(),
       $container->get('entity_type.manager'),
+      $container->get('token'),
     );
     return $instance;
   }
@@ -117,9 +126,11 @@ class AiAgentExplorerController extends ControllerBase {
     $provider_name = $this->currentRequest->get('model');
     $images = $this->currentRequest->get('images');
     $runner_id = $this->currentRequest->get('runner_id');
+    $markdown = $this->currentRequest->get('markdown');
 
     try {
       $provider = $this->providerManager->loadProviderFromSimpleOption($provider_name);
+      /** @var \Drupal\ai_agents\PluginInterfaces\AiAgentInterface $agent */
       $agent = $this->agentsManager->createInstance($agent_name);
     }
     catch (\Exception $e) {
@@ -139,7 +150,7 @@ class AiAgentExplorerController extends ControllerBase {
     if (!empty($images)) {
       $task_files = [];
       foreach ($images as $fid) {
-        $file = $this->entityTypeManager->get('file')->load($fid);
+        $file = $this->entityTypeManager->getStorage('file')->load($fid);
         $task_files[] = $file;
       }
       $task->setFiles($task_files);
@@ -153,6 +164,23 @@ class AiAgentExplorerController extends ControllerBase {
     $agent->setAiConfiguration([]);
     // Create, not suggest.
     $agent->setCreateDirectly(TRUE);
+
+    if ($agent instanceof ConfigAiAgentInterface) {
+      $token_input = array_filter($this->currentRequest->get('tokens') ?? []);
+      $tokens = [];
+      foreach ($token_input as $token_type => $token_value) {
+        if ($this->entityTypeManager->hasDefinition($token_type)) {
+          $tokens[$token_type] = $this->entityTypeManager
+            ->getStorage($token_type)
+            ->load($token_value);
+        }
+        else {
+          $tokens[$token_type] = $token_value;
+        }
+      }
+      $agent->setTokenContexts($tokens);
+    }
+
     // Check if it can solve it.
     $response = '';
     try {
@@ -186,6 +214,13 @@ class AiAgentExplorerController extends ControllerBase {
         'message' => $e->getMessage(),
         'time' => microtime(TRUE),
       ], 500);
+    }
+    if ($markdown && class_exists('League\CommonMark\CommonMarkConverter')) {
+      // Ignore the non-use statement loading since this dependency may not
+      // exist.
+      // @codingStandardsIgnoreLine
+      $converter = new \League\CommonMark\CommonMarkConverter();
+      $response = $converter->convert($response)->__toString();
     }
     return new JsonResponse([
       'success' => TRUE,

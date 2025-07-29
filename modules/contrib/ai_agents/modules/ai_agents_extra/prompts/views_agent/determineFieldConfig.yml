@@ -49,4 +49,3 @@ prompt:
           nl2br: true
           trim: true
           max_length: 100
-

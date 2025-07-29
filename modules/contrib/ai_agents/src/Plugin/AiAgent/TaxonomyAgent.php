@@ -18,6 +18,7 @@ use Drupal\taxonomy\Entity\Vocabulary;
 #[AiAgent(
   id: 'taxonomy_agent',
   label: new TranslatableMarkup('Taxonomy Agent'),
+  module_dependencies: ['taxonomy'],
 )]
 class TaxonomyAgent extends AiAgentBase {
 
@@ -120,28 +121,6 @@ class TaxonomyAgent extends AiAgentBase {
    */
   public function setData($data) {
     $this->data[] = $data;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isAvailable() {
-    // Check if taxonomy module is installed.
-    return $this->agentHelper->isModuleEnabled('taxonomy');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isNotAvailableMessage() {
-    return $this->t('You need to enable the taxonomy module to use this.');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getRetries() {
-    return 2;
   }
 
   /**

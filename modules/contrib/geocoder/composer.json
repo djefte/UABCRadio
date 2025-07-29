@@ -46,6 +46,7 @@
         "geocoder-php/graphhopper-provider": "^0.5.0",
         "geocoder-php/host-ip-provider": "^4.0",
         "geocoder-php/ip-info-db-provider": "^4.0",
+        "geocoder-php/locationiq-provider": "^1.5",
         "geocoder-php/mapbox-provider": "^1.0",
         "geocoder-php/mapquest-provider": "^4.0",
         "geocoder-php/maptiler-provider": "^1.0",

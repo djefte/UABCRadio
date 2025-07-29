@@ -7,11 +7,16 @@ namespace Drupal\Tests\project_browser\Functional;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser_test\Plugin\ProjectBrowserSource\ProjectBrowserTestMock;
 use Drupal\Tests\BrowserTestBase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @covers \Drupal\project_browser\EnabledSourceHandler
+ * Tests the EnabledSourceHandler class.
+ *
  * @group project_browser
  */
+#[CoversClass(EnabledSourceHandler::class)]
+#[Group('project_browser')]
 final class EnabledSourceHandlerTest extends BrowserTestBase {
 
   /**

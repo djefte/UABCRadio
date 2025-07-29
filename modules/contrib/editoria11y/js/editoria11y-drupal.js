@@ -32,29 +32,78 @@ const ed11yInitializer = function () {
     '#toolbar-administration *';
   options.panelNoCover = !!drupalSettings.editoria11y.panel_no_cover ?
     drupalSettings.editoria11y.panel_no_cover :
-    '#klaro-cookie-notice, #klaro_toggle_dialog, .same-page-preview-dialog.ui-dialog-position-side, #gin_sidebar';
+    '#klaro-cookie-notice, #klaro_toggle_dialog, .same-page-preview-dialog.ui-dialog-position-side, #gin_sidebar, #admin-toolbar';
+  if (drupalSettings.editoria11y.panel_pin === 'left') {
+    options.panelPinTo = 'left';
+  }
   options.ignoreAllIfAbsent = !!drupalSettings.editoria11y.ignore_all_if_absent ?
     drupalSettings.editoria11y.ignore_all_if_absent :
     false;
-  options.buttonZIndex = 491; // 99999
+
+  /*
+  * Was 491 until May 2025.
+  * 100 will hide under contextual panels.
+  * 491 will hide under Gin toolbars.
+  * CKEditor balloon panels are 1000. Ed11y CSS applies +9000 to ACTIVE tips.
+  * Drupal modal is 1260. ed11yResultsPainted applies +99999 for modal tips.
+  * */
+  options.buttonZIndex = 100;
+
   options.autoDetectShadowComponents = !!drupalSettings.editoria11y.detect_shadow;
   options.shadowComponents = drupalSettings.editoria11y.shadow_components ? drupalSettings.editoria11y.shadow_components : false;
-  options.watchForChanges = drupalSettings.editoria11y.watch_for_changes === 'checkRoots' ?
-    'checkRoots' :
-    drupalSettings.editoria11y.watch_for_changes === 'true';
 
-  const editors = (Drupal.editors && (Object.hasOwn(Drupal.editors, 'ckeditor5') || Object.hasOwn(Drupal.editors, 'gutenberg')));
+  options.ignoreByKey = {
+    'p': 'table:not(.field-multiple-table) p',
+    'h': '.filter-guidelines-item *, nav *, [id$="-local-tasks"] *, .block-local-tasks-block *, .tabledrag h4',
+    // disable alt text tests on unspoken images
+    'img': '[aria-hidden], [aria-hidden] img, [role="presentation"], a[href][aria-label] img, button[aria-label] img, a[href][aria-labelledby] img, button[aria-labelledby] img',
+    // disable link text check on disabled and admin links:
+    'a': `[aria-hidden][tabindex], [id$="-local-tasks"] a, .block-local-tasks-block a, .filter-help > a, .contextual-region > nav a ${drupalSettings.path.currentPathIsAdmin ? ', a[target="_blank"]' : ''}`,
+    // 'li': false,
+    // 'blockquote': false,
+    // 'iframe': false,
+    // 'audio': false,
+    // 'video': false,
+    'table': '[role="presentation"], .tabledrag',
+    // todo: report h4 and th issue in docroot/core/includes/theme.inc
+  };
+
+  let editors = (Drupal.editors && (Object.hasOwn(Drupal.editors, 'ckeditor5') || Object.hasOwn(Drupal.editors, 'gutenberg')));
+  // As of 2.2.10, ignore front-end editors (rich text comment fields).
+  if (editors) {
+    options.inlineAlerts = false;
+    const editRoutes = /(node|term|user)\/\d+\/edit/;
+    // @todo: does this need to be a parameter?
+    if (!drupalSettings.path.currentPathIsAdmin &&
+      !drupalSettings.path.currentPath.match(editRoutes) ) {
+      editors = false;
+    }
+  }
+  if (editors) {
+    options.watchForChanges = true;
+    if (Object.hasOwn(Drupal.editors, 'gutenberg')) {
+      // Toggles must be >999 to show, but this puts them over bubble window.
+      options.buttonZIndex = 1000;
+    } else {
+      // CKEditor injects a label that messes up the "text + alt" link test.
+      options.ignoreAriaOnElements = '[data-drupal-media-preview], [data-drupal-entity-preview]';
+    }
+  } else {
+    options.watchForChanges = drupalSettings.editoria11y.watch_for_changes === 'checkRoots' ?
+      'checkRoots' :
+      drupalSettings.editoria11y.watch_for_changes !== 'false';
+  }
 
   let delay = drupalSettings.path.currentPathIsAdmin ? 250 : 0;
   // Way too many race conditions on admin side.
-  if (document.URL.indexOf('mode=same_page_preview') > -1) {
-    // todo: would need an web worker dance like WP to show issue highlights.
+  if (document.URL.indexOf('mode=same_page_preview') > -1 || (
+    drupalSettings.path.currentPathIsAdmin &&
+    drupalSettings.editoria11y.disable_live === true
+  )) {
     ed11yOnce = true;
     ed11yInitialized = 'disabled';
     return;
-  } else if (drupalSettings.path.currentPathIsAdmin &&
-    (!!drupalSettings.editoria11y.disable_live || !editors)
-  ) {
+  } else if (drupalSettings.path.currentPathIsAdmin && !editors) {
     // Ed11y will init later if a behavior brings in something editable.
     ed11yInitialized = false;
     return;
@@ -65,21 +114,10 @@ const ed11yInitializer = function () {
     ed11yOnce = true;
     ed11yInitialized = 'disabled';
     return;
-
   } else if (editors) {
     // Editable content is present.
-    options.buttonZIndex = 99999;
+    // Auto detect adds 20ms to test runs which adds up in edit mode.
     options.autoDetectShadowComponents = false;
-    // But we don't try to check live inside layout builder.
-    if (drupalSettings.path.currentPathIsAdmin &&
-      !!drupalSettings.editoria11y.disable_live) {
-      // Don't disable in frontend for comment fields.
-      ed11yOnce = true;
-      ed11yInitialized = 'disabled';
-      options.watchForChanges = true;
-      return;
-    }
-    options.inlineAlerts = false;
     if (Object.hasOwn(Drupal.editors, 'gutenberg')) {
       options.ignoreAriaOnElements = 'h1,h2,h3,h4,h5,h6';
       delay = 1000;
@@ -151,7 +189,7 @@ const ed11yInitializer = function () {
   let ed11yAlertMode = drupalSettings.editoria11y.assertiveness ? drupalSettings.editoria11y.assertiveness : 'assertive';
   // If assertiveness is "smart" we set it to assertive if the doc was recently changed.
   const now = new Date();
-  if (drupalSettings.path.currentPathIsAdmin && (Drupal.editors && (Object.hasOwn(Drupal.editors, 'ckeditor5') || Object.hasOwn(Drupal.editors, 'gutenberg'))) && drupalSettings.editoria11y.assertiveness !== 'polite') {
+  if (drupalSettings.path.currentPathIsAdmin && (Drupal.editors && (Object.hasOwn(Drupal.editors, 'ckeditor5') || Object.hasOwn(Drupal.editors, 'gutenberg'))) && (ed11yAlertMode === 'smart' || ed11yAlertMode === 'assertive')) {
     ed11yAlertMode = 'active';
   }
   else if (
@@ -164,21 +202,6 @@ const ed11yInitializer = function () {
   }
 
   options.lang = lang;
-  options.ignoreByKey = {
-    'p': 'table:not(.field-multiple-table) p',
-    'h': '.filter-guidelines-item *, nav *, [id$="-local-tasks"] *, .block-local-tasks-block *, .tabledrag h4',
-    // disable alt text tests on unspoken images
-    'img': '[aria-hidden], [aria-hidden] img, a[href][aria-label] img, button[aria-label] img, a[href][aria-labelledby] img, button[aria-labelledby] img',
-    // disable link text check on disabled and admin links:
-    'a': `[aria-hidden][tabindex], [id$="-local-tasks"] a, .block-local-tasks-block a, .filter-help > a, .contextual-region > nav a ${drupalSettings.path.currentPathIsAdmin ? ', a[target="_blank"]' : ''}`,
-    // 'li': false,
-    // 'blockquote': false,
-    // 'iframe': false,
-    // 'audio': false,
-    // 'video': false,
-    'table': '[role="presentation"], .tabledrag',
-    // todo: report h4 and th issue in docroot/core/includes/theme.inc
-  };
   options.alertMode = ed11yAlertMode;
   options.currentPage = drupalSettings.editoria11y.page_path;
   options.allowHide = !!drupalSettings.editoria11y.allow_hide;
@@ -187,7 +210,7 @@ const ed11yInitializer = function () {
   options.showDismissed = urlParams.has('ed1ref');
   // todo postpone: ignoreAllIfPresent
   options.preventCheckingIfPresent = !!drupalSettings.editoria11y.no_load ?
-    drupalSettings.editoria11y.no_load + '.layout-builder-form' :
+    drupalSettings.editoria11y.no_load + ', .layout-builder-form' :
     '.layout-builder-form';
   // todo postpone: preventCheckingIfAbsent
   options.linkStringsNewWindows = !!drupalSettings.editoria11y.link_strings_new_windows ?
@@ -203,7 +226,7 @@ const ed11yInitializer = function () {
   options.embeddedContent = !!drupalSettings.editoria11y.embedded_content_warning ? drupalSettings.editoria11y.embedded_content_warning : false;
   options.documentLinks = !!drupalSettings.editoria11y.download_links ? drupalSettings.editoria11y.download_links : `a[href$='.pdf'], a[href*='.pdf?']`;
   options.customTests = drupalSettings.editoria11y.custom_tests;
-  options.cssUrls = !!drupalSettings.editoria11y.css_url ? [drupalSettings.editoria11y.css_url + '/library/css/editoria11y.css'] : false;
+  options.cssUrls = !!drupalSettings.editoria11y.css_url ? [drupalSettings.editoria11y.css_url + '/library/dist/editoria11y.min.css'] : false;
   options.ignoreTests = drupalSettings.editoria11y.ignore_tests ? drupalSettings.editoria11y.ignore_tests : false;
 
 
@@ -272,34 +295,51 @@ const ed11yInitializer = function () {
   }
 
   ed11yWaiting = true;
+
   window.setTimeout(function() {
     ed11yInitialized = true;
+
+    // Increase zIndex on tips drawn inside Drupal's modal dialog.
+    document.addEventListener('ed11yResultsPainted', function () {
+      if (Ed11y.options.inlineAlerts) {
+        // Inline alerts inherit z-index.
+        return;
+      }
+      Ed11y.results?.forEach(result => {
+        const inDialog = result?.element?.closest('dialog, [role="dialog"]');
+        if (inDialog) {
+          result?.toggle?.style.setProperty('--ed11y-buttonZIndex', '99999');
+        }
+      })
+    });
+
     const ed11y = new Ed11y(options);
     ed11yWaiting = false;
-    // todo: Remove once confirmed that new library listeners cover this.
-    // Listen for events that may modify content without triggering a mutation.
-    /*window.addEventListener('keyup', (e) => {
-      if (Ed11y.bodyStyle &&
-        !e.target.closest('.ed11y-element, .ed11y-wrapper, [contenteditable="true"]')) {
-        // Arrow changes of radio and select controls.
-        Ed11y.incrementalAlign(); // Immediately realign tips.
-        Ed11y.alignPending = false;
+
+    // When Drupal dialog opens, constrain checks inside dialog.
+    let rootsCache;
+    let dialogRoots = '';
+    document.addEventListener('dialog:aftercreate', function () {
+      if (!rootsCache) {
+        rootsCache = Ed11y.options.checkRoots;
+        const rootsParse = Ed11y.options.checkRoots.split(',');
+        rootsParse.forEach((root, i) => {
+          rootsParse[i] = `#drupal-modal ${root}`;
+        })
+        dialogRoots = rootsParse.join(', ');
       }
-    });*/
-    /*window.addEventListener('click', (e) => {
-      // Click covers mouse, keyboard and touch.
-      console.log(`Drupal query ignored due to Ed11y click target: ${!!e.target.closest('.ed11y-element, .ed11y-wrapper, [contenteditable="true"]')}`);
-      console.log(e.target);
-      if (Ed11y.bodyStyle &&
-        Ed11y.options.watchForChanges &&
-        !e.target.closest('.ed11y-element, .ed11y-wrapper, [contenteditable="true"]')
-      ) {
-        console.log('drupal click listener');
-        Ed11y.incrementalAlign(); // Immediately realign tips.
-        Ed11y.alignPending = false;
+      Ed11y.options.checkRoots = dialogRoots;
+      Ed11y.forceFullCheck = true;
+      Ed11y.incrementalCheck();
+      // Todo: if Editoria11y disables, drop its zIndex behind the modal?
+    })
+    document.addEventListener('dialog:afterclose', function () {
+      if (rootsCache) {
+        Ed11y.options.checkRoots = rootsCache;
+        Ed11y.forceFullCheck = true;
         Ed11y.incrementalCheck();
       }
-    });*/
+    })
     window.setTimeout(function() {
       // Append ?ed1string to URLs to check translations
       if (!urlParams.has('ed1strings')) {
@@ -492,8 +532,14 @@ const ed11yInitializer = function () {
         } else {
           ed11yDismissalsCache[detail.dismissTest].push(detail.dismissKey);
         }
+        // Get dynamic title from edit pages.
+        const editableTitleField = document.querySelector('#edit-title-wrapper input, #edit-name-wrapper input, #edit-name input');
+        // Todo: update page titles in API.
         data = {
-          page_title: drupalSettings.editoria11y.page_title,
+          page_title: drupalSettings.path.currentPathIsAdmin &&
+          editableTitleField && editableTitleField.value ?
+            editableTitleField.value :
+            drupalSettings.editoria11y.page_title,
           page_path: drupalSettings.editoria11y.page_path,
           entity_id: drupalSettings.editoria11y.entity_id,
           language: drupalSettings.editoria11y.lang,

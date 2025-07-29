@@ -201,10 +201,6 @@ parameters:
 			path: tests/src/Kernel/ProviderTest.php
 
 		-
-			message: "#^Plugin definitions cannot be altered\\.$#"
-			count: 1
-			path: src/GeocoderPluginManagerBase.php
-		-
 			message: "#^\\\\Drupal calls should be avoided in classes, use dependency injection instead$#"
 			count: 2
 			path: modules/geocoder_geofield/src/Geocoder/Dumper/Geometry.php

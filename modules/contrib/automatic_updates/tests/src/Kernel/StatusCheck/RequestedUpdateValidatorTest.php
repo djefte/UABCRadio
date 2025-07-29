@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates\Kernel\StatusCheck;
 
-use Drupal\automatic_updates\UpdateStage;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\automatic_updates\UpdateSandboxManager;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\Tests\automatic_updates\Kernel\AutomaticUpdatesKernelTestBase;
 
@@ -36,23 +36,23 @@ class RequestedUpdateValidatorTest extends AutomaticUpdatesKernelTestBase {
     $this->getStageFixtureManipulator()->setVersion('drupal/core-recommended', '9.8.2');
     $this->setCoreVersion('9.8.0');
     $this->setReleaseMetadata([
-      'drupal' => __DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
     ]);
     $this->container->get('module_installer')->install(['automatic_updates']);
 
-    $stage = $this->container->get(UpdateStage::class);
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
     $expected_results = [
       ValidationResult::createError([t("The requested update to 'drupal/core-recommended' to version '9.8.1' does not match the actual staged update to '9.8.2'.")]),
       ValidationResult::createError([t("The requested update to 'drupal/core-dev' to version '9.8.1' was not performed.")]),
     ];
-    $stage->begin(['drupal' => '9.8.1']);
-    $this->assertStatusCheckResults($expected_results, $stage);
-    $stage->stage();
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $this->assertStatusCheckResults($expected_results, $sandbox_manager);
+    $sandbox_manager->stage();
     try {
-      $stage->apply();
+      $sandbox_manager->apply();
       $this->fail('Expecting an exception.');
     }
-    catch (StageEventException $exception) {
+    catch (SandboxEventException $exception) {
       $this->assertExpectedResultsFromException($expected_results, $exception);
     }
   }
@@ -68,22 +68,22 @@ class RequestedUpdateValidatorTest extends AutomaticUpdatesKernelTestBase {
 
     $this->setCoreVersion('9.8.0');
     $this->setReleaseMetadata([
-      'drupal' => __DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
     ]);
     $this->container->get('module_installer')->install(['automatic_updates']);
 
     $expected_results = [
       ValidationResult::createError([t('No updates detected in the staging area.')]),
     ];
-    $stage = $this->container->get(UpdateStage::class);
-    $stage->begin(['drupal' => '9.8.1']);
-    $this->assertStatusCheckResults($expected_results, $stage);
-    $stage->stage();
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $this->assertStatusCheckResults($expected_results, $sandbox_manager);
+    $sandbox_manager->stage();
     try {
-      $stage->apply();
+      $sandbox_manager->apply();
       $this->fail('Expecting an exception.');
     }
-    catch (StageEventException $exception) {
+    catch (SandboxEventException $exception) {
       $this->assertExpectedResultsFromException($expected_results, $exception);
     }
   }

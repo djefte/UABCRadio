@@ -8,12 +8,14 @@ use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\project_browser_test\TestActivator;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests multiple Project Browser instances on a single page.
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class MultipleInstancesTest extends WebDriverTestBase {
 
   use ProjectBrowserUiTestTrait;

@@ -37,6 +37,8 @@ mix
 mix.browserSync({
   proxy: process.env.DRUPAL_BASE_URL,
   files: [
+    'components/**/*.css',
+    'components/**/*.js',
     'components/**/*.twig',
     'templates/**/*.twig',
     'build/css/*.css',

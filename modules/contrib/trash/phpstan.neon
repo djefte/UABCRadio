@@ -16,5 +16,8 @@ parameters:
     -
       message: '#^Parameter \$event of method Drupal\\trash\\EventSubscriber\\TrashIgnoreSubscriber\:\:onDefaultContentPreImport\(\) has invalid type Drupal\\Core\\DefaultContent\\PreImportEvent\.$#'
       reportUnmatched: false
+    -
+      message: '#internal#'
+      reportUnmatched: false
   scanDirectories:
     - ../../../../vendor/drush/drush/src-symfony-compatibility

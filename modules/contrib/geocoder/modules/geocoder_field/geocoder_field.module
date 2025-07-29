@@ -14,6 +14,7 @@ use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\geocoder\Entity\GeocoderProvider;
 use Drupal\geocoder_field\GeocoderFieldPluginInterface;
+use Drupal\geocoder_field\Plugin\QueueWorker\GeocoderField;
 use Geocoder\Model\AddressCollection;
 
 /**
@@ -93,7 +94,7 @@ function geocoder_field_form_field_config_edit_form_alter(array &$form, FormStat
       '#type' => 'value',
       '#value' => $field_plugin,
     ];
-    array_unshift($form['#validate'], 'geocoder_field_field_config_edit_form_validate');
+    $form['actions']['submit']['#validate'][] = 'geocoder_field_field_config_edit_form_validate';
   }
 }
 
@@ -176,13 +177,44 @@ function geocoder_field_entity_presave(EntityInterface $entity) {
 
   /** @var \Drupal\geocoder_field\PreprocessorPluginManager $preprocessor_manager */
   $preprocessor_manager = \Drupal::service('plugin.manager.geocoder.preprocessor');
+  $fields = $preprocessor_manager->getOrderedGeocodeFields($entity);
+  // Do nothing if there are no fields to process.
+  if ($fields === []) {
+    return;
+  }
+
+  // If the queue setting is set to true, use a queue.
+  if ($geocoder_config->get('queue')) {
+    /** @var \Drupal\Core\Queue\QueueFactory $queue_factory */
+    $queue_factory = \Drupal::service('queue');
+    /** @var \Drupal\Core\Queue\QueueInterface $queue */
+    $queue = $queue_factory->get(GeocoderField::ID);
+    $queue->createItem([$entity->getEntityTypeId(), $entity->uuid()]);
+  }
+  else {
+    _geocoder_field_process($entity, $fields);
+  }
+}
+
+/**
+ * Processes geocoder field.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ *   The entity to be processed.
+ * @param \Drupal\Core\Field\FieldItemListInterface[] $fields
+ *   An ordered list of fields to be (reverse) geocoded.
+ *
+ * @return bool
+ *   TRUE if the entity was changed, FALSE otherwise.
+ */
+function _geocoder_field_process(EntityInterface $entity, array $fields): bool {
+  /** @var \Drupal\geocoder_field\PreprocessorPluginManager $preprocessor_manager */
+  $preprocessor_manager = \Drupal::service('plugin.manager.geocoder.preprocessor');
   /** @var \Drupal\geocoder\DumperPluginManager $dumper_manager */
   $dumper_manager = \Drupal::service('plugin.manager.geocoder.dumper');
+  $changed = FALSE;
 
-  // Reorder the list of fields to be Geocoded | Reverse Geocoded.
-  $order_geocoder_fields = $preprocessor_manager->getOrderedGeocodeFields($entity);
-
-  foreach ($order_geocoder_fields as $field_name => $field) {
+  foreach ($fields as $field_name => $field) {
     /** @var \Drupal\Core\Field\FieldConfigInterface $field_config */
     if (!($field_config = $field->getFieldDefinition()) instanceof FieldConfigInterface) {
       // Only configurable fields are subject of geocoding.
@@ -230,14 +262,14 @@ function geocoder_field_entity_presave(EntityInterface $entity) {
     catch (PluginException $e) {
       \Drupal::logger('geocoder')->error($e->getMessage());
     }
-    $default_values = $entity->get($field_name);
+    $default_values = clone $entity->get($field_name);
     $result = [];
     $failure_status_message = NULL;
     $providers = GeocoderProvider::loadMultiple($geocoder['providers']);
 
     // Skip Geocode/Reverse Geocode op if so requested for not empty value.
     if (isset($geocoder['skip_not_empty_value']) && $geocoder['skip_not_empty_value'] && !$default_values->isEmpty()) {
-      return;
+      return FALSE;
     }
 
     foreach ($remote_field->getValue() as $delta => $value) {
@@ -253,16 +285,24 @@ function geocoder_field_entity_presave(EntityInterface $entity) {
           // Allow others modules to adjust the address string.
           Drupal::service('module_handler')->alter('geocode_entity_field_address_string', $value['value'], $field);
 
-          $failure_status_message = t("Unable to geocode '@text'.", ['@text' => $value['value'] ?? '']);
-          $geo_collection = isset($value['value']) ? \Drupal::service('geocoder')->geocode($value['value'], $providers) : NULL;
+          // Perform a Geocode operation (and define an error message) only in
+          // case of value to geocode.
+          if (isset($value['value'])) {
+            $geo_collection = \Drupal::service('geocoder')->geocode($value['value'], $providers);
+            $failure_status_message = t("Unable to geocode '@text'.", ['@text' => $value['value'] ?? '']);
+          }
           break;
 
         case 'reverse_geocode':
           // Allow others modules to adjust the Coordinates to Reverse Geocode.
           Drupal::service('module_handler')->alter('reverse_geocode_entity_field_coordinates', $value['lat'], $value['lon'], $field);
 
-          $failure_status_message = t('Unable to reverse geocode the <em>@field_name</em> value.', ['@field_name' => $field_name]);
-          $geo_collection = isset($value['lat']) && isset($value['lon']) ? \Drupal::service('geocoder')->reverse($value['lat'], $value['lon'], $providers) : NULL;
+          // Perform a Reverse Geocode operation (and define an error message)
+          // only in case of value to reverse geocode.
+          if (isset($value['lat']) && isset($value['lon'])) {
+            $failure_status_message = t('Unable to reverse geocode the <em>@field_name</em> value.', ['@field_name' => $field_name]);
+            $geo_collection = \Drupal::service('geocoder')->reverse($value['lat'], $value['lon'], $providers);
+          }
           break;
 
         default:
@@ -357,6 +397,10 @@ function geocoder_field_entity_presave(EntityInterface $entity) {
     }
 
     $entity->set($field_name, $result);
+    if (!$entity->get($field_name)->filterEmptyItems()->equals($default_values)) {
+      $changed = TRUE;
+    }
   }
 
+  return $changed;
 }

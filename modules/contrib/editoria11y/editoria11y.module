@@ -5,13 +5,40 @@
  * Editoria11y module file.
  */
 
+use Drupal\ckeditor5\Plugin\CKEditor5PluginDefinition;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Link;
-use Drupal\Core\Routing\RouteObjectInterface;
 use Drupal\Core\Url;
-use Drupal\taxonomy\TermInterface;
+
+/**
+ * Implements hook_ckeditor5_plugin_info_alter().
+ */
+function editoria11y_ckeditor5_plugin_info_alter(array &$plugin_definitions) {
+  // Hook only called if CK5 is installed, so no PHP errors from broken use.
+  if (isset($plugin_definitions['ckeditor5_table'])) {
+    $config = Drupal::config('editoria11y.settings');
+    $header_config = $config->get('ck5_table_headers');
+    if (!$header_config || $header_config === 'none') {
+      return;
+    }
+    $headers = [];
+    if ($header_config === 'both') {
+      $headers['rows'] = 1;
+      $headers['columns'] = 1;
+    }
+    elseif ($header_config === 'row') {
+      $headers['rows'] = 1;
+    }
+    elseif ($header_config === 'column') {
+      $headers['columns'] = 1;
+    }
+    $table_plugin_definition = $plugin_definitions['ckeditor5_table']->toArray();
+    $table_plugin_definition['ckeditor5']['config']['table']['defaultHeadings'] = $headers;
+    $plugin_definitions['ckeditor5_table'] = new CKEditor5PluginDefinition($table_plugin_definition);
+  }
+}
 
 /**
  * Implements hook_post_update().
@@ -187,12 +214,45 @@ function editoria11y_page_attachments(array &$attachments): void {
     $dismissals = FALSE;
   }
   elseif ($sync && $sync !== 'disable') {
+    $matched_node = FALSE;
+    $entity = FALSE;
     // Get extra dashboard data if we plan to sync information.
-    if ($route = $request->attributes->get(RouteObjectInterface::ROUTE_OBJECT)) {
-      // We need the title if sync is enabled.
-      $page_title = Drupal::service('title_resolver')->getTitle($request, $route);
-
-      // @todo this fails on user route?
+    if (($route = $route_match->getRouteObject()) && ($parameters = $route->getOption('parameters'))) {
+      // Determine if the current route represents an entity.
+      foreach ($parameters as $name => $options) {
+        if (isset($options['type']) && strpos($options['type'], 'entity:') === 0) {
+          $entity = $route_match->getParameter($name);
+          /* @noinspection PhpUndefinedFieldInspection */
+          if (($entity instanceof ContentEntityInterface) && $entity->hasLinkTemplate('canonical') && $entity->type && $entity->type->entity) {
+            /* @noinspection PhpUndefinedFieldInspection */
+            // This is an entity! Get its type label.
+            $entity_type = $entity->type->entity->label();
+            break;
+          }
+        }
+      }
+      // Get titles without service; it returns form name while editing.
+      if ($matched_node = \Drupal::routeMatch()->getParameter('node')) {
+        $page_title = $matched_node->label();
+      }
+      elseif ($matched_term = \Drupal::routeMatch()->getParameter('taxonomy_term')) {
+        $page_title = $matched_term->label();
+        // @todo used to return term label rather than bundle label.
+        // $entity_type = "Taxonomy: " . $matched_term->label();
+        $entity_type = $entity && method_exists($entity, 'bundle') ? "Taxonomy: " . $entity->bundle() : 'Taxonomy term';
+        // The TID.
+        $entity_id = $matched_term->id();
+        $page_path = \Drupal::service('path_alias.manager')->getAliasByPath('/taxonomy/term/' . $entity_id, $language);
+      }
+      elseif ($matched_user = \Drupal::routeMatch()->getParameter('user')) {
+        $page_title = $matched_user->label();
+        $entity_type = "Entity: User";
+      }
+      // Fall back to service for nonentities like admin routes.
+      if (empty($page_title)) {
+        $page_title = Drupal::service('title_resolver')->getTitle($request, $route);
+      }
+      // Render rich text titles.
       if (is_array($page_title)) {
         /** @var \Drupal\Core\Render\RendererInterface $renderer */
         // @phpstan-ignore-next-line
@@ -208,41 +268,19 @@ function editoria11y_page_attachments(array &$attachments): void {
         );*/
       }
     }
+    // No title available; use route name.
     if (empty($page_title)) {
       $page_title = $route_name;
     }
 
-    // Entity will be found in the route parameters.
-    if (($route = $route_match->getRouteObject()) && ($parameters = $route->getOption('parameters'))) {
-      // Determine if the current route represents an entity.
-      foreach ($parameters as $name => $options) {
-        if (isset($options['type']) && strpos($options['type'], 'entity:') === 0) {
-          $entity = $route_match->getParameter($name);
-          /* @noinspection PhpUndefinedFieldInspection */
-          if ($entity instanceof ContentEntityInterface && $entity->hasLinkTemplate('canonical') && $entity->type && $entity->type->entity) {
-            /* @noinspection PhpUndefinedFieldInspection */
-            $entity_type = $entity->type->entity->label();
-          }
-        }
-      }
-    }
-
     if (!$entity_type) {
       // Bundleless entities.
-      if ($route_match->getParameter('taxonomy_term') instanceof TermInterface) {
-        $entity_type = "Taxonomy: " . $route_match->getParameter('taxonomy_term')->label();
-        // The TID.
-        $entity_id = $route_match->getParameter('taxonomy_term')->id();
-        $page_path = \Drupal::service('path_alias.manager')->getAliasByPath('/taxonomy/term/' . $entity_id, $language);
+      $route_chunk = explode('.', $route_name);
+      if (count($route_chunk) > 1) {
+        $entity_type = ucfirst($route_chunk[0]) . ": " . ucfirst(str_replace("_", " ", $route_chunk[1]));
       }
       else {
-        $route_chunk = explode('.', $route_name);
-        if (count($route_chunk) > 1) {
-          $entity_type = ucfirst($route_chunk[0]) . ": " . ucfirst(str_replace("_", " ", $route_chunk[1]));
-        }
-        else {
-          $entity_type = ucfirst($route_name);
-        }
+        $entity_type = ucfirst($route_name);
       }
     }
 
@@ -250,7 +288,7 @@ function editoria11y_page_attachments(array &$attachments): void {
     // $page_path = $request->getPathInfo();
     if (!$page_path) {
       // Attempt to get aliased path even while in edit mode.
-      if (str_starts_with($route_name, 'entity.node.') && $route_match->getParameter('node') !== NULL) {
+      if ($matched_node) {
         $nid = $route_match->getParameter('node')->id();
         if ($nid) {
           // @todo language tag isn't making it in.
@@ -363,6 +401,7 @@ function editoria11y_page_attachments(array &$attachments): void {
   $attachments['#attached']['drupalSettings']['editoria11y']['detect_shadow'] = $config->get('detect_shadow');
   $attachments['#attached']['drupalSettings']['editoria11y']['ignore_elements'] = $config->get('ignore_elements');
   $attachments['#attached']['drupalSettings']['editoria11y']['panel_no_cover'] = $config->get('panel_no_cover');
+  $attachments['#attached']['drupalSettings']['editoria11y']['panel_pin'] = $config->get('panel_pin');
   $attachments['#attached']['drupalSettings']['editoria11y']['embedded_content_warning'] = $config->get('embedded_content_warning');
   $attachments['#attached']['drupalSettings']['editoria11y']['hidden_handlers'] = $config->get('hidden_handlers');
   $attachments['#attached']['drupalSettings']['editoria11y']['live_h_inherit'] = $config->get('live_h_inherit');

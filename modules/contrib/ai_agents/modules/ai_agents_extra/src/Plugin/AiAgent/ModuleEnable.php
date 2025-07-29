@@ -139,22 +139,8 @@ class ModuleEnable extends AiAgentBase implements ContainerFactoryPluginInterfac
   /**
    * {@inheritDoc}
    */
-  public function isAvailable() {
-    return TRUE;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public function isNotAvailableMessage() {
     return $this->t('This is not available.');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getRetries() {
-    return 2;
   }
 
   /**

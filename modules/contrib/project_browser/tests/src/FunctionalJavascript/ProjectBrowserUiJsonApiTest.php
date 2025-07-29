@@ -6,6 +6,7 @@ namespace Drupal\Tests\project_browser\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\project_browser\ProjectBrowser\Filter\BooleanFilter;
+use PHPUnit\Framework\Attributes\Group;
 
 // cspell:ignore cashpresso Adnuntius Paypage Redsys ZURB Superfish TMGMT Toki
 // cspell:ignore Webtheme Pitchburgh Gotem Webform Bsecurity Bstatus Cardless
@@ -15,6 +16,7 @@ use Drupal\project_browser\ProjectBrowser\Filter\BooleanFilter;
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
 
   use ProjectBrowserUiTestTrait;
@@ -99,12 +101,8 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
    * Tests the clickable category functionality.
    */
   public function testClickableCategory(): void {
-    $assert_session = $this->assertSession();
-
     $this->drupalGet('admin/modules/browse/drupalorg_jsonapi');
-    $this->svelteInitHelper('text', 'Token');
-    $assert_session->waitForButton('Token')->click();
-
+    $this->clickSvelteButtonWithText('Token');
   }
 
   /**
@@ -166,10 +164,8 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
    * Tests the Target blank functionality.
    */
   public function testTargetBlank(): void {
-    $assert_session = $this->assertSession();
     $this->drupalGet('admin/modules/browse/drupalorg_jsonapi');
-    $this->svelteInitHelper('text', 'Token');
-    $assert_session->waitForButton('Token')->click();
+    $this->clickSvelteButtonWithText('Token');
   }
 
   /**
@@ -277,11 +273,8 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
    * Tests the detail page.
    */
   public function testDetailPage(): void {
-    $assert_session = $this->assertSession();
-
     $this->drupalGet('admin/modules/browse/drupalorg_jsonapi');
-    $this->svelteInitHelper('text', 'Token');
-    $assert_session->waitForButton('Token')->click();
+    $this->clickSvelteButtonWithText('Token');
   }
 
   /**
@@ -386,12 +379,22 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
       $this->drupalGet('admin/modules/browse/drupalorg_jsonapi');
       $this->svelteInitHelper('css', $selector['selector']);
       $page->pressButton($selector['value']);
-      $this->svelteInitHelper('text', 'Token');
-      $assert_session->waitForButton('Token')->click();
-      $this->svelteInitHelper('text', 'Close');
-      $assert_session->waitForButton('Close')->click();
+      $this->clickSvelteButtonWithText('Token');
+      $this->clickSvelteButtonWithText('Close');
       $assert_session->elementExists('css', $selector['selector'] . '.pb-display__button--selected');
     }
+  }
+
+  /**
+   * Helper function to click a button with the given text.
+   *
+   * @param string $text
+   *   The text of the button to click.
+   */
+  private function clickSvelteButtonWithText(string $text): void {
+    $this->svelteInitHelper('text', $text);
+    $button = $this->assertSession()->waitForButton($text);
+    $button ? $button->click() : $this->fail('Failed to get button');
   }
 
 }

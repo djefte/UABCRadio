@@ -5,6 +5,8 @@
  * Contains hook implementations for testing Automatic Updates.
  */
 
+declare(strict_types=1);
+
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**

@@ -318,7 +318,7 @@ class ReportControllerTest extends UnitTestCase {
     // Assert the expected render array.
     $this->assertArrayHasKey('visitors_date_filter_form', $render_array);
     $this->assertArrayHasKey('main', $render_array);
-    $this->assertCount(4, $render_array['main']);
+    $this->assertCount(5, $render_array['main']);
   }
 
   /**

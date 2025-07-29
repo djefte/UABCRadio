@@ -72,7 +72,7 @@ class Linkit extends Plugin {
               this.set('entitySubstitution', null);
             }
 
-            linkFormView.urlInputView.fieldView.set('value', item.path);
+            event.target.value = item.path ?? '';
             selected = true;
             return false;
           },
@@ -110,6 +110,7 @@ class Linkit extends Plugin {
         'linkDataEntityUuid': this.entityUuid,
         'linkDataEntitySubstitution': this.entitySubstitution,
       }
+      const decoratorsArgIndex = 1;
       // Stop the execution of the link command caused by closing the form.
       // Inject the extra attribute value. The highest priority listener here
       // injects the argument (here below 👇).
@@ -119,13 +120,15 @@ class Linkit extends Plugin {
       // - The normal (default) priority listener in ckeditor5-link sets
       //   (creates) the actual link.
       linkCommand.once('execute', (evt, args) => {
-        if (args.length < 3) {
-          args.push(values);
-        } else if (args.length === 3) {
-          Object.assign(args[2], values);
-        } else {
-          throw Error('The link command has more than 3 arguments.')
+        // Assume decorators is the second argument provided to the
+        // linkCommand.execute() call.
+        if (!(typeof args[decoratorsArgIndex] === 'object')) {
+          // This is either an object or null because decorators are optional.
+          args[decoratorsArgIndex] = values;
+          return;
         }
+        // An object exists, so we need to merge the values.
+        Object.assign(args[decoratorsArgIndex], values);
       }, { priority: 'highest' });
     }, { priority: 'high' });
   }

@@ -16,7 +16,7 @@ chat:
       label: 'Max Tokens'
       description: 'The maximum number of tokens that can be generated in the chat completion.'
       type: 'integer'
-      default: 1024
+      default: 4096
       required: false
     temperature:
       label: 'Temperature'

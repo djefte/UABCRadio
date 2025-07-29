@@ -196,29 +196,6 @@ class EasyEmailHtmlRouteProvider extends AdminHtmlRouteProvider {
     }
   }
 
-  /**
-   * Gets the revision translation revert route.
-   *
-   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
-   *   The entity type.
-   *
-   * @return \Symfony\Component\Routing\Route|null
-   *   The generated route, if available.
-   */
-  protected function getRevisionTranslationRevertRoute(EntityTypeInterface $entity_type) {
-    if ($entity_type->hasLinkTemplate('translation_revert')) {
-      $route = new Route($entity_type->getLinkTemplate('translation_revert'));
-      $route
-        ->setDefaults([
-          '_form' => '\Drupal\easy_email\Form\EasyEmailRevisionRevertTranslationForm',
-          '_title' => 'Revert to earlier revision of a translation',
-        ])
-        ->setRequirement('_permission', 'revert all email revisions')
-        ->setOption('_admin_route', TRUE);
-
-      return $route;
-    }
-  }
 
   /**
    * Gets the settings form route.

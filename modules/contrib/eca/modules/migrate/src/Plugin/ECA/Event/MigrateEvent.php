@@ -2,7 +2,7 @@
 
 namespace Drupal\eca_migrate\Plugin\ECA\Event;
 
-use Drupal\eca\Attributes\Token;
+use Drupal\eca\Attribute\Token;
 use Drupal\eca\Plugin\ECA\Event\EventBase;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateIdMapMessageEvent;

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Drupal\Tests\automatic_updates\Kernel\StatusCheck;
 
 use Drupal\automatic_updates\CronUpdateRunner;
-use Drupal\automatic_updates\ConsoleUpdateStage;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\ConsoleUpdateSandboxManager;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
 use Drupal\package_manager\Event\PreCreateEvent;
-use Drupal\package_manager\Exception\StageEventException;
-use Drupal\package_manager\Exception\StageException;
+use Drupal\package_manager\Exception\SandboxEventException;
+use Drupal\package_manager\Exception\SandboxException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\Tests\automatic_updates\Kernel\AutomaticUpdatesKernelTestBase;
 
@@ -33,7 +33,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
    *   The test cases.
    */
   public static function providerStatusCheckSpecific(): array {
-    $metadata_dir = __DIR__ . '/../../../../package_manager/tests/fixtures/release-history';
+    $metadata_dir = static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history';
 
     return [
       // This case proves that, if a stable release is installed, there is no
@@ -79,7 +79,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
         [CronUpdateRunner::SECURITY, CronUpdateRunner::ALL],
         [
           t('The currently installed version of Drupal core, 9.7.1, is not in a supported minor version. Your site will not be automatically updated during cron until it is updated to a supported minor version.'),
-          t('Use the <a href="/admin/modules/update">update form</a> to update to a supported version.'),
+          t('Use the <a href="/admin/reports/updates/update">update form</a> to update to a supported version.'),
         ],
         TRUE,
       ],
@@ -93,7 +93,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
    *   The test cases.
    */
   public static function providerGeneric(): array {
-    $metadata_dir = __DIR__ . '/../../../../package_manager/tests/fixtures/release-history';
+    $metadata_dir = static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history';
 
     return [
       // Updating from a dev, alpha, beta, or RC release is not allowed during
@@ -221,7 +221,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
    *   The test cases.
    */
   public static function providerCronPreCreateSpecific(): array {
-    $metadata_dir = __DIR__ . '/../../../../package_manager/tests/fixtures/release-history';
+    $metadata_dir = static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history';
 
     return [
       // The next three cases prove that update to an alpha, beta, or RC release
@@ -363,7 +363,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
         [CronUpdateRunner::SECURITY, CronUpdateRunner::ALL],
         [
           t('The currently installed version of Drupal core, 9.7.1, is not in a supported minor version. Your site will not be automatically updated during cron until it is updated to a supported minor version.'),
-          t('Use the <a href="/admin/modules/update">update form</a> to update to a supported version.'),
+          t('Use the <a href="/admin/reports/updates/update">update form</a> to update to a supported version.'),
           t('Drupal cannot be automatically updated from 9.7.1 to 9.8.1 because automatic updates from one minor version to another are not supported during cron.'),
         ],
         TRUE,
@@ -405,9 +405,9 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
     // that would get executed after pre-create.
     // @see \Drupal\automatic_updates\Validator\VersionPolicyValidator::validateVersion()
     $this->addEventTestListener(function (PreCreateEvent $event) use ($target_version): void {
-      /** @var \Drupal\automatic_updates\ConsoleUpdateStage $stage */
-      $stage = $event->stage;
-      $stage->setMetadata('packages', [
+      /** @var \Drupal\automatic_updates\ConsoleUpdateSandboxManager $sandbox_manager */
+      $sandbox_manager = $event->sandboxManager;
+      $sandbox_manager->setMetadata('packages', [
         'production' => [
           'drupal/core-recommended' => $target_version,
         ],
@@ -425,17 +425,17 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
         ->set('allow_core_minor_updates', $allow_minor_updates)
         ->save();
 
-      $stage = $this->container->get(ConsoleUpdateStage::class);
+      $sandbox_manager = $this->container->get(ConsoleUpdateSandboxManager::class);
       try {
-        $stage->create();
+        $sandbox_manager->create();
         // If we did not get an exception, ensure we didn't expect any results.
         $this->assertEmpty($expected_results);
       }
-      catch (StageEventException $e) {
+      catch (SandboxEventException $e) {
         $this->assertExpectedResultsFromException($expected_results, $e);
       }
       finally {
-        $stage->destroy(TRUE);
+        $sandbox_manager->destroy(TRUE);
       }
     }
   }
@@ -447,7 +447,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
    *   The test cases.
    */
   public static function providerApi(): array {
-    $metadata_dir = __DIR__ . '/../../../../package_manager/tests/fixtures/release-history';
+    $metadata_dir = static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history';
 
     return [
       'valid target, dev snapshot installed' => [
@@ -623,16 +623,16 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
       ->set('allow_core_minor_updates', $allow_minor_updates)
       ->save();
 
-    $stage = $this->container->get(UpdateStage::class);
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
 
     try {
-      $stage->begin($project_versions);
+      $sandbox_manager->begin($project_versions);
       // Ensure that we did not, in fact, expect any errors.
       $this->assertEmpty($expected_results);
       // Reset the update stage for the next iteration of the loop.
-      $stage->destroy();
+      $sandbox_manager->destroy();
     }
-    catch (StageEventException $e) {
+    catch (SandboxEventException $e) {
       $this->assertExpectedResultsFromException($expected_results, $e);
     }
   }
@@ -678,9 +678,7 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
   public function testNoStagedPackageVersions(): void {
     // Remove the stored package versions from the update stage's metadata.
     $listener = function (PreCreateEvent $event): void {
-      /** @var \Drupal\Tests\automatic_updates\Kernel\TestUpdateStage $stage */
-      $stage = $event->stage;
-      $stage->setMetadata('packages', [
+      $event->sandboxManager->setMetadata('packages', [
         'production' => [],
       ]);
     };
@@ -696,9 +694,9 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
   public function testNoCorePackagesInstalled(): void {
     $listener = function (PreCreateEvent $event): void {
       // We should have staged package versions.
-      /** @var \Drupal\automatic_updates\UpdateStage $stage */
-      $stage = $event->stage;
-      $this->assertNotEmpty($stage->getPackageVersions());
+      /** @var \Drupal\automatic_updates\UpdateSandboxManager $sandbox_manager */
+      $sandbox_manager = $event->sandboxManager;
+      $this->assertNotEmpty($sandbox_manager->getPackageVersions());
       // Remove all core packages in the active directory.
       (new ActiveFixtureManipulator())
         ->removePackage('drupal/core-recommended')
@@ -722,9 +720,9 @@ class VersionPolicyValidatorTest extends AutomaticUpdatesKernelTestBase {
   private function assertTargetVersionNotDiscoverable(\Closure $listener): void {
     $this->addEventTestListener($listener, PreCreateEvent::class);
 
-    $this->expectException(StageException::class);
+    $this->expectException(SandboxException::class);
     $this->expectExceptionMessage('The target version of Drupal core could not be determined.');
-    $this->container->get(UpdateStage::class)
+    $this->container->get(UpdateSandboxManager::class)
       ->begin(['drupal' => '9.8.1']);
   }
 

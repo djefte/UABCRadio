@@ -3,6 +3,11 @@ linkit.admin:
     theme:
       css/linkit.admin.theme.css: {}
 
+linkit.widget:
+  css:
+    theme:
+      css/linkit.widget.theme.css: {}
+
 linkit.base:
   js:
     js/linkit.js: {}

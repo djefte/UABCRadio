@@ -1,0 +1,4 @@
+services:
+  media_library_importer.service:
+      class: Drupal\media_library_importer\MediaLibraryImporterService
+      arguments: ['@config.factory', '@file_system', '@entity_type.manager', '@entity_field.manager', '@language_manager', '@current_user', '@queue', '@queue_ui.batch']

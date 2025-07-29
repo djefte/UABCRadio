@@ -1,0 +1,27 @@
+A module to import media files from public directory into media library.
+
+<p>There are a lot of tutorials on how to import file entities into media galleries using migration tools.
+  But they are neither practical nor easy. This simple module imports your previously uploaded images into media library.</p>
+<p>This module can also import unmanaged files. If you simply upload a folder containing images (and subfolders containing other image files) all the image files in the uploaded folders will be converted to media entities.</p>
+<p>LATEST NEWS: </p>
+<ul>
+  <li>Now non-image files (pdf,docx,xlsx,pptx amd mp4 files) can also be imported.</li>
+  <li><strong>Since release 2.1.1 this module also embeds the Media Image Exif Importer (media_image_exif_importer) submodule</strong>, as Drupal 11 enhancement / upgraded fork of its original <a href="https://www.drupal.org/project/media_entity_image_exif" target="blank">Media Entity Image EXIF</a> module which  looks declared abandoned by its maintainers and frozen within its compatibility with Drupal 10.</li>
+</ul>. </p>
+
+<h3>Requirements</h3>
+<p>The module requires the Drupal core Media and Media Library modules.</p>
+<p>Since 2.0 it requires additional <a href="https://www.drupal.org/project/queue_ui" target="_blank">Queue Ui</a>
+  contrib module to properly process queue with batch imports.</p>
+
+<h3>Instructions</h3>
+<ul>
+  <li>Require the module with <code>composer</code>, or unpack the code base in the *modules* folder, currently in the root of your Drupal installation.</li>
+  <li>Enable the module in '/admin/modules', or using the following drush command: <code>drush en media-library</code>;</li>
+  <li>Then, visit '/admin/config/media/media-library-importer-configuration' to configure the module;</li>
+  <li>Last, visit '/admin/config/media/media-library-importer/import' for the actual import operation;</li>
+  <li>It is possible to import Media (according to Media Library Import settings) using the following drush command  <code>drush media-library:import</code> or <code>drush mli</code> (alias);</li>
+  <li>It is possible to implement a hook_cron job and run automatic Media Library Imports (incrementally uploading new files in the same source folders locations). More info on this in the Readme.md file;</li>
+</ul>
+<h3>Note</h3>
+<p>You can run import as many times as you like without occurring into duplications. Once created, Media entities will not be re-created if already existing with the same source file.</p>

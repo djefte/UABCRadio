@@ -145,7 +145,7 @@ trait ProjectBrowserUiTestTrait {
    *   When TRUE, do not wait for a rerender after entering a search string.
    */
   protected function inputSearchField(string $value, bool $bypass_wait = FALSE): void {
-    $search_field = $this->assertSession()->waitForElementVisible('css', '#pb-text');
+    $search_field = $this->assertElementIsVisible('css', '#pb-text');
     if ($bypass_wait) {
       $search_field->setValue($value);
     }

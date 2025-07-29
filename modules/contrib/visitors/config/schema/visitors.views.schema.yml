@@ -119,6 +119,70 @@ views.field.visitors_language:
       type: boolean
       label: 'Show the language code.'
 
+views.field.visitors_pdf:
+  type: views_field
+  label: 'Visitors PDF plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_flash:
+  type: views_field
+  label: 'Visitors Flash plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_java:
+  type: views_field
+  label: 'Visitors Java plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_quicktime:
+  type: views_field
+  label: 'Visitors Quicktime plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_realplayer:
+  type: views_field
+  label: 'Visitors Real player plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_windowsmedia:
+  type: views_field
+  label: 'Visitors Windows Media plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_silverlight:
+  type: views_field
+  label: 'Visitors Silver light plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
+views.field.visitors_cookie:
+  type: views_field
+  label: 'Visitors Cookie plugin'
+  mapping:
+    icon:
+      type: boolean
+      label: 'The icon of the plugin.'
+
 views.argument_default.visitors_path:
   type: mapping
   label: 'Path'

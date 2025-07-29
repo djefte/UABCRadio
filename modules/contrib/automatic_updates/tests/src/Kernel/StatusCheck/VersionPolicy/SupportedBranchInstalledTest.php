@@ -47,7 +47,7 @@ class SupportedBranchInstalledTest extends AutomaticUpdatesKernelTestBase {
         [TRUE],
         [
           'The currently installed version of Drupal core, 9.6.1, is not in a supported minor version. Your site will not be automatically updated during cron until it is updated to a supported minor version.',
-          'Use the <a href="/admin/modules/update">update form</a> to update to a supported version.',
+          'Use the <a href="/admin/reports/updates/update">update form</a> to update to a supported version.',
         ],
       ],
       'unsupported version installed' => [
@@ -77,7 +77,7 @@ class SupportedBranchInstalledTest extends AutomaticUpdatesKernelTestBase {
   public function testSupportedBranchInstalled(string $installed_version, array $allow_minor_updates, array $expected_errors): void {
     $this->setCoreVersion($installed_version);
     $this->setReleaseMetadata([
-      'drupal' => __DIR__ . '/../../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
     ]);
 
     $rule = SupportedBranchInstalled::create($this->container);

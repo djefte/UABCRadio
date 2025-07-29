@@ -8,7 +8,7 @@
 declare(strict_types=1);
 
 use Drupal\automatic_updates\CronUpdateRunner;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\automatic_updates\Validation\StatusCheckRequirements;
 use Drupal\system\SystemManager;
 
@@ -16,7 +16,7 @@ use Drupal\system\SystemManager;
  * Implements hook_uninstall().
  */
 function automatic_updates_uninstall() {
-  \Drupal::service(UpdateStage::class)->destroy(TRUE);
+  \Drupal::service(UpdateSandboxManager::class)->destroy(TRUE);
 }
 
 /**

@@ -43,11 +43,11 @@ final class BatchProcessor {
   /**
    * Gets the update stage service.
    *
-   * @return \Drupal\automatic_updates\UpdateStage
+   * @return \Drupal\automatic_updates\UpdateSandboxManager
    *   The update stage service.
    */
-  private static function getStage(): UpdateStage {
-    return \Drupal::service(UpdateStage::class);
+  private static function getSandboxManager(): UpdateSandboxManager {
+    return \Drupal::service(UpdateSandboxManager::class);
   }
 
   /**
@@ -76,11 +76,11 @@ final class BatchProcessor {
    * @param string[] $project_versions
    *   The project versions to be staged in the update, keyed by package name.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::begin()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::begin()
    */
   public static function begin(array $project_versions): void {
     try {
-      $stage_id = static::getStage()->begin($project_versions);
+      $stage_id = static::getSandboxManager()->begin($project_versions);
       \Drupal::service('session')->set(static::STAGE_ID_SESSION_KEY, $stage_id);
     }
     catch (\Throwable $e) {
@@ -92,18 +92,18 @@ final class BatchProcessor {
   /**
    * Calls the update stage's stage() method.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::stage()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::stage()
    */
   public static function stage(): void {
     $stage_id = \Drupal::service('session')->get(static::STAGE_ID_SESSION_KEY);
-    $stage = static::getStage();
+    $sandbox_manager = static::getSandboxManager();
     try {
-      $stage->claim($stage_id)->stage();
+      $sandbox_manager->claim($stage_id)->stage();
     }
     catch (\Throwable $e) {
       // If the stage was not already destroyed because of this exception
       // destroy it.
-      if (!$stage->isAvailable()) {
+      if (!$sandbox_manager->isAvailable()) {
         static::clean($stage_id);
       }
       static::storeErrorMessage($e->getMessage());
@@ -117,11 +117,11 @@ final class BatchProcessor {
    * @param string $stage_id
    *   The stage ID.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::apply()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::apply()
    */
   public static function commit(string $stage_id): void {
     try {
-      static::getStage()->claim($stage_id)->apply();
+      static::getSandboxManager()->claim($stage_id)->apply();
       // The batch system does not allow any single request to run for longer
       // than a second, so this will force the next operation to be done in a
       // new request. This helps keep the running code in as consistent a state
@@ -142,11 +142,11 @@ final class BatchProcessor {
    * @param string $stage_id
    *   The stage ID.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::postApply()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::postApply()
    */
   public static function postApply(string $stage_id): void {
     try {
-      static::getStage()->claim($stage_id)->postApply();
+      static::getSandboxManager()->claim($stage_id)->postApply();
     }
     catch (\Throwable $e) {
       static::storeErrorMessage($e->getMessage());
@@ -163,11 +163,11 @@ final class BatchProcessor {
    * @return \Symfony\Component\HttpFoundation\RedirectResponse|null
    *   A redirect response, or NULL to proceed to the normal finish page.
    *
-   * @see \Drupal\automatic_updates\UpdateStage::destroy()
+   * @see \Drupal\automatic_updates\UpdateSandboxManager::destroy()
    */
   public static function clean(string $stage_id): ?RedirectResponse {
     try {
-      static::getStage()->claim($stage_id)->destroy();
+      static::getSandboxManager()->claim($stage_id)->destroy();
       return NULL;
     }
     catch (\Throwable $e) {

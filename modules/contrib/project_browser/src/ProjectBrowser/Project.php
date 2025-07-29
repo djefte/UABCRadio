@@ -122,6 +122,23 @@ final class Project {
   }
 
   /**
+   * Normalizes a project ID for database storage.
+   *
+   * Ensures the ID is no more than 104 characters long, so that it can fit into
+   * a `varchar` database column. We append a partial hash of the original,
+   * full-length ID in order to guarantee uniqueness.
+   *
+   * @param string $id
+   *   A project ID to normalize.
+   *
+   * @return string
+   *   The normalized project ID.
+   */
+  public static function normalizeId(string $id): string {
+    return substr($id, 0, 96) . '-' . substr(sha1($id), 0, 8);
+  }
+
+  /**
    * Set the project short description.
    *
    * @param array $body

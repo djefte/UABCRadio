@@ -1,0 +1,5 @@
+exclude_styles: true
+import_files_to_media_location: true
+import_folder: ''
+media_types_import: {  }
+media_types_fields: {  }

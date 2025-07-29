@@ -12,29 +12,15 @@ namespace Drupal\Tests\automatic_updates\Functional;
 class TableLooksCorrectTest extends UpdaterFormTestBase {
 
   /**
-   * Data provider for testTableLooksCorrect().
-   *
-   * @return string[][]
-   *   The test cases.
-   */
-  public static function providerTableLooksCorrect(): array {
-    return [
-      'Modules page' => ['modules'],
-      'Reports page' => ['reports'],
-    ];
-  }
-
-  /**
    * Tests that available updates are rendered correctly in a table.
    *
-   * @param string $access_page
-   *   The page from which the update form should be visited.
-   *   Can be one of 'modules' to visit via the module list, or 'reports' to
-   *   visit via the administrative reports page.
+   * @param string $access_url
+   *   The URL from which to start navigating the the automatic updates form.
    *
-   * @dataProvider providerTableLooksCorrect
+   * @testWith ["/admin/modules"]
+   *   ["/admin/reports"]
    */
-  public function testTableLooksCorrect(string $access_page): void {
+  public function testTableLooksCorrect(string $access_url): void {
     $assert_session = $this->assertSession();
 
     $assert_minor_update_help = function () use ($assert_session): void {
@@ -51,17 +37,13 @@ class TableLooksCorrectTest extends UpdaterFormTestBase {
     $this->checkForUpdates();
 
     // Navigate to the automatic updates form.
-    $this->drupalGet('/admin');
-    if ($access_page === 'modules') {
-      $this->clickLink('Extend');
-      $assert_session->pageTextContainsOnce('There is a security update available for your version of Drupal.');
+    $this->drupalGet($access_url);
+    $assert_session->statusMessageContains('There is a security update available for your version of Drupal.', 'error');
+    if ($access_url === '/admin/reports') {
+      $page->clickLink('Available updates');
     }
-    else {
-      $this->clickLink('Reports');
-      $assert_session->pageTextContainsOnce('There is a security update available for your version of Drupal.');
-      $this->clickLink('Available updates');
-    }
-    $this->clickLink('Update');
+    $assert_session->elementExists('css', 'h2:contains("Primary tabs") + ul')
+      ->clickLink('Update');
 
     // Check the form when there is an update in the installed minor only.
     $assert_session->pageTextContainsOnce('Currently installed: 9.8.0 (Security update required!)');
@@ -83,7 +65,8 @@ class TableLooksCorrectTest extends UpdaterFormTestBase {
     // Check the form when there are updates in the current and next minors but
     // the site does not support minor updates.
     $this->config('automatic_updates.settings')->set('allow_core_minor_updates', FALSE)->save();
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml');
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
+    $this->setReleaseMetadata("$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml");
     $page->clickLink('Check manually');
     $this->checkForMetaRefresh();
     $assert_session->pageTextContainsOnce('Currently installed: 9.7.0 (Update available)');
@@ -112,7 +95,7 @@ class TableLooksCorrectTest extends UpdaterFormTestBase {
     // Check that if minor updates are enabled then updates in the next minors
     // are visible.
     $this->config('automatic_updates.settings')->set('allow_core_minor_updates', TRUE)->save();
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.10.0.0.xml');
+    $this->setReleaseMetadata("$package_manager_dir/tests/fixtures/release-history/drupal.10.0.0.xml");
     $this->mockActiveCoreVersion('9.5.0');
     $page->clickLink('Check manually');
     $this->checkForMetaRefresh();

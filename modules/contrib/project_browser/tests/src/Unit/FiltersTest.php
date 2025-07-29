@@ -7,14 +7,17 @@ namespace Drupal\Tests\project_browser\Unit;
 use Drupal\Tests\UnitTestCase;
 use Drupal\project_browser\ProjectBrowser\Filter\BooleanFilter;
 use Drupal\project_browser\ProjectBrowser\Filter\MultipleChoiceFilter;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests filters that can be defined by source plugins.
  *
  * @group project_browser
- * @covers \Drupal\project_browser\ProjectBrowser\Filter\BooleanFilter
- * @covers \Drupal\project_browser\ProjectBrowser\Filter\MultipleChoiceFilter
  */
+#[CoversClass(BooleanFilter::class)]
+#[CoversClass(MultipleChoiceFilter::class)]
+#[Group('project_browser')]
 final class FiltersTest extends UnitTestCase {
 
   /**

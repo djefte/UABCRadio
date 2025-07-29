@@ -4,8 +4,8 @@
  */
 .js input.form-linkit-autocomplete {
   background-image: url(../images/throbber-inactive.png);
-  background-position: 100% center; /* LTR */
   background-repeat: no-repeat;
+  background-position: 100% center; /* LTR */
 }
 
 .js[dir="rtl"] input.form-linkit-autocomplete {
@@ -23,15 +23,18 @@
 
 /* Override the default jQuery UI theme */
 .linkit-ui-autocomplete {
-  max-height: calc((100vh - 80px)/2);
-  overflow: auto;
   position: relative;
+  overflow: auto;
+  max-height: calc((100vh - 80px) / 2);
 }
 
-.linkit-ui-autocomplete.ui-widget {
-  font-size: .9em;
-  max-width: inherit;
+:not(.ck) > .linkit-ui-autocomplete.ui-widget {
   position: absolute;
+  max-width: inherit;
+  font-size: 0.9em;
+  &.ck-reset_all-excluded {
+    white-space: break-spaces;
+  }
 }
 
 .linkit-ui-autocomplete.ui-menu .linkit-result-line-wrapper {
@@ -45,14 +48,16 @@
 
 .linkit-ui-autocomplete.ui-menu .linkit-result-line-wrapper.ui-state-focus,
 .linkit-ui-autocomplete.ui-menu .linkit-result-line-wrapper.ui-state-active {
+  color: #fff;
   border: 0;
   border-bottom: 1px solid #bfbfbf;
   background: #0075ba;
-  color: #fff;
 }
 
-.ui-autocomplete .linkit-result-line-wrapper.ui-menu-item-wrapper.ui-state-active,
-.ui-autocomplete .linkit-result-line-wrapper.ui-menu-item-wrapper.ui-state-focus {
+.ui-autocomplete
+  .linkit-result-line-wrapper.ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete
+  .linkit-result-line-wrapper.ui-menu-item-wrapper.ui-state-focus {
   background: #bfbfbf;
 }
 
@@ -61,16 +66,16 @@
 }
 
 .ui-menu .linkit-result-line--group.ui-menu-divider {
-  margin: 0;
   height: auto;
-  line-height: inherit;
+  margin: 0;
   padding: 3px;
-  background-color: #e7e7e7;
-  border-bottom: 1px solid #bfbfbf;
   text-align: center;
+  color: #555;
+  border-bottom: 1px solid #bfbfbf;
+  background-color: #e7e7e7;
   font-size: 0.9em;
   font-weight: 600;
-  color: #555;
+  line-height: inherit;
 }
 
 .linkit-result-line--title {
@@ -86,4 +91,23 @@
 
 .linkit-result-line--description img {
   display: block;
+}
+
+/* Required to accommodate CKEditor v45 UI changes. See #3532814 */
+.ck.ck-form.ck-link-form.ck-vertical-form,
+.ck.ck-form.ck-link-form.ck-responsive-form {
+  width: fit-content;
+  min-width: 340px;
+  max-width: 640px;
+}
+
+.ck.ck-button-action.ck-button_with-text {
+  min-width: 60px !important;
+}
+
+.ck-link-form .linkit-ui-autocomplete,
+.ck-link-form .linkit-ui-autocomplete * {
+  white-space: break-spaces;
+  word-break: normal;
+  word-wrap: break-word;
 }

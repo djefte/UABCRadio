@@ -31,7 +31,7 @@ class StagedDatabaseUpdateValidatorTest extends AutomaticUpdatesKernelTestBase {
     $this->getStageFixtureManipulator()->setCorePackageVersion('9.8.1');
 
     $listener = function (PreApplyEvent $event): void {
-      $dir = $event->stage->getStageDirectory() . '/core/modules/system';
+      $dir = $event->sandboxManager->getSandboxDirectory() . '/core/modules/system';
       mkdir($dir, 0777, TRUE);
       file_put_contents($dir . '/system.install', "<?php\nfunction system_update_10101010() {}");
     };

@@ -32,7 +32,7 @@ class PageLink extends Standard {
         $path = $values->editoria11y_dismissals_page_path;
       }
       else {
-        return $value . ' ' . t('(invalid URL)');
+        return $value . ' ' . $this->t('(invalid URL)');
       }
 
       // @phpstan-ignore-next-line
@@ -51,7 +51,7 @@ class PageLink extends Standard {
       // $url = \Drupal::service('path.validator')->getUrlIfValidWithoutAccessCheck($path);
       $url = Url::fromUserInput($path);
       if (!$url) {
-        return $value . ' ' . t('(invalid URL)');
+        return $value . ' ' . $this->t('(invalid URL)');
       }
 
       $url->mergeOptions(['query' => ['ed1ref' => $path]]);

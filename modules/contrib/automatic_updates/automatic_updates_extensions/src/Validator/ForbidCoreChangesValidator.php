@@ -37,14 +37,14 @@ final class ForbidCoreChangesValidator implements EventSubscriberInterface {
    *   The event object.
    */
   public function validateStagedCorePackages(StatusCheckEvent|PreApplyEvent $event): void {
-    $stage = $event->stage;
+    $sandbox_manager = $event->sandboxManager;
     // We only want to do this check if the stage belongs to Automatic Updates
     // Extensions.
-    if ($stage->getType() !== 'automatic_updates_extensions:attended' || !$stage->stageDirectoryExists()) {
+    if ($sandbox_manager->getType() !== 'automatic_updates_extensions:attended' || !$sandbox_manager->sandboxDirectoryExists()) {
       return;
     }
     $active_core_packages = $this->getInstalledCorePackages($this->pathLocator->getProjectRoot());
-    $stage_core_packages = $this->getInstalledCorePackages($stage->getStageDirectory());
+    $stage_core_packages = $this->getInstalledCorePackages($sandbox_manager->getSandboxDirectory());
 
     $new_packages = $stage_core_packages->getPackagesNotIn($active_core_packages);
     $removed_packages = $active_core_packages->getPackagesNotIn($stage_core_packages);
@@ -71,7 +71,7 @@ final class ForbidCoreChangesValidator implements EventSubscriberInterface {
     if ($error_messages) {
       $event->addError($error_messages, $this->t(
         'Updating Drupal Core while updating extensions is currently not supported. Use <a href=":url">this form</a> to update Drupal core. The following changes were made to the Drupal core packages:',
-        [':url' => Url::fromRoute('update.report_update')->toString()]
+        [':url' => Url::fromRoute('automatic_updates.update_form')->toString()]
       ));
     }
   }

@@ -6,21 +6,24 @@ namespace Drupal\Tests\project_browser\FunctionalJavascript;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Extension\ModuleInstallerInterface;
+use Drupal\Core\Extension\Requirement\RequirementSeverity;
 use Drupal\Core\Recipe\RecipeInputFormTrait;
 use Drupal\Core\State\StateInterface;
+use Drupal\project_browser\Controller\InstallerController;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\project_browser\InstallState;
 use Drupal\project_browser_test\TestActivator;
-use Drupal\system\SystemManager;
 use Drupal\Tests\project_browser\Traits\PackageManagerFixtureUtilityTrait;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Provides tests for the Project Browser Installer UI.
  *
- * @coversDefaultClass \Drupal\project_browser\Controller\InstallerController
- *
  * @group project_browser
  */
+#[CoversClass(InstallerController::class)]
+#[Group('project_browser')]
 final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
 
   use ProjectBrowserUiTestTrait, PackageManagerFixtureUtilityTrait;
@@ -210,7 +213,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
   /**
    * Confirms stage can be unlocked despite a missing Project Browser lock.
    *
-   * @covers ::unlock
+   * @legacy-covers ::unlock
    */
   public function testCanBreakStageWithMissingProjectBrowserLock(): void {
     TestActivator::handle('drupal/cream_cheese');
@@ -237,7 +240,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
    *
    * The break lock link is not available once the stage is applying.
    *
-   * @covers ::unlock
+   * @legacy-covers ::unlock
    */
   public function testCanBreakLock(): void {
     TestActivator::handle('drupal/cream_cheese');
@@ -263,7 +266,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
   public function testPackageManagerErrorPreventsDownload(): void {
     // @see \Drupal\project_browser_test\TestInstallReadiness
     $this->container->get(StateInterface::class)
-      ->set('project_browser_test.simulated_result_severity', SystemManager::REQUIREMENT_ERROR);
+      ->set('project_browser_test.simulated_result_severity', RequirementSeverity::Error);
 
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     $cream_cheese = $this->waitForProject('Cream cheese on a bagel');
@@ -280,7 +283,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
 
     // @see \Drupal\project_browser_test\TestInstallReadiness
     $this->container->get(StateInterface::class)
-      ->set('project_browser_test.simulated_result_severity', SystemManager::REQUIREMENT_WARNING);
+      ->set('project_browser_test.simulated_result_severity', RequirementSeverity::Warning);
 
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     $this->installProject('Cream cheese on a bagel');
@@ -361,8 +364,6 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
    * Tests that unlock url has correct href.
    */
   public function testUnlockLinkMarkup(): void {
-    $assert_session = $this->assertSession();
-
     $this->drupalGet('admin/modules/project_browser/install-begin', [
       'query' => ['source' => 'project_browser_test_mock'],
     ]);
@@ -370,7 +371,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     $this->waitForProject('Cream cheese on a bagel')
       ->pressButton('Install Cream cheese on a bagel');
-    $unlock_url = $assert_session->waitForElementVisible('css', "#unlock-link")->getAttribute('href');
+    $unlock_url = $this->assertElementIsVisible('css', "#unlock-link")->getAttribute('href') ?? '';
     $path_string = parse_url($unlock_url, PHP_URL_PATH);
     $this->assertIsString($path_string);
     $this->assertStringEndsWith('/admin/modules/project_browser/install/unlock', $path_string);

@@ -8,7 +8,7 @@ use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\package_manager\Event\PostApplyEvent;
 use Drupal\package_manager\Event\PreApplyEvent;
-use Drupal\package_manager\Event\StageEvent;
+use Drupal\package_manager\Event\SandboxEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -46,10 +46,10 @@ class RequestTimeRecorder implements EventSubscriberInterface {
   /**
    * Records the request time.
    *
-   * @param \Drupal\package_manager\Event\StageEvent $event
+   * @param \Drupal\package_manager\Event\SandboxEvent $event
    *   The event object.
    */
-  public function updateState(StageEvent $event) {
+  public function updateState(SandboxEvent $event) {
     $key = get_class($event) . ' time';
     $this->state->set($key, $this->time->getRequestMicroTime());
   }

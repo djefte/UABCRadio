@@ -76,7 +76,7 @@ class ConverterTest extends KernelTestBase {
 
     /** @var \Drupal\eca\Entity\Eca $eca */
     $eca = $storage->load('eca_fallback');
-    $this->assertEquals('fallback', $eca->getModeller()->getPluginId());
+    $this->assertEquals('fallback', $eca->getModeller(FALSE)->getPluginId());
 
     // Convert.
     $build = $this->converter->convert($eca);
@@ -85,7 +85,7 @@ class ConverterTest extends KernelTestBase {
     /** @var \Drupal\eca\Entity\Eca[] $ecaCollection */
     $ecaCollection = $storage->loadMultiple();
     $this->assertCount(2, $ecaCollection);
-    $this->assertEquals('bpmn_io', $eca->getModeller()->getPluginId());
+    $this->assertEquals('bpmn_io', $eca->getModeller(FALSE)->getPluginId());
     $this->assertCount(34, $build['#attached']['drupalSettings']['bpmn_io_convert']['elements']);
     $this->assertEquals('StartEvent', $build['#attached']['drupalSettings']['bpmn_io_convert']['bpmn_mapping']['Event_0erz1e4']);
     $this->assertEquals('ExclusiveGateway', $build['#attached']['drupalSettings']['bpmn_io_convert']['bpmn_mapping']['Gateway_1rthid4']);

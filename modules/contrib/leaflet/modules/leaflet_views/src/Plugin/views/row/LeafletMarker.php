@@ -165,7 +165,7 @@ class LeafletMarker extends RowPluginBase implements ContainerFactoryPluginInter
     ModuleHandlerInterface $module_handler,
     ViewsData $view_data,
     LeafletService $leaflet_service,
-    FieldTypePluginManagerInterface $field_type_manager
+    FieldTypePluginManagerInterface $field_type_manager,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
@@ -346,7 +346,14 @@ class LeafletMarker extends RowPluginBase implements ContainerFactoryPluginInter
     if ($this->options['description_field'] === '#rendered_entity' && is_object($row->_entity)) {
       $entity = $row->_entity;
       $build = $this->getEntityManager()->getViewBuilder($entity->getEntityTypeId())->view($entity, $this->options['view_mode']);
-      $popup_body = $this->renderer->renderInIsolation($build);
+      // Render popup body,
+      // ensuring backward compatibility (with Drupal < 10.2).
+      if (method_exists($this->renderer, 'renderInIsolation')) {
+        $popup_body = $this->renderer->renderInIsolation($build);
+      }
+      else {
+        $popup_body = $this->renderer->renderPlain($build);
+      }
     }
     // Normal rendering via fields.
     elseif ($this->options['description_field']) {

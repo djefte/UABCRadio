@@ -25,11 +25,14 @@ final class AiAgent extends AttributeBase {
    *   (optional) The human-readable name of the plugin.
    * @param class-string|null $deriver
    *   (optional) The deriver class.
+   * @param array $module_dependencies
+   *   (optional) Any external module dependencies.
    */
   public function __construct(
     public readonly string $id,
     public readonly TranslatableMarkup $label,
     public readonly ?string $deriver = NULL,
+    public readonly array $module_dependencies = [],
   ) {}
 
 }

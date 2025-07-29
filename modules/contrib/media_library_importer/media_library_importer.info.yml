@@ -1,0 +1,15 @@
+name: Media Library Importer
+description: A module to import media files in a directory into media library.
+package: media
+type: module
+core_version_requirement: ^9.2 || ^10 | ^11
+configure: media_library_importer.configuration
+dependencies:
+  - drupal:media
+  - drupal:media_library
+  - queue_ui:queue_ui
+
+# Information added by Drupal.org packaging script on 2025-06-01
+version: '2.1.5'
+project: 'media_library_importer'
+datestamp: 1748781823

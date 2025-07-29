@@ -87,7 +87,7 @@ class EntityAnalyser {
     RouterInterface $router,
     ?ThemeManagerInterface $theme_manager = NULL,
     ?ThemeInitializationInterface $theme_initialization = NULL,
-    ?ConfigFactoryInterface $configFactory = NULL
+    ?ConfigFactoryInterface $configFactory = NULL,
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->renderer = $renderer;
@@ -117,6 +117,8 @@ class EntityAnalyser {
     // Nodes want to know when they're being previewed.
     if (property_exists($entity, "in_preview")) {
       $entity->in_preview = TRUE;
+      // @phpstan-ignore-next-line property.notFound
+      $entity->preview_view_mode = $view_mode;
     }
 
     // Dealing with a non-renderable entity. When configuring a field.

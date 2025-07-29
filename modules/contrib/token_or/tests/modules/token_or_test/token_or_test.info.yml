@@ -4,7 +4,7 @@ hidden: true
 type: module
 package: Testing
 
-# Information added by Drupal.org packaging script on 2024-11-05
-version: '2.3.0'
+# Information added by Drupal.org packaging script on 2025-05-27
+version: '2.3.2'
 project: 'token_or'
-datestamp: 1730828438
+datestamp: 1748360082

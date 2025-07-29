@@ -84,7 +84,11 @@ class ViewsQueryAlter implements ContainerInjectionInterface {
       // holds the relevant "deleted" state.
       if ($table_data['table']['entity revision']) {
         $id_key = $entity_type_definitions[$entity_type_id]->getKey('id');
-        $data_table = $table_data[$id_key]['relationship']['base'];
+        $data_table = $table_data[$id_key]['relationship']['base'] ?? NULL;
+
+        if (empty($data_table)) {
+          throw new \UnexpectedValueException("Missing data table relationship for the {$info['base']} table.");
+        }
 
         $definition = [
           'type' => 'LEFT',

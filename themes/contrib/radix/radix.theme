@@ -6,7 +6,7 @@
  */
 
 // Include all files from the includes directory.
-$includes_path = dirname(__FILE__) . '/includes/*.theme';
+$includes_path = __DIR__ . '/includes/*.theme';
 foreach (glob($includes_path) as $file) {
-  require_once dirname(__FILE__) . '/includes/' . basename($file);
+  require_once __DIR__ . '/includes/' . basename($file);
 }

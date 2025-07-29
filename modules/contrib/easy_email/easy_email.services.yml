@@ -13,7 +13,7 @@ services:
     arguments: ['@event_dispatcher', '@entity_type.manager']
   easy_email.attachment_evaluator:
     class: Drupal\easy_email\Service\EmailAttachmentEvaluator
-    arguments: ['@event_dispatcher', '@file_system', '@file.mime_type.guesser', '@logger.channel.easy_email', '@config.factory']
+    arguments: ['@event_dispatcher', '@file_system', '@file.mime_type.guesser', '@logger.channel.easy_email', '@config.factory', '@file.repository']
   easy_email.purger:
     class: Drupal\easy_email\Service\EasyEmailPurger
     arguments: ['@entity_type.manager', '@datetime.time']

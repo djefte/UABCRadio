@@ -51,6 +51,12 @@
 %}
 
 {%
+  set field_item_classes = [
+    'field__item',
+  ]|merge(field_item_utility_classes ?: [])
+%}
+
+{%
   set field_title_classes = [
     'field__label',
     label_display == 'visually_hidden' ? 'visually-hidden' : '',
@@ -61,7 +67,7 @@
   {% if multiple %}
     <div {{ attributes.addClass(field_classes) }}>
       {% for item in items %}
-        <div {{ item.attributes.addClass('field__item') }}>{{ item.content }}</div>
+        <div {{ item.attributes.addClass(field_item_classes) }}>{{ item.content }}</div>
       {% endfor %}
     </div>
   {% else %}
@@ -77,7 +83,7 @@
     {% endif %}
 
     {% for item in items %}
-      <div {{ item.attributes.addClass('field__item') }}>{{ item.content }}</div>
+      <div {{ item.attributes.addClass(field_item_classes) }}>{{ item.content }}</div>
     {% endfor %}
 
     {% if multiple %}

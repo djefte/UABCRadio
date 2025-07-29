@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @covers \project_browser_test_schema
+ * Tests that Project Browser's DB tables are created and destroyed correctly.
  *
  * @group project_browser
  */
+#[CoversFunction('project_browser_test_schema')]
+#[Group('project_browser')]
 final class DatabaseTablesTest extends KernelTestBase {
 
   /**

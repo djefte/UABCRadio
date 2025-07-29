@@ -9,6 +9,7 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\State\StateInterface;
 use Drupal\visitors\VisitorsCounterInterface;
 use Drupal\visitors\VisitorsCronInterface;
+use Drupal\Component\Datetime\TimeInterface;
 
 /**
  * Visitors Cron Service.
@@ -64,7 +65,7 @@ class CronService implements VisitorsCronInterface {
    * @param \Drupal\visitors\VisitorsCounterInterface $counter
    *   The counter.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Connection $database, StateInterface $state, $time, VisitorsCounterInterface $counter) {
+  public function __construct(ConfigFactoryInterface $config_factory, Connection $database, StateInterface $state, TimeInterface $time, VisitorsCounterInterface $counter) {
     $this->database = $database;
     $this->state = $state;
     $this->time = $time;

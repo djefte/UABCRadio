@@ -34,9 +34,10 @@ final class DisplayUpdatesTest extends UpdaterFormTestBase {
    */
   public function testDisplayUpdates(bool $unrequested_updates): void {
     $this->container->get('theme_installer')->install(['automatic_updates_theme_with_updates']);
-    $this->setReleaseMetadata(__DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml');
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
+    $this->setReleaseMetadata("$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml");
     $this->setReleaseMetadata(__DIR__ . "/../../fixtures/release-history/semver_test.1.1.xml");
-    $this->setReleaseMetadata(__DIR__ . "/../../../../package_manager/tests/fixtures/release-history/aaa_update_test.1.1.xml");
+    $this->setReleaseMetadata("$package_manager_dir/tests/fixtures/release-history/aaa_update_test.1.1.xml");
     $this->setProjectInstalledVersion([
       'semver_test' => '8.1.0',
       'aaa_update_test' => '8.x-2.0',

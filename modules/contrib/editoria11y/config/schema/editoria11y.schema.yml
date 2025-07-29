@@ -44,6 +44,9 @@ editoria11y.settings:
     ed11y_theme:
       type: string
       label: 'Color scheme for panel and tooltips'
+    panel_pin:
+      type: string
+      label: 'Pin toolbar to left or right'
     shadow_components:
       type: string
       label: 'Web components the checker should check'
@@ -83,6 +86,9 @@ editoria11y.settings:
     hide_edit_links:
       type: string
       label: 'Selectors for components where edit links are meaningless on tips'
+    ck5_table_headers:
+      type: string
+      label: 'Tell CK5 to have a header rows or columns by default.'
     ignore_tests:
       type: mapping
       label: 'Disable the tests you are not ready for'
@@ -174,4 +180,3 @@ editoria11y.settings:
         altPartOfLinkWithText:
           type: string
           label: 'altPartOfLinkWithText'
-

@@ -43,7 +43,7 @@ class StatusCheckerRunAfterUpdateTest extends UpdaterFormTestBase {
     $this->checkForUpdates();
     $page = $this->getSession()->getPage();
     // Navigate to the automatic updates form.
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update to 9.8.1');
     $this->checkForMetaRefresh();
     $this->assertUpdateStagedTimes(1);
@@ -63,7 +63,7 @@ class StatusCheckerRunAfterUpdateTest extends UpdaterFormTestBase {
       $assert_session->pageTextContainsOnce('An error has occurred.');
       $assert_session->pageTextContainsOnce('Continue to the error page');
       $page->clickLink('the error page');
-      $assert_session->pageTextContains('Some modules have database schema updates to install. You should run the database update script immediately.');
+      $assert_session->pageTextContains('Some modules have database updates pending. You should run the database update script immediately.');
       $assert_session->linkExists('database update script');
       $assert_session->linkByHrefExists('/update.php');
       $page->clickLink('database update script');

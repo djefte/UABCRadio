@@ -22,3 +22,35 @@ ai_agents.prompt_changer:
     _title: 'AI Agent Settings'
   requirements:
     _permission: 'administer ai'
+
+entity.ai_agent.collection:
+  path: '/admin/structure/ai-agent'
+  defaults:
+    _entity_list: 'ai_agent'
+    _title: 'AI Agent configuration'
+  requirements:
+    _permission: 'administer ai_agent'
+
+entity.ai_agent.add_form:
+  path: '/admin/structure/ai_agent/add'
+  defaults:
+    _entity_form: 'ai_agent.add'
+    _title: 'Add an AI Agent'
+  requirements:
+    _permission: 'administer ai_agent'
+
+entity.ai_agent.edit_form:
+  path: '/admin/structure/ai-agent/{ai_agent}'
+  defaults:
+    _entity_form: 'ai_agent.edit'
+    _title: 'Edit an AI Agent'
+  requirements:
+    _permission: 'administer ai_agent'
+
+entity.ai_agent.delete_form:
+  path: '/admin/structure/ai-agent/{ai_agent}/delete'
+  defaults:
+    _entity_form: 'ai_agent.delete'
+    _title: 'Delete an AI Agent'
+  requirements:
+    _permission: 'administer ai_agent'

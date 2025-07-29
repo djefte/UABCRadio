@@ -8,6 +8,7 @@ use Drupal\package_manager\LegacyVersionUtility;
 use Drupal\package_manager\Event\PreCreateEvent;
 use Drupal\package_manager\ValidationResult;
 use Drupal\Tests\automatic_updates_extensions\Kernel\AutomaticUpdatesExtensionsKernelTestBase;
+use Drupal\Tests\update\Functional\UpdateTestTrait;
 
 /**
  * @coversDefaultClass \Drupal\automatic_updates_extensions\Validator\UpdateReleaseValidator
@@ -15,6 +16,8 @@ use Drupal\Tests\automatic_updates_extensions\Kernel\AutomaticUpdatesExtensionsK
  * @internal
  */
 final class UpdateReleaseValidatorTest extends AutomaticUpdatesExtensionsKernelTestBase {
+
+  use UpdateTestTrait;
 
   /**
    * {@inheritdoc}
@@ -53,16 +56,20 @@ final class UpdateReleaseValidatorTest extends AutomaticUpdatesExtensionsKernelT
   public function testPreCreateException(string $project, string $installed_version, string $target_version, bool $error_expected): void {
     $this->enableModules([$project]);
 
-    // @todo Replace with use of the trait from the Update module in https://drupal.org/i/3348234.
-    $module_info = ['version' => $installed_version, 'project' => $project];
-    $this->config('update_test.settings')
-      ->set("system_info.$project", $module_info)
-      ->save();
+    $this->mockInstalledExtensionsInfo([
+      $project => [
+        'version' => $installed_version,
+        'project' => $project,
+      ],
+    ]);
 
-    $path_to_fixtures_folder = $project === 'aaa_update_test' ? '/../../../../../package_manager/tests/' : '/../../../';
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
+    $path_to_fixtures_folder = $project === 'aaa_update_test'
+      ? "$package_manager_dir/tests/"
+      : __DIR__ . '/../../../';
     $this->setReleaseMetadata([
-      $project => __DIR__ . $path_to_fixtures_folder . "fixtures/release-history/$project.1.1.xml",
-      'drupal' => __DIR__ . '/../../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
+      $project => $path_to_fixtures_folder . "/fixtures/release-history/$project.1.1.xml",
+      'drupal' => "$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml",
     ]);
 
     if ($error_expected) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\automatic_updates\Validator;
 
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\package_manager\ComposerInspector;
 use Drupal\package_manager\Event\PreApplyEvent;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -36,14 +36,14 @@ final class StagedProjectsValidator implements EventSubscriberInterface {
    *   The event object.
    */
   public function validateStagedProjects(PreApplyEvent $event): void {
-    $stage = $event->stage;
+    $sandbox_manager = $event->sandboxManager;
     // We only want to do this check if the stage belongs to Automatic Updates.
-    if (!$stage instanceof UpdateStage) {
+    if (!$sandbox_manager instanceof UpdateSandboxManager) {
       return;
     }
 
     $active_list = $this->composerInspector->getInstalledPackagesList($this->pathLocator->getProjectRoot());
-    $stage_list = $this->composerInspector->getInstalledPackagesList($stage->getStageDirectory());
+    $stage_list = $this->composerInspector->getInstalledPackagesList($sandbox_manager->getSandboxDirectory());
 
     $type_map = [
       'drupal-module' => $this->t('module'),

@@ -6,7 +6,7 @@ namespace Drupal\automatic_updates_extensions\Form;
 
 use Drupal\automatic_updates\Form\UpdateFormBase;
 use Drupal\automatic_updates_extensions\BatchProcessor;
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
@@ -14,7 +14,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Url;
 use Drupal\package_manager\ComposerInspector;
-use Drupal\package_manager\Exception\StageFailureMarkerException;
+use Drupal\package_manager\Exception\FailureMarkerExistsException;
 use Drupal\package_manager\FailureMarker;
 use Drupal\package_manager\PathLocator;
 use Drupal\package_manager\ProjectInfo;
@@ -38,7 +38,7 @@ final class UpdaterForm extends UpdateFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get(ExtensionUpdateStage::class),
+      $container->get(ExtensionUpdateSandboxManager::class),
       $container->get('event_dispatcher'),
       $container->get('renderer'),
       $container->get('state'),
@@ -49,7 +49,7 @@ final class UpdaterForm extends UpdateFormBase {
   }
 
   public function __construct(
-    private readonly ExtensionUpdateStage $stage,
+    private readonly ExtensionUpdateSandboxManager $sandboxManager,
     private readonly EventDispatcherInterface $eventDispatcher,
     private readonly RendererInterface $renderer,
     private readonly StateInterface $state,
@@ -72,7 +72,7 @@ final class UpdaterForm extends UpdateFormBase {
     try {
       $this->failureMarker->assertNotExists();
     }
-    catch (StageFailureMarkerException $e) {
+    catch (FailureMarkerExistsException $e) {
       $this->messenger()->addError($e->getMessage());
       return $form;
     }
@@ -128,7 +128,7 @@ final class UpdaterForm extends UpdateFormBase {
       $results = [];
     }
     else {
-      $results = $this->runStatusCheck($this->stage, $this->eventDispatcher);
+      $results = $this->runStatusCheck($this->sandboxManager, $this->eventDispatcher);
     }
     $this->displayResults($results, $this->renderer);
     $security_level = ValidationResult::getOverallSeverity($results);
@@ -155,7 +155,7 @@ final class UpdaterForm extends UpdateFormBase {
    */
   private function actions(FormStateInterface $form_state): array {
     $actions = ['#type' => 'actions'];
-    if (!$this->stage->isAvailable()) {
+    if (!$this->sandboxManager->isAvailable()) {
       // If the form has been submitted do not display this error message
       // because ::deleteExistingUpdate() may run on submit. The message will
       // still be displayed on form build if needed.
@@ -181,7 +181,7 @@ final class UpdaterForm extends UpdateFormBase {
    * Submit function to delete an existing in-progress update.
    */
   public function deleteExistingUpdate(): void {
-    $this->stage->destroy(TRUE);
+    $this->sandboxManager->destroy(TRUE);
     $this->messenger()->addMessage($this->t("Staged update deleted"));
   }
 

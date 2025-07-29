@@ -39,7 +39,7 @@ class UpdateErrorTest extends WebDriverTestBase {
    */
   public function setUp(): void {
     parent::setUp();
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml');
+    $this->setReleaseMetadata(static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml');
     $user = $this->createUser([
       'administer site configuration',
       'administer software updates',
@@ -87,7 +87,7 @@ class UpdateErrorTest extends WebDriverTestBase {
     $error = ValidationResult::createError([t('Error during pre-create event')]);
     TestSubscriber::setTestResult([$error], PreCreateEvent::class);
     $page = $this->getSession()->getPage();
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $assert_session = $this->assertSession();
     $page->pressButton('Update to 9.8.1');
     $this->assertNotNull($assert_session->waitForLink('the error page', 100000));

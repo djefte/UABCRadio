@@ -49,13 +49,13 @@ final class RunCommand extends AutomaticUpdatesCommandBase {
       return static::SUCCESS;
     }
 
-    $release = $this->stage->getTargetRelease();
+    $release = $this->sandboxManager->getTargetRelease();
     if ($release) {
       $message = $this->t('Updating Drupal core to @version. This may take a while.', [
         '@version' => $release->getVersion(),
       ]);
       $this->io->info((string) $message);
-      $this->stage->performUpdate();
+      $this->sandboxManager->performUpdate();
     }
     else {
       $this->io->info((string) $this->t('There is no Drupal core update available.'));

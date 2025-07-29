@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Drupal\project_browser_test;
 
+use Drupal\Core\Extension\Requirement\RequirementSeverity;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\package_manager\Event\StatusCheckEvent;
-use Drupal\system\SystemManager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -35,18 +35,18 @@ final class TestInstallReadiness implements EventSubscriberInterface {
    */
   public function onStatusCheck(StatusCheckEvent $event): void {
     // We don't care about anything except Project Browser's installer.
-    if ($event->stage->getType() !== 'project_browser.installer') {
+    if ($event->sandboxManager->getType() !== 'project_browser.installer') {
       return;
     }
 
     $severity = $this->state->get('project_browser_test.simulated_result_severity');
 
-    if ($severity === SystemManager::REQUIREMENT_ERROR) {
+    if ($severity === RequirementSeverity::Error) {
       $event->addError([
         new TranslatableMarkup('Simulate an error message for the project browser.'),
       ]);
     }
-    elseif ($severity === SystemManager::REQUIREMENT_WARNING) {
+    elseif ($severity === RequirementSeverity::Warning) {
       $event->addWarning([
         new TranslatableMarkup('Simulate a warning message for the project browser.'),
       ]);

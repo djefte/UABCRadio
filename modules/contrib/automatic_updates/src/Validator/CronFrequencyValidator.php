@@ -68,7 +68,7 @@ final class CronFrequencyValidator implements EventSubscriberInterface {
    */
   public function validateLastCronRun(StatusCheckEvent $event): void {
     // We only want to do this check if the stage belongs to Automatic Updates.
-    if ($event->stage->getType() !== 'automatic_updates:unattended') {
+    if ($event->sandboxManager->getType() !== 'automatic_updates:unattended') {
       return;
     }
     // If automatic updates are disabled during cron or updates will be run via

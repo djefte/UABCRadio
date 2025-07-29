@@ -44,7 +44,7 @@ class UpdateCompleteMessageTest extends UpdaterFormTestBase {
     $state->set('system.maintenance_mode', $maintenance_mode_on);
     $page = $this->getSession()->getPage();
 
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update to 9.8.1');
     $this->checkForMetaRefresh();
     // Confirm that the site was put into maintenance mode if needed.

@@ -46,7 +46,16 @@ class FormAlter {
       $form_key = $override_map[$override->getKey()] ?? NULL;
       if ($form_key !== NULL && !empty($form[$form_key])) {
         foreach (Element::children($form[$form_key]) as $sub_key) {
-          $form[$form_key][$sub_key]['#access'] = FALSE;
+          if (str_ends_with($sub_key, '_subject') || str_ends_with($sub_key, '_body')) {
+            $form[$form_key][$sub_key]['#access'] = FALSE;
+          }
+          if ($form[$form_key][$sub_key]['#type'] === 'container') {
+            foreach (Element::children($form[$form_key][$sub_key]) as $element_key) {
+              if (str_ends_with($element_key, '_subject') || str_ends_with($element_key, '_body')) {
+                $form[$form_key][$sub_key]['#access'] = FALSE;
+              }
+            }
+          }
         }
         $form[$form_key]['easy_email'] = [
           '#type' => 'html_tag',

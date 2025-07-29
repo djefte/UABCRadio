@@ -66,6 +66,15 @@
   Drupal.dialog = (element, options) => {
     let undef;
     const $element = $(element);
+    if (!$element.hasClass('modal')) {
+      $element
+        .addClass('modal fade')
+        .attr('tabindex', '-1')
+        .attr('role', 'dialog')
+        .wrapInner(
+          '<div class="modal-dialog"><div class="modal-content"><div class="modal-body"></div></div></div>',
+        );
+    }
     const dialog = {
       open: false,
       returnValue: undef,
@@ -132,7 +141,12 @@
     }
 
     function openDialog(settings) {
-      settings = $.extend({}, drupalSettings.dialog, options, settings);
+      settings = $.extend(
+        { drupalAutoButtons: true },
+        drupalSettings.dialog,
+        options,
+        settings,
+      );
 
       dispatchDialogEvent('beforecreate', dialog, $element.get(0), settings);
 

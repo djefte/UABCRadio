@@ -54,16 +54,21 @@ stages:
 # Docs at https://git.drupalcode.org/project/gitlab_templates/-/blob/1.0.x/includes/include.drupalci.variables.yml
 ################
 variables:
+  # Remove this when 11.2.0 is the current stable minor of core.
+  CORE_STABLE: 11.2.x-dev
+
   # For parallel running, needs more CPU resources.
   KUBERNETES_CPU_REQUEST: 16
-  OPT_IN_TEST_PREVIOUS_MAJOR: '1'
+  # Restore this when 11.x is the previous major version of core.
+  OPT_IN_TEST_PREVIOUS_MAJOR: '0'
   OPT_IN_TEST_NEXT_MAJOR: '1'
   # These two variables allow PHPUnit to run in a parallel job matrix.
   _PHPUNIT_CONCURRENT: '1'
   _PHPUNIT_TESTGROUPS: ''
 
   # Broaden test coverage.
-  OPT_IN_TEST_PREVIOUS_MINOR: 1
+  # Restore this when 11.2.x is the previous minor version of core.
+  OPT_IN_TEST_PREVIOUS_MINOR: '0'
   OPT_IN_TEST_NEXT_MINOR: 1
   OPT_IN_TEST_MAX_PHP: 1
 

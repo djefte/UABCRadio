@@ -24,7 +24,7 @@ class UpdateFailedTest extends UpdaterFormTestBase {
     $this->mockActiveCoreVersion('9.8.0');
     $this->checkForUpdates();
 
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $assert_session->pageTextNotContains(static::$errorsExplanation);
     $assert_session->pageTextNotContains(static::$warningsExplanation);
     $page->pressButton('Update to 9.8.1');
@@ -45,7 +45,7 @@ class UpdateFailedTest extends UpdaterFormTestBase {
     $assert_session->pageTextContains($failure_message);
     $assert_session->buttonNotExists('Continue');
     // The same thing should be true if we try to start from the beginning.
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $assert_session->statusCodeEquals(200);
     $assert_session->pageTextContains($failure_message);
     $assert_session->buttonNotExists('Update');
@@ -60,7 +60,7 @@ class UpdateFailedTest extends UpdaterFormTestBase {
     $this->checkForUpdates();
 
     $page = $this->getSession()->getPage();
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update to 9.8.1');
     $this->checkForMetaRefresh();
     $this->assertUpdateStagedTimes(1);

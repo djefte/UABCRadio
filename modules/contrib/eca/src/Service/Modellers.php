@@ -250,6 +250,7 @@ class Modellers {
           $plugin = $this->pluginManagerEvent->createInstance($plugin_id);
           $events[] = $plugin;
         }
+        // @phpstan-ignore-next-line
         catch (PluginException | \Throwable) {
           // Can be ignored.
         }

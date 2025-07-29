@@ -4,8 +4,8 @@
   "type": "drupal-module",
   "license": "GPL-2.0-or-later",
   "require": {
-    "drupal/ai": "^1.0.0",
+    "drupal/ai": "^1.1.0",
     "drupal/key": "^1.18",
-    "wpai-inc/anthropic-sdk-php": ">=0.1.0"
+    "openai-php/client": ">=v0.10.1"
   }
 }

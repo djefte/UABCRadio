@@ -4,7 +4,7 @@ namespace Drupal\ai_agents\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ExtensionPathResolver;
-use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\ai\OperationType\Chat\ChatInput;
 use Drupal\ai\OperationType\Chat\ChatMessage;
 use Drupal\ai\OperationType\GenericType\ImageFile;
@@ -84,7 +84,7 @@ class AgentHelper {
    *
    * @param \Drupal\Core\Extension\ExtensionPathResolver $extensionPathResolver
    *   The extension path resolver.
-   * @param \Drupal\Core\Extension\ModuleHandler $moduleHandler
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler.
    * @param \Drupal\ai\Service\PromptJsonDecoder\PromptJsonDecoderInterface $promptJsonDecoder
    *   The prompt json decoder.
@@ -97,7 +97,7 @@ class AgentHelper {
    */
   public function __construct(
     protected ExtensionPathResolver $extensionPathResolver,
-    protected ModuleHandler $moduleHandler,
+    protected ModuleHandlerInterface $moduleHandler,
     protected PromptJsonDecoderInterface $promptJsonDecoder,
     protected PromptCodeBlockExtractorInterface $promptCodeBlockExtractor,
     protected ConfigFactoryInterface $configFactory,

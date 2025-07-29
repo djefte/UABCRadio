@@ -22,6 +22,14 @@ class Token extends OriginalToken {
   /**
    * {@inheritdoc}
    */
+  public function replacePlain(string $plain, array $data = [], array $options = [], ?BubbleableMetadata $bubbleable_metadata = NULL): string {
+    $this->moduleHandler->alter('tokens_pre', $plain, $data, $options);
+    return parent::replacePlain($plain, $data, $options, $bubbleable_metadata);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function scan($text) {
     // Matches tokens with the following pattern: [$type:$name]
     // $type and $name may not contain [ ] characters.

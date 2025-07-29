@@ -5,12 +5,10 @@
  * Logs visitors for your site.
  */
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Utility\Error;
 use Drupal\node\NodeInterface;
 use Drupal\visitors\VisitorsVisibilityInterface;
 
@@ -24,9 +22,17 @@ function visitors_help($route_name, $route_match) {
       $help .= '<a href="https://git.drupalcode.org/project/visitors/-/commits/8.x-2.x"><img alt="pipeline status" src="https://git.drupalcode.org/project/visitors/badges/8.x-2.x/pipeline.svg" /></a> &nbsp;';
       $help .= '<a href="https://www.drupal.org/project/visitors">Homepage</a> &nbsp;';
       $help .= '<a href="https://www.drupal.org/project/issues/visitors?version=any_8.x-">Issues</a></p>';
-      $help .= '<p>' . t('The Visitors module logs all visitors to your site and provides various statistics about them.') . '</p>';
+      $help .= '<p>'
+        . t('The Visitors module logs all visitors to your site and provides various statistics about them.')
+        . '</p>';
 
-      return $help;
+      return [
+        '#title' => t('Visitors'),
+        'description' => [
+          '#markup' => $help,
+        ],
+      ];
+
   }
 }
 
@@ -41,51 +47,7 @@ function visitors_cron(): void {
  * Implements hook_page_attachments().
  */
 function visitors_page_attachments(array &$page) {
-  $required_permissions = ['access visitors', 'access toolbar'];
-  $current_user = \Drupal::currentUser();
-  $access = AccessResult::allowedIfHasPermissions($current_user, $required_permissions);
-  if ($access->isAllowed()) {
-    $page['#attached']['library'][] = 'visitors/menu';
-  }
-  $page['#cache']['tags'][] = 'user:' . $current_user->id();
-  $page['#cache']['tags'][] = 'config:visitors.config';
-  $page['#cache']['contexts'][] = 'user';
-
-  try {
-    /** @var \Drupal\visitors\VisitorsVisibilityInterface $visibility_service */
-    $visibility_service = \Drupal::service('visitors.visibility');
-    if (!$visibility_service->isVisible()) {
-      return NULL;
-    }
-
-    $route = \Drupal::routeMatch()->getRouteName();
-    $base_path = \Drupal::request()->getBasePath();
-    $module_path = \Drupal::service('module_handler')->getModule('visitors')->getPath();
-
-    $page['#attached']['drupalSettings']['visitors']['module'] = "$base_path/$module_path";
-    $page['#attached']['drupalSettings']['visitors']['route'] = $route;
-    $page['#attached']['drupalSettings']['visitors']['server'] = gethostname();
-    $page['#attached']['library'][] = 'visitors/visitors';
-
-    $route_array = explode('.', $route);
-    if (count($route_array) == 3 && $route_array[0] == 'entity' && $route_array[2] == 'canonical') {
-      $entity_type = $route_array[1];
-      $settings = \Drupal::config('visitors.config');
-      $entity_types = $settings->get('counter.entity_types') ?? [];
-      $is_disabled_or_not_has_entity_types = !$settings->get('counter.enabled') || !in_array($entity_type, $entity_types);
-      if ($is_disabled_or_not_has_entity_types) {
-        return NULL;
-      }
-      $entity_id = \Drupal::routeMatch()->getParameter($entity_type)->id();
-      $page['#attached']['drupalSettings']['visitors']['counter'] = "$entity_type:$entity_id";
-    }
-
-  }
-  catch (\Exception $e) {
-    $logger = \Drupal::logger('visitors');
-    Error::logException($logger, $e);
-  }
-
+  \Drupal::service('visitors.page_attachments')->pageAttachments($page);
 }
 
 /**
@@ -245,16 +207,17 @@ function visitors_views_data() {
   $settings = \Drupal::config('visitors.config');
   $supported_entity_types = $settings->get('counter.entity_types') ?? [];
   foreach (\Drupal::entityTypeManager()->getDefinitions() as $entity_type_id => $entity_type) {
-    if (!in_array($entity_type_id, $supported_entity_types) || !$entity_type->entityClassImplements(ContentEntityInterface::class) || !$entity_type->getBaseTable()) {
+    $base_table = $entity_type->getBaseTable();
+    if (!in_array($entity_type_id, $supported_entity_types) || !$entity_type->entityClassImplements(ContentEntityInterface::class) || !$base_table) {
       continue;
     }
 
-    $base_table = $entity_type->getDataTable() ?: $entity_type->getBaseTable();
+    $base_table = $entity_type->getDataTable() ?: $base_table;
     $args = ['@entity_type' => $entity_type_id];
 
     // Multilingual properties are stored in data table.
     if (!($table = $entity_type->getDataTable())) {
-      $table = $entity_type->getBaseTable();
+      $table = $base_table;
     }
     $data[$base_table]['visitors_counter'] = [
       'title' => t('Visitors @entity_type counter', $args),
@@ -600,107 +563,83 @@ function visitors_views_data() {
     ],
   ];
   $data['visitors']['config_pdf'] = [
-    'title' => t('PDF Support'),
+    'title' => t('PDF Plugin'),
     'help' => t("The visitor's browser supports PDFs."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_pdf',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_flash'] = [
-    'title' => t('Flash Support'),
+    'title' => t('Flash Plugin'),
     'help' => t("The visitor's browser supports Flash."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_flash',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_java'] = [
-    'title' => t('Java Support'),
+    'title' => t('Java Plugin'),
     'help' => t("The visitor's browser supports Java."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_java',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_quicktime'] = [
-    'title' => t('Quicktime Support'),
+    'title' => t('Quicktime Plugin'),
     'help' => t("The visitor's browser supports Quicktime."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_quicktime',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_realplayer'] = [
-    'title' => t('Realplayer Support'),
+    'title' => t('Realplayer Plugin'),
     'help' => t("The visitor's browser supports Realplayer."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_realplayer',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_windowsmedia'] = [
-    'title' => t('Windows Media Support'),
+    'title' => t('Windows Media Plugin'),
     'help' => t("The visitor's browser supports Windows Media."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_windowsmedia',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_silverlight'] = [
-    'title' => t('Silverlight Support'),
+    'title' => t('Silverlight Plugin'),
     'help' => t("The visitor's browser supports Silverlight."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_silverlight',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_cookie'] = [
-    'title' => t('Cookie Support'),
+    'title' => t('Cookie Plugin'),
     'help' => t("The visitor's browser supports cookies."),
     'field' => [
-      'id' => 'boolean',
+      'id' => 'visitors_cookie',
     ],
     'filter' => [
       'id' => 'boolean',
-    ],
-    'argument' => [
-      'id' => 'numeric',
     ],
   ];
   $data['visitors']['config_browser_engine'] = [
@@ -1043,25 +982,22 @@ function visitors_tokens($type, $tokens, array $data, array $options, Bubbleable
 
   /** @var \Drupal\visitors\VisitorsCounterInterface $counter_storage */
   $counter_storage = \Drupal::service('visitors.counter');
-  $entity_view = NULL;
 
+  $entity_id = $entity->id() ?? 0;
+  $entity_view = $counter_storage->fetchView($type, $entity_id);
   foreach ($tokens as $name => $original) {
     if ($name == 'total-count') {
-      $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
       $replacements[$original] = $entity_view ? $entity_view->getTotalCount() : 0;
     }
     elseif ($name == 'day-count') {
-      $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
       $replacements[$original] = $entity_view ? $entity_view->getDayCount() : 0;
     }
     elseif ($name == 'last-view') {
-      $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
       $replacements[$original] = $entity_view ? \Drupal::service('date.formatter')->format($entity_view->getTimestamp()) : t('never');
     }
   }
 
   if ($created_tokens = $token_service->findWithPrefix($tokens, 'last-view')) {
-    $entity_view = $entity_view ?? $counter_storage->fetchView($type, $entity->id());
     $replacements += $token_service->generate('date', $created_tokens, ['date' => $entity_view ? $entity_view->getTimestamp() : 0], $options, $bubbleable_metadata);
   }
 

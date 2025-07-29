@@ -10,13 +10,16 @@ use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\Plugin\ProjectBrowserSource\LocalModules;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceInterface;
 use Drupal\project_browser\ProjectBrowser\ProjectsResultsPage;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests the LocalModules source plugin.
  *
- * @covers \Drupal\project_browser\Plugin\ProjectBrowserSource\LocalModules
  * @group project_browser
  */
+#[CoversClass(LocalModules::class)]
+#[Group('project_browser')]
 final class LocalModulesTest extends KernelTestBase {
 
   /**

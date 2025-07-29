@@ -100,3 +100,22 @@ services:
       - '@state'
       - '@datetime.time'
       - '@visitors.counter'
+
+  visitors.page_attachments:
+    class: Drupal\visitors\Service\PageAttachmentsService
+    arguments:
+      - '@config.factory'
+      - '@current_user'
+      - '@module_handler'
+      - '@current_route_match'
+      - '@request_stack'
+      - '@visitors.visibility'
+      - '@logger.channel.visitors'
+
+  cache_context.visitors_date_range:
+    class: Drupal\visitors\Cache\DateRangeCacheContext
+    arguments:
+      - '@visitors.date_range'
+      - '@datetime.time'
+    tags:
+      - { name: cache.context, context_id: visitors.date_range }

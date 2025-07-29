@@ -1,7 +1,7 @@
 services:
   editoria11y.api:
     class: Drupal\editoria11y\Api
-    arguments: ['@current_user', '@database', '@entity_type.manager']
+    arguments: ['@current_user', '@database', '@entity_type.manager', '@config.factory', '@path.validator']
 
   editoria11y.dashboard:
     class: Drupal\editoria11y\Dashboard

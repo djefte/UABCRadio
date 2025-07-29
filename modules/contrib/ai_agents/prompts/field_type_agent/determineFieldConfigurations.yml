@@ -28,6 +28,8 @@ prompt:
 
     For the message in the information, if you think that it was set in the
     storage settings, you do not have to give back information.
+
+    If you are adding field prefixes or suffixes, ensure to include whitespace as required.
   possible_actions:
     manipulation: The user is trying to manipulate a setting.
   formats:

@@ -75,9 +75,6 @@ class Conditions {
    *   The language manager service.
    * @param \Drupal\eca\Token\TokenInterface $token
    *   The ECA token service.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   public function __construct(Condition $condition_manager, LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, LanguageManagerInterface $language_manager, TokenInterface $token) {
     $this->conditionManager = $condition_manager;
@@ -127,6 +124,7 @@ class Conditions {
        */
       $condition = $this->conditionManager->createInstance($plugin_id, $configuration);
     }
+    // @phpstan-ignore-next-line
     catch (\Exception | \Throwable $e) {
       $condition = NULL;
       $this->logger->error('The condition plugin %pluginid can not be initialized. ECA is ignoring this condition. The issue with this condition: %msg', [
@@ -185,10 +183,8 @@ class Conditions {
         }
       }
       $plugin->setConfiguration($pluginConfig);
+      $plugin->setEvent($event);
 
-      if ($plugin instanceof ConditionInterface) {
-        $plugin->setEvent($event);
-      }
       /**
        * @var \Drupal\Core\Plugin\Context\ContextDefinition $definition
        */

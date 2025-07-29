@@ -5,6 +5,8 @@
  * Contains hook implementation for Automatic Updates Extensions Test.
  */
 
+declare(strict_types=1);
+
 /**
  * Implements hook_update_status_alter().
  */

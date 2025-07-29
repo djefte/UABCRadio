@@ -42,16 +42,22 @@
         files.push(id);
       }
     });
+    let data = {
+      agent: $('#edit-agent').val(),
+      prompt: $('#edit-prompt').val(),
+      images: files,
+      markdown: $('#edit-markdown').val(),
+      model: $('#edit-model').val(),
+      runner_id: uuid,
+      tokens: {}
+    };
+    $('#edit-tokens :input').each((index, element) => {
+      data.tokens[element.name.match(/.*\[(.*)]/)[1]] = element.value;
+    })
     $.ajax({
       url: drupalSettings.path.baseUrl + 'admin/config/ai/agents/explore/start',
       type: 'POST',
-      data: {
-        agent: $('#edit-agent').val(),
-        prompt: $('#edit-prompt').val(),
-        images: files,
-        model: $('#edit-model').val(),
-        runner_id: uuid,
-      },
+      data: data,
       success: function (response) {
         setTimeout(() => {
           clearInterval(pollInterval);
@@ -103,4 +109,3 @@
     );
   }
 })(jQuery, Drupal, drupalSettings);
-

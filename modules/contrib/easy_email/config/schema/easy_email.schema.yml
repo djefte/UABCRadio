@@ -16,3 +16,26 @@ easy_email.settings:
     email_collection_access:
       type: boolean
       label: 'Email report access'
+    allowed_attachment_extensions:
+      type: sequence
+      label: 'Allowed attachment file extensions'
+      sequence:
+          type: string
+    blocked_attachment_extensions:
+      type: sequence
+      label: 'Blocked attachment file extensions'
+      sequence:
+          type: string
+    allowed_attachment_mime_types:
+      type: sequence
+      label: 'Allowed attachment MIME types'
+      sequence:
+          type: string
+    blocked_attachment_mime_types:
+      type: sequence
+      label: 'Blocked attachment MIME types'
+      sequence:
+          type: string
+    max_attachment_size:
+      type: float
+      label: 'Maximum attachment size in megabytes'

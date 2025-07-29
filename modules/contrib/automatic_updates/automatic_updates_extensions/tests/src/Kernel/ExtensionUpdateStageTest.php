@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates_extensions\Kernel;
 
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
 use Drupal\automatic_updates_extensions\Validator\UpdateReleaseValidator;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use PhpTuf\ComposerStager\API\Core\StagerInterface;
 
 /**
- * @coversDefaultClass \Drupal\automatic_updates_extensions\ExtensionUpdateStage
+ * @coversDefaultClass \Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager
  * @group automatic_updates_extensions
  * @internal
  */
@@ -48,7 +48,7 @@ final class ExtensionUpdateStageTest extends AutomaticUpdatesExtensionsKernelTes
    * Tests that correct versions are staged after calling ::begin().
    */
   public function testCorrectVersionsStaged(): void {
-    $id = $this->container->get(ExtensionUpdateStage::class)->begin([
+    $id = $this->container->get(ExtensionUpdateSandboxManager::class)->begin([
       'my_module' => '9.8.1',
       // Use a legacy version number to ensure they are converted to semantic
       // version numbers which will work with the drupal.org Composer facade.
@@ -63,7 +63,7 @@ final class ExtensionUpdateStageTest extends AutomaticUpdatesExtensionsKernelTes
     // Keep using the user account we created.
     $this->setCurrentUser($user);
 
-    $stage = $this->container->get(ExtensionUpdateStage::class);
+    $stage = $this->container->get(ExtensionUpdateSandboxManager::class);
 
     // Ensure that the target package versions are what we expect.
     $expected_versions = [
@@ -101,6 +101,7 @@ final class ExtensionUpdateStageTest extends AutomaticUpdatesExtensionsKernelTes
         'update',
         '--with-all-dependencies',
         '--optimize-autoloader',
+        '--minimal-changes',
         'drupal/my_module:9.8.1',
         'drupal/my_dev_module:1.2.0-alpha1@alpha',
       ],
@@ -123,7 +124,7 @@ final class ExtensionUpdateStageTest extends AutomaticUpdatesExtensionsKernelTes
     $this->expectException(\InvalidArgumentException::class);
     $this->expectExceptionMessage("The project contrib_profile1 cannot be updated because updating install profiles is not supported.");
 
-    $this->container->get(ExtensionUpdateStage::class)
+    $this->container->get(ExtensionUpdateSandboxManager::class)
       ->begin([
         'contrib_profile1' => '1.1.0',
       ]);
@@ -135,7 +136,7 @@ final class ExtensionUpdateStageTest extends AutomaticUpdatesExtensionsKernelTes
   public function testNoProjectsInBegin(): void {
     $this->expectException(\InvalidArgumentException::class);
     $this->expectExceptionMessage('No projects to begin the update');
-    $this->container->get(ExtensionUpdateStage::class)->begin([]);
+    $this->container->get(ExtensionUpdateSandboxManager::class)->begin([]);
   }
 
   /**
@@ -144,7 +145,7 @@ final class ExtensionUpdateStageTest extends AutomaticUpdatesExtensionsKernelTes
   public function testUnknownDrupalProject(): void {
     $this->expectException(\InvalidArgumentException::class);
     $this->expectExceptionMessage("The project my_module_unknown is not a Drupal project known to Composer and cannot be updated.");
-    $this->container->get(ExtensionUpdateStage::class)->begin([
+    $this->container->get(ExtensionUpdateSandboxManager::class)->begin([
       'my_module_unknown' => '9.8.1',
     ]);
   }

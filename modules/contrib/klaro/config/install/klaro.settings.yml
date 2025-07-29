@@ -33,3 +33,4 @@ library:
   additional_class: ''
   html_texts: false
   auto_focus: true
+  disable_powered_by: false

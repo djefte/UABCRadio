@@ -5,6 +5,8 @@
  * Contains install and update hooks.
  */
 
+declare(strict_types=1);
+
 if (\Drupal::state()->get('automatic_updates_test.new_update')) {
 
   /**

@@ -23,6 +23,13 @@ props:
       title: Field Title Utility Classes
       default: []
       description: An array of utility classes. Use to add extra Bootstrap utility classes or custom CSS classes over to this component.
+    field_item_utility_classes:
+      type: array
+      items:
+        type: string
+      title: Field Item Utility Classes
+      default: []
+      description: An array of utility classes. Use to add extra Bootstrap utility classes or custom CSS classes over to this component.
     title_attributes:
       type: Drupal\Core\Template\Attribute
     attributes:

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates\Kernel\StatusCheck;
 
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\package_manager\Validator\SupportedReleaseValidator;
 use Drupal\Tests\automatic_updates\Kernel\AutomaticUpdatesKernelTestBase;
@@ -106,14 +106,14 @@ class StagedProjectsValidatorTest extends AutomaticUpdatesKernelTestBase {
     ];
     $error = ValidationResult::createError($messages, t('The update cannot proceed because the following Drupal projects were installed during the update.'));
 
-    $stage = $this->container->get(UpdateStage::class);
-    $stage->begin(['drupal' => '9.8.1']);
-    $stage->stage();
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $sandbox_manager->stage();
     try {
-      $stage->apply();
+      $sandbox_manager->apply();
       $this->fail('Expected an error, but none was raised.');
     }
-    catch (StageEventException $e) {
+    catch (SandboxEventException $e) {
       $this->assertExpectedResultsFromException([$error], $e);
     }
   }
@@ -178,14 +178,14 @@ class StagedProjectsValidatorTest extends AutomaticUpdatesKernelTestBase {
       t("theme 'drupal/test_theme' removed."),
     ];
     $error = ValidationResult::createError($messages, t('The update cannot proceed because the following Drupal projects were removed during the update.'));
-    $stage = $this->container->get(UpdateStage::class);
-    $stage->begin(['drupal' => '9.8.1']);
-    $stage->stage();
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $sandbox_manager->stage();
     try {
-      $stage->apply();
+      $sandbox_manager->apply();
       $this->fail('Expected an error, but none was raised.');
     }
-    catch (StageEventException $e) {
+    catch (SandboxEventException $e) {
       $this->assertExpectedResultsFromException([$error], $e);
     }
   }
@@ -237,15 +237,15 @@ class StagedProjectsValidatorTest extends AutomaticUpdatesKernelTestBase {
       t("module 'drupal/test-module' from 1.3.0 to 1.3.1."),
     ];
     $error = ValidationResult::createError($messages, t('The update cannot proceed because the following Drupal projects were unexpectedly updated. Only Drupal Core updates are currently supported.'));
-    $stage = $this->container->get(UpdateStage::class);
-    $stage->begin(['drupal' => '9.8.1']);
-    $stage->stage();
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $sandbox_manager->stage();
 
     try {
-      $stage->apply();
+      $sandbox_manager->apply();
       $this->fail('Expected an error, but none was raised.');
     }
-    catch (StageEventException $e) {
+    catch (SandboxEventException $e) {
       $this->assertExpectedResultsFromException([$error], $e);
     }
   }
@@ -318,10 +318,10 @@ class StagedProjectsValidatorTest extends AutomaticUpdatesKernelTestBase {
       ->removePackage('other/removed')
       ->removePackage('other/dev-removed', TRUE);
 
-    $stage = $this->container->get(UpdateStage::class);
-    $stage->begin(['drupal' => '9.8.1']);
-    $stage->stage();
-    $stage->apply();
+    $sandbox_manager = $this->container->get(UpdateSandboxManager::class);
+    $sandbox_manager->begin(['drupal' => '9.8.1']);
+    $sandbox_manager->stage();
+    $sandbox_manager->apply();
     $this->assertTrue(TRUE);
   }
 

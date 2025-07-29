@@ -53,7 +53,7 @@ final class MaintenanceModeAwareCommitter implements CommitterInterface, EventSu
    *   The event being handled.
    */
   public function restore(PostApplyEvent $event): void {
-    if ($event->stage->getType() === 'automatic_updates:unattended') {
+    if ($event->sandboxManager->getType() === 'automatic_updates:unattended') {
       $this->doRestore();
     }
   }

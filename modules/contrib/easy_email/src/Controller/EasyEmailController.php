@@ -276,9 +276,7 @@ class EasyEmailController extends ControllerBase implements ContainerInjectionIn
         if ($revert_permission) {
           $links['revert'] = [
             'title' => $this->t('Revert'),
-            'url' => $has_translations ?
-              Url::fromRoute('entity.easy_email.translation_revert', ['easy_email' => $easy_email->id(), 'easy_email_revision' => $vid, 'langcode' => $langcode]) :
-              Url::fromRoute('entity.easy_email.revision_revert', ['easy_email' => $easy_email->id(), 'easy_email_revision' => $vid]),
+            'url' => Url::fromRoute('entity.easy_email.revision_revert', ['easy_email' => $easy_email->id(), 'easy_email_revision' => $vid]),
           ];
         }
 

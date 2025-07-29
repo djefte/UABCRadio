@@ -16,7 +16,7 @@ abstract class ProviderUsingHandlerWithAdapterBase extends ProviderUsingHandlerB
   /**
    * The HTTP adapter.
    *
-   * @var \Http\Client\HttpClient
+   * @var \Psr\Http\Client\ClientInterface
    */
   protected $httpAdapter;
 

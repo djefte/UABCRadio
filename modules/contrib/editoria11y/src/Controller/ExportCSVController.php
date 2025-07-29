@@ -6,9 +6,9 @@ use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Url;
-use Drupal\user\Entity\User;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -42,16 +42,26 @@ final class ExportCSVController extends ControllerBase implements ContainerInjec
   private DateFormatterInterface $dateFormatter;
 
   /**
+   * The entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructs the ExportCSVController object.
    *
    * @param mixed $dashboard
    *   Dashboard property.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   The date formatter service.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
    */
-  public function __construct($dashboard, DateFormatterInterface $date_formatter) {
+  public function __construct($dashboard, DateFormatterInterface $date_formatter, EntityTypeManagerInterface $entity_type_manager) {
     $this->dashboard = $dashboard;
     $this->dateFormatter = $date_formatter;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -60,7 +70,8 @@ final class ExportCSVController extends ControllerBase implements ContainerInjec
   public static function create($container) {
     return new self(
           $container->get('editoria11y.dashboard'),
-          $container->get('date.formatter')
+          $container->get('date.formatter'),
+          $container->get('entity_type.manager')
       );
   }
 
@@ -95,10 +106,10 @@ final class ExportCSVController extends ControllerBase implements ContainerInjec
       $issuesByPage = Url::fromUserInput("/admin/reports/editoria11y/page?q=" . $result->page_path, ['absolute' => TRUE]);
       $data = [
         'Issues found' => $result->page_result_count,
-        'Page' => $result->page_title,
+        'Page' => $this->escapeStringForCsv($result->page_title),
         'Path' => $url,
-        'Type' => $result->entity_type,
-        'Language' => $result->page_language,
+        'Type' => $this->escapeStringForCsv($result->entity_type),
+        'Language' => $this->escapeStringForCsv($result->page_language),
         'Page report' => $issuesByPage->toString(),
       ];
 
@@ -160,11 +171,11 @@ final class ExportCSVController extends ControllerBase implements ContainerInjec
       $url = UrlHelper::filterBadProtocol($result->page_path);
       $issuesByPage = Url::fromUserInput("/admin/reports/editoria11y/page?q=" . $result->page_path, ['absolute' => TRUE]);
       $data = [
-        'Issue' => $result->result_name,
-        'Page' => $result->page_title,
+        'Issue' => $this->escapeStringForCsv($result->result_name),
+        'Page' => $this->escapeStringForCsv($result->page_title),
         'Path' => $url,
-        'Type' => $result->entity_type,
-        'Language' => $result->page_language,
+        'Type' => $this->escapeStringForCsv($result->entity_type),
+        'Language' => $this->escapeStringForCsv($result->page_language),
         'Page report' => $issuesByPage->toString(),
       ];
 
@@ -225,17 +236,17 @@ final class ExportCSVController extends ControllerBase implements ContainerInjec
 
     // Iterate through the nodes. We want one row in the CSV per Article.
     foreach ($results as $result) {
-      $user = User::load($result->uid);
-      $name = $user->getDisplayName();
+      $user = $this->entityTypeManager->getStorage('user')->load($result->uid);
+      $name = $user ? $user->getDisplayName() : $this->t('Anonymous');
       $stale = $result->stale ? "No" : "Yes";
       $date = $this->dateFormatter->format($result->created);
       $url = UrlHelper::filterBadProtocol($result->page_path);
       $data = [
-        'Page' => $result->page_title,
+        'Page' => $this->escapeStringForCsv($result->page_title),
         'Path' => $url,
-        'Issue' => $result->result_name,
+        'Issue' => $this->escapeStringForCsv($result->result_name),
         'Dismissal type' => $result->dismissal_status,
-        'By' => $name,
+        'By' => $this->escapeStringForCsv($name),
         'On' => $date,
         'Still on page' => $stale,
       ];
@@ -266,6 +277,25 @@ final class ExportCSVController extends ControllerBase implements ContainerInjec
     $response->setContent($csv_data);
 
     return $response;
+  }
+
+  /**
+   * Escape strings for CSV that may contain malicious CSV injections.
+   *
+   * @param string $string
+   *   The input string.
+   *
+   * @return string
+   *   The escaped string
+   */
+  protected function escapeStringForCsv(string $string): string {
+    // @see https://owasp.org/www-community/attacks/CSV_Injection.
+    // Replace quotes and breaks to prevent splitting cells.
+    $escaped = preg_replace(['/"/', '/[\t\n\r]/'], ['""', ' '], $string);
+    if (preg_match('/^[=\-@+"]/', $escaped)) {
+      return "'" . $escaped;
+    }
+    return $string;
   }
 
 }

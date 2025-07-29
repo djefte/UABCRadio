@@ -143,14 +143,14 @@ final class EnabledSourceHandler implements LoggerAwareInterface, EventSubscribe
     // Cache all the projects individually so they can be loaded by
     // ::getStoredProject().
     foreach ($results->list as $project) {
-      $storage->setIfNotExists($project->id, $project);
+      $this->storeProject($source_id, $project);
     }
     // If there were no query errors, store the results as a set of arguments
     // to ProjectsResultsPage.
     if (empty($results->error)) {
       $storage->set($cache_key, [
         $results->totalResults,
-        array_column($results->list, 'id'),
+        array_map(Project::normalizeId(...), array_column($results->list, 'id')),
         $results->pluginLabel,
         $source_id,
         $results->error,
@@ -202,6 +202,19 @@ final class EnabledSourceHandler implements LoggerAwareInterface, EventSubscribe
   }
 
   /**
+   * Store a project in the non-volatile data store.
+   *
+   * @param string $source_id
+   *   The ID of the source plugin to store the project in.
+   * @param \Drupal\project_browser\ProjectBrowser\Project $project
+   *   Project to store.
+   */
+  private function storeProject(string $source_id, Project $project): void {
+    $id = Project::normalizeId($project->id);
+    $this->keyValue($source_id)->setIfNotExists($id, $project);
+  }
+
+  /**
    * Looks up a previously stored project by its ID.
    *
    * @param string $id
@@ -215,6 +228,7 @@ final class EnabledSourceHandler implements LoggerAwareInterface, EventSubscribe
    */
   public function getStoredProject(string $id): Project {
     [$source_id, $local_id] = explode('/', $id, 2);
+    $local_id = Project::normalizeId($local_id);
     return $this->keyValue($source_id)->get($local_id) ?? throw new \RuntimeException("Project '$id' was not found in non-volatile storage.");
   }
 

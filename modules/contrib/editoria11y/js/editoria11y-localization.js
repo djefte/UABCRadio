@@ -71,6 +71,12 @@ const ed11yLangDrupal = {
     Drupal.t('courtesy of'),
     Drupal.t('photo by')
   ],
+  badEndingForAlt: [
+    Drupal.t('photo'),
+    Drupal.t('image'),
+    Drupal.t('photograph'),
+    Drupal.t('picture')
+  ],
   linksUrls: ['http:/', 'https:/', '.asp', '.htm', '.php', '.edu/', '.com/'],
   linkStringsNewWindows: new RegExp(`(${[
     Drupal.t('window',{},{context: 'Browser window'}),
@@ -113,7 +119,7 @@ const ed11yLangDrupal = {
   // Tooltips base ======================================
 
   toggleManualCheck: Drupal.t("manual check needed"),
-  toggleAlert: Drupal.t("alert"),
+  toggleAlert: Drupal.t("alert",{},{context: 'notification'}),
   issue: Drupal.t('Issue',{},{context: 'problems'}),
   toggleAriaLabel: (label) => Drupal.t("Accessibility %label", {
     '%label': label

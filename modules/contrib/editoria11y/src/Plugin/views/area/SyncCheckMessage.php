@@ -28,7 +28,7 @@ class SyncCheckMessage extends AreaPluginBase {
     // Force standard bool.
     $sync = $config->get('disable_sync');
     if (!!$sync) {
-      $msg = t("Dashboard sync is disabled in Editoria11y configuration.");
+      $msg = $this->t("Dashboard sync is disabled in Editoria11y configuration.");
       $this->messenger()->addWarning($msg);
     }
 

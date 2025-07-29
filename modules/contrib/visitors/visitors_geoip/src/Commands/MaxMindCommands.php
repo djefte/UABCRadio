@@ -99,27 +99,27 @@ class MaxMindCommands extends DrushCommands {
     // Get the Symfony Console output interface.
     $output = $this->output();
     // $output->writeLn("There are $total ip addresses to process.");
-    $progressBar = new ProgressBar($output);
-    $progressBar->setFormat('debug');
-    $progressBar->start();
+    $progress_bar = new ProgressBar($output);
+    $progress_bar->setFormat('debug');
+    $progress_bar->start();
     // Initiate the request to download the file.
     $this->client->get(
       self::URL,
       [
         'query' => [
           'edition_id' => 'GeoLite2-City',
-          'license_key' => $this->settings->get('license'),
+          'license_key' => $license,
           'suffix' => 'tar.gz',
         ],
         'sink' => $real_file,
-        'progress' => function ($curl, $downloadTotal, $downloadedBytes) use ($progressBar) {
-          $progressBar->setMaxSteps($downloadTotal);
-          $progressBar->setProgress($downloadedBytes);
+        'progress' => function ($curl, $download_total, $downloaded_bytes) use ($progress_bar) {
+          $progress_bar->setMaxSteps($download_total);
+          $progress_bar->setProgress($downloaded_bytes);
         },
       ]);
 
     // Finish the progress bar.
-    $progressBar->finish();
+    $progress_bar->finish();
     // Add a new line after the progress bar.
     $output->writeln('');
 
@@ -159,12 +159,12 @@ class MaxMindCommands extends DrushCommands {
     // Get the Symfony Console output interface.
     $output = $this->output();
     $output->writeLn("There are $total locations to process.");
-    $progressBar = new ProgressBar($output, $total);
-    $progressBar->setFormat('debug');
-    $progressBar->start();
+    $progress_bar = new ProgressBar($output, $total);
+    $progress_bar->setFormat('debug');
+    $progress_bar->start();
 
     do {
-      $progressBar->advance();
+      $progress_bar->advance();
       $record = array_pop($records);
       if (empty($record)) {
         continue;
@@ -175,7 +175,7 @@ class MaxMindCommands extends DrushCommands {
     } while (count($records));
 
     // Finish the progress bar.
-    $progressBar->finish();
+    $progress_bar->finish();
     // Add a new line after the progress bar.
     $output->writeln('');
 

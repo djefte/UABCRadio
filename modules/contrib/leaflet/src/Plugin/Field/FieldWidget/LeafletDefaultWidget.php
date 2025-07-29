@@ -3,11 +3,17 @@
 namespace Drupal\leaflet\Plugin\Field\FieldWidget;
 
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
 use Drupal\Core\Utility\LinkGeneratorInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\geofield\GeoPHP\GeoPHPInterface;
@@ -70,6 +76,27 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
   protected $languageManager;
 
   /**
+   * The EntityField Manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
+   * The entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The current user.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $currentUser;
+
+  /**
    * LeafletWidget constructor.
    *
    * @param string $plugin_id
@@ -98,6 +125,12 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
    *   The token service.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The Entity Field Manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
+   * @param \Drupal\Core\Session\AccountInterface $current_user
+   *   The current user.
    */
   public function __construct(
     $plugin_id,
@@ -112,7 +145,10 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     ModuleHandlerInterface $module_handler,
     LinkGeneratorInterface $link_generator,
     Token $token,
-    LanguageManagerInterface $languageManager
+    LanguageManagerInterface $languageManager,
+    EntityFieldManagerInterface $entity_field_manager,
+    EntityTypeManagerInterface $entity_type_manager,
+    AccountInterface $current_user,
   ) {
     parent::__construct(
       $plugin_id,
@@ -129,6 +165,9 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     $this->link = $link_generator;
     $this->token = $token;
     $this->languageManager = $languageManager;
+    $this->entityFieldManager = $entity_field_manager;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->currentUser = $current_user;
   }
 
   /**
@@ -148,7 +187,10 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
       $container->get('module_handler'),
       $container->get('link_generator'),
       $container->get('token'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('entity_field.manager'),
+      $container->get('entity_type.manager'),
+      $container->get('current_user'),
     );
   }
 
@@ -218,6 +260,14 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
           'options' => '',
         ],
       ],
+      'geojson_overlays' => [
+        'sources' => [
+          'fields' => [],
+        ],
+        'path' => '{"color":"#f71ed3","opacity":"0.7","stroke":true,"weight":2,"fillColor":"#ffddfe","fillOpacity":"0.1","radius":3,"dashArray":"5, 5"}',
+        'zoom_to_geojson' => TRUE,
+        'snapping' => TRUE,
+      ],
     ]);
   }
 
@@ -225,8 +275,17 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
+
+    // Fixes possible error related to
+    // Warning: Undefined array key in
+    // Drupal\field ui\Form\EntityDisplayFormBase->copyFrom Values Entity()
+    // @see: https://www.drupal.org/project/office_hours/issues/3413697
+    if (isset($form['#after_build'])) {
+      $form['#after_build'] = NULL;
+    }
+
     // Inherit basic settings form from GeofieldDefaultWidget:
-    $form = parent::settingsForm($form, $form_state);
+    $form = array_merge($form, parent::settingsForm($form, $form_state));
     $map_settings = $this->getSetting('map');
     $default_settings = self::defaultSettings();
 
@@ -400,6 +459,9 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     // otherwise output a tip on Geocoder Module Integration.
     $this->setGeocoderMapControl($form, $this->getSettings());
 
+    // Set the Map GeoJSON Overlay Field and Paths Styles.
+    $this->setMapGeoJsonOverlays($form, $this->getSettings());
+
     return $form;
   }
 
@@ -411,7 +473,7 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     $delta,
     array $element,
     array &$form,
-    FormStateInterface $form_state
+    FormStateInterface $form_state,
   ) {
     $element = parent::formElement($items, $delta, $element, $form, $form_state);
 
@@ -433,6 +495,8 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     $default_settings = self::defaultSettings();
     $input_settings = $this->getSetting('input');
 
+    $user_input = $form_state->getUserInput();
+
     // Get the base Map info.
     $map = leaflet_map_get_info($map_settings['leaflet_map'] ?? $default_settings['map']['leaflet_map']);
 
@@ -451,16 +515,47 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
       $previous_automatic_locate_settings = TRUE;
     }
 
-    // Extend map settings to additional options
-    // to uniform with Leaflet Formatter and Leaflet View processing.
+    // Extend map settings to additional options.
     $map_settings = array_merge($map_settings, [
       'reset_map' => $this->getSetting('reset_map'),
       'map_scale' => $this->getSetting('map_scale'),
       'fullscreen' => $this->getSetting('fullscreen'),
-      'path' => str_replace(["\n", "\r"], "", $this->token->replace($this->getSetting('path'), $tokens)),
+      'path' => htmlspecialchars_decode(str_replace(["\n", "\r"], "", $this->token->replace($this->getSetting('path'), $tokens))),
       'geocoder' => $this->getSetting('geocoder'),
       'locate' => $this->getSetting('locate'),
+      'geojson_overlays' => $this->getSetting('geojson_overlays'),
     ]);
+
+    // Add leaflet_widget geojson overlays_info to general Form definition
+    // to attach info for dynamic #ajax interactivity with sources fields.
+    if (isset($map_settings['geojson_overlays']['sources']['fields']) && is_array($map_settings['geojson_overlays']['sources']['fields'])) {
+      $form['#leaflet_widget_geojson_overlays'] = [
+        'sources_fields' => $map_settings['geojson_overlays']['sources']['fields'],
+        'widget_id' => 'edit-' . str_replace('_', '-', $field->getName()) . '-wrapper',
+        'entity_widget_geofield' => $field->getName(),
+      ];
+    }
+
+    // Get GeoJSON Overlays contents.
+    // Use the drupal static cache if present and no #ajax triggered form reload
+    // (by and with user input).
+    $cachePrefix = $this->getPluginId() . '_geojson_overlay_contents';
+    $entity_info = $entity->getEntityTypeId() . '_' . $entity->id();
+    $page_cache = &drupal_static("$cachePrefix:$entity_info");
+    if (empty($user_input) && is_array($page_cache)) {
+      $geojson_overlays_contents = $page_cache;
+    }
+    // Else generate new GeoJSON Overlays contents.
+    else {
+      $geojson_overlays_contents = $this->getGeoJsonOverlayContents($map_settings, $user_input, $entity);
+      // And set the page cache for the geojson overlays contents.
+      $page_cache = $geojson_overlays_contents;
+    }
+
+    // Set the $map_settings['geojson_overlays']['contents'], if not empty.
+    if (!empty($geojson_overlays_contents)) {
+      $map_settings['geojson_overlays']['contents'] = $geojson_overlays_contents;
+    }
 
     // Set previos automatic locate setting
     // for backward compatibility with Leaflet release < 2.x.
@@ -482,10 +577,20 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     // Allow other modules to add/alter the map js settings.
     $this->moduleHandler->alter('leaflet_default_widget', $map, $this);
 
+    // Define the Map element.
     $element['map'] = $this->leafletService->leafletRenderMap($map, [], $map_settings['height'] . 'px');
 
     // Set the Element Map weight, to put it ahead of the Title.
     $element['map']['#weight'] = -1;
+
+    // Add the Map Overlays Text message, eventually.
+    if (isset($map_settings["geojson_overlays"]["sources"]["fields"]) && is_array($map_settings["geojson_overlays"]["sources"]["fields"]) && count($map_settings["geojson_overlays"]["sources"]["fields"]) > 0) {
+      $map_overlays_fields_text = implode(", ", $map_settings["geojson_overlays"]["sources"]["fields"]);
+      $map_overlays_text = $this->t('<div class="description form-item__description">Map (<a href="https://en.wikipedia.org/wiki/GeoJSON" target="blank">GeoJSON</a>) Overlays added and sourced from the following fields: @map_overlays_fields_text.</div>', [
+        '@map_overlays_fields_text' => $map_overlays_fields_text,
+      ]);
+      $element['map']['#suffix'] = $map_overlays_text;
+    }
 
     $element['title'] = [
       '#type' => 'item',
@@ -494,7 +599,7 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
     ];
 
     // Alter/customise the Value Title property.
-    $element['value']['#title'] = $this->t('GeoJson Data');
+    $element['value']['#title'] = $this->t('GeoJSON Data');
 
     // Build JS settings for the Leaflet Widget.
     $leaflet_widget_js_settings = [
@@ -509,20 +614,146 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
       'scrollZoomEnabled' => !empty($map_settings['scroll_zoom_enabled']) ? $map_settings['scroll_zoom_enabled'] : FALSE,
       'map_position' => $map_settings['map_position'] ?? [],
       'langcode' => $this->languageManager->getCurrentLanguage()->getId(),
+      'geojsonFieldOverlay' => $map_settings['geojson_overlays'] ?? $default_settings['geojson_overlays'],
     ];
 
     // Leaflet.widget plugin.
     $element['map']['#attached']['library'][] = 'leaflet/leaflet-widget';
 
+    // Add the Leaflet GeoJSON Overlays library, if requested.
+    if (!empty($map_settings['geojson_overlays']['contents'])) {
+      $element['map']['#attached']['library'][] = 'leaflet/leaflet-geojson-overlay';
+    }
+
     // Settings and geo-data are passed to the widget keyed by field id.
     $element['map']['#attached']['drupalSettings']['leaflet'][$element['map']['#map_id']]['leaflet_widget'] = $leaflet_widget_js_settings;
 
     // Convert default value to geoJSON format.
+    /** @var \Geometry|null $geom */
     if ($geom = $this->geoPhpWrapper->load($element['value']['#default_value'])) {
       $element['value']['#default_value'] = $geom->out('json');
     }
-
     return $element;
+  }
+
+  /**
+   * Get GeoJSON Overlays contents.
+   *
+   * @param array|null $map_settings
+   *   Map Settings.
+   * @param array|null $user_input
+   *   Form State User Input.
+   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+   *   The Widget Entity.
+   *
+   * @return array|null
+   *   The Map Settings array.
+   */
+  protected function getGeoJsonOverlayContents(?array $map_settings, array $user_input, EntityInterface $entity): ?array {
+    $geojson_overlays_contents = [];
+
+    // Add geojson_overlays source Entity Fields contents.
+    if (isset($map_settings['geojson_overlays']['sources']['fields']) && is_array($map_settings['geojson_overlays']['sources']['fields'])) {
+      foreach ($map_settings['geojson_overlays']['sources']['fields'] as $field) {
+        try {
+          $field_values = $user_input[$field] ?? $entity->get($field)->getValue();
+          foreach ($field_values as $k => $field_value) {
+            // In case of Link field, eventually parse the internal link, and
+            // generate an absolute value of it.
+            if (isset($field_value['uri'])) {
+              try {
+                if (str_starts_with($field_value['uri'], '/')) {
+                  $field_values[$k]['uri'] = Url::fromUserInput($field_value['uri'], ['absolute' => TRUE])->toString();
+                }
+                else {
+                  $field_values[$k]['uri'] = Url::fromUri($field_value['uri'], ['absolute' => TRUE])->toString();
+                }
+              }
+              catch (\Exception $e) {
+                unset($field_values[$k]);
+                continue;
+              }
+            }
+          }
+          $geojson_overlays_contents = array_merge($field_values, $geojson_overlays_contents ?? []);
+        }
+        catch (\Exception $e) {
+          $geojson_overlays_contents = [];
+        }
+      }
+    }
+    return $geojson_overlays_contents;
+  }
+
+  /**
+   * Perform argument parsing and token replacement.
+   *
+   * Code from the
+   * Drupal\views\Plugin\EntityReferenceSelection\ViewsSelection.
+   *
+   * @param string $argument_string
+   *   The raw argument string.
+   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+   *   The entity containing this field.
+   *
+   * @return array
+   *   The array of processed arguments.
+   */
+  protected function processArguments($argument_string, FieldableEntityInterface $entity) {
+    $arguments = [];
+
+    if (!empty($argument_string)) {
+      $pos = 0;
+      while ($pos < strlen($argument_string)) {
+        $found = FALSE;
+        // If string starts with a quote, start after quote and get everything
+        // before next quote.
+        if (strpos($argument_string, '"', $pos) === $pos) {
+          if (($quote = strpos($argument_string, '"', ++$pos)) !== FALSE) {
+            // Skip pairs of quotes.
+            while (!(($ql = strspn($argument_string, '"', $quote)) & 1)) {
+              $quote = strpos($argument_string, '"', $quote + $ql);
+            }
+            $arguments[] = str_replace('""', '"', substr($argument_string, $pos, $quote + $ql - $pos - 1));
+            $pos = $quote + $ql + 1;
+            $found = TRUE;
+          }
+        }
+        else {
+          $arguments = explode('/', $argument_string);
+          $pos = strlen($argument_string) + 1;
+          $found = TRUE;
+        }
+        if (!$found) {
+          $arguments[] = substr($argument_string, $pos);
+          $pos = strlen($argument_string);
+        }
+      }
+
+      $token_service = \Drupal::token();
+      $token_data = [$entity->getEntityTypeId() => $entity];
+      foreach ($arguments as $key => $value) {
+        $arguments[$key] = $token_service->replace($value, $token_data);
+      }
+    }
+
+    return $arguments;
+  }
+
+  /**
+   * Ajax callback to reload the GeoJSON Overlays after data source change.
+   *
+   * @param array $form
+   *   The Form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The Form state.
+   *
+   * @return mixed
+   *   The returned result.
+   */
+  public static function updateLeafletWidgetGeoJsonOverlaysAjax(array $form, FormStateInterface $form_state) {
+    $form["field_geofield"]['#id'] = $form["#leaflet_widget_geojson_overlays"]["widget_id"];
+    return $form[$form["#leaflet_widget_geojson_overlays"]["entity_widget_geofield"]];
   }
 
 }

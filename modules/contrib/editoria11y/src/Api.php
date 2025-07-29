@@ -3,10 +3,13 @@
 namespace Drupal\editoria11y;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Path\PathValidatorInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\editoria11y\Exception\Editoria11yApiException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Service description.
@@ -33,19 +36,55 @@ class Api {
   protected EntityTypeManager $manager;
 
   /**
+   * The configuration factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected ConfigFactoryInterface $configFactory;
+
+  /**
+   * The path validator service.
+   *
+   * @var \Drupal\Core\Path\PathValidatorInterface
+   */
+  protected PathValidatorInterface $pathValidator;
+
+  /**
    * Constructs an Api object.
    *
    * @param \Drupal\Core\Session\AccountInterface $account
-   *   Current User.
+   *   The current user.
    * @param \Drupal\Core\Database\Connection $connection
-   *   Database.
+   *   The database connection.
    * @param \Drupal\Core\Entity\EntityTypeManager $manager
-   *   Entity types.
+   *   The entity type manager.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The configuration factory.
+   * @param \Drupal\Core\Path\PathValidatorInterface $path_validator
+   *   The path validator service.
    */
-  public function __construct(AccountInterface $account, Connection $connection, EntityTypeManager $manager) {
+  public function __construct(AccountInterface $account, Connection $connection, EntityTypeManager $manager, ConfigFactoryInterface $config_factory, PathValidatorInterface $path_validator) {
     $this->account = $account;
     $this->connection = $connection;
     $this->manager = $manager;
+    $this->configFactory = $config_factory;
+    $this->pathValidator = $path_validator;
+  }
+
+  /**
+   * Creates an instance of the Api class.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
+   *
+   * @return static
+   *   A new instance of the Api class.
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('path.validator')
+    );
   }
 
   /**
@@ -124,11 +163,14 @@ class Api {
 
       // Update the last seen date for marked-as-hidden issues.
       // Note: v2.1.0 added entity_id, so we are updating it on sync for now.
+      // Note: v2.2.10 changed entity type, so we are updating it on sync.
       if ($oldDismissals > 0) {
         $this->connection->update("editoria11y_dismissals")
           ->fields(
                   [
                     'entity_id' => $results["entity_id"],
+                    'entity_type' => $results["entity_type"],
+                    'page_title' => $results["page_title"],
                     'stale' => 0,
                     'updated' => $now,
                   ]
@@ -140,17 +182,21 @@ class Api {
       }
     }
 
+    // Also sync OKs, which are not in results.
     if ($oldDismissals > 0) {
 
       // Update the last seen date for marked-as-ok issues.
       // Marked-as-ok issues are not in the main results foreach.
       // Note: v2.1.0 added entity_id, so we are updating it on sync for now.
+      // Note: v2.2.10 changed entity type, so we are updating it on sync.
       foreach ($results["oks"] as $key => $value) {
         $this->validateNotNull($key);
         $this->connection->update("editoria11y_dismissals")
           ->fields(
                   [
                     'entity_id' => $results["entity_id"],
+                    'entity_type' => $results["entity_type"],
+                    'page_title' => $results["page_title"],
                     'stale' => 0,
                     'updated' => $now,
                   ]
@@ -163,12 +209,15 @@ class Api {
 
       // Set the stale flag for dismissals that were NOT updated.
       // We do not auto-delete them as some may come and go based on views.
+      // @todo auto-delete old stale items.
       // @todo config or button to auto-delete stale items to prevent creep?
       // Note: v2.1.0 added entity_id, so we are updating it on sync for now.
+      // Note: v2.2.10 changed entity type, so we are updating it on sync.
       $this->connection->update("editoria11y_dismissals")
         ->fields(
                 [
                   'stale' => 1,
+                  'page_title' => $results["page_title"],
                   'entity_id' => $results["entity_id"],
                 ]
             )
@@ -353,26 +402,26 @@ class Api {
    */
   private function validatePath($user_input) {
     // @phpstan-ignore-next-line service call
-    $config = \Drupal::config('editoria11y.settings');
+    $config = $this->configFactory->get('editoria11y.settings');
     $prefix = $config->get('redundant_prefix');
     if (!empty($prefix) && strlen($prefix) < strlen($user_input) && strpos($user_input, $prefix) === 0) {
       // Replace ignorable subfolders.
       $altPath = substr_replace($user_input, "", 0, strlen($prefix));
       if (
-        !(
-          // @phpstan-ignore-next-line service call
-          \Drupal::service('path.validator')->getUrlIfValid($altPath) ||
-          // @phpstan-ignore-next-line service call
-          \Drupal::service('path.validator')->getUrlIfValid($user_input)
-        )
-      ) {
+          !(
+            // @phpstan-ignore-next-line service call
+            $this->pathValidator->getUrlIfValid($altPath) ||
+            // @phpstan-ignore-next-line service call
+            $this->pathValidator->getUrlIfValid($user_input)
+          )
+        ) {
         throw new Editoria11yApiException('Invalid page path on API report: "' . $user_input . '". If site is installed in subfolder, check Editoria11y config item "Syncing results to reports
 --> Remove redundant base url from URLs"');
       }
     }
     else {
       // @phpstan-ignore-next-line (Why have services if you don't use them)
-      if (!\Drupal::service('path.validator')->getUrlIfValid($user_input)) {
+      if (!$this->pathValidator->getUrlIfValid($user_input)) {
         throw new Editoria11yApiException('Invalid page path on API report: "' . $user_input . '". If site is installed in subfolder, check Editoria11y config item "Syncing results to reports
 --> Remove redundant base url from URLs"');
       }

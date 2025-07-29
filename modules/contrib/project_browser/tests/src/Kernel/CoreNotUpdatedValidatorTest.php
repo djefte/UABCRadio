@@ -4,18 +4,24 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\project_browser\Kernel;
 
-use Drupal\package_manager\Event\PreOperationStageEvent;
+use Drupal\package_manager\Event\SandboxValidationEvent;
+use Drupal\project_browser\ComposerInstaller\Validator\CoreNotUpdatedValidator;
 use Drupal\Tests\package_manager\Kernel\PackageManagerKernelTestBase;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\project_browser\ComposerInstaller\Installer;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @covers \Drupal\project_browser\ComposerInstaller\Validator\CoreNotUpdatedValidator
+ * Tests the CoreNotUpdatedValidator class.
  *
  * @group project_browser
  */
+#[CoversClass(CoreNotUpdatedValidator::class)]
+#[Group('project_browser')]
 final class CoreNotUpdatedValidatorTest extends PackageManagerKernelTestBase {
 
   /**
@@ -68,9 +74,8 @@ final class CoreNotUpdatedValidatorTest extends PackageManagerKernelTestBase {
    *   The expected validation result.
    *
    * @throws \Exception
-   *
-   * @dataProvider providerPreApplyException
    */
+  #[DataProvider('providerPreApplyException')]
   public function testPreApplyException(bool $core_updated, array $expected_results): void {
     if ($core_updated) {
       $this->getStageFixtureManipulator()?->setCorePackageVersion('9.8.1');
@@ -84,8 +89,9 @@ final class CoreNotUpdatedValidatorTest extends PackageManagerKernelTestBase {
       // If we did not get an exception, ensure we didn't expect any results.
       $this->assertEmpty($expected_results);
     }
-    catch (StageEventException $e) {
-      assert($e->event instanceof PreOperationStageEvent);
+    catch (\Throwable $e) {
+      $this->assertInstanceOf(SandboxEventException::class, $e);
+      assert($e->event instanceof SandboxValidationEvent);
       $this->assertValidationResultsEqual($expected_results, $e->event->getResults());
     }
   }

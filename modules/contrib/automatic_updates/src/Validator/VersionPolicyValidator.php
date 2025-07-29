@@ -9,10 +9,11 @@ use Drupal\automatic_updates\Validator\VersionPolicy\TargetVersionNotPreRelease;
 use Drupal\automatic_updates\Validator\VersionPolicy\TargetVersionStable;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\package_manager\ComposerInspector;
+use Drupal\package_manager\Event\SandboxEvent;
 use Drupal\package_manager\Event\StatusCheckEvent;
 use Drupal\package_manager\PathLocator;
 use Drupal\package_manager\ProjectInfo;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\automatic_updates\Validator\VersionPolicy\ForbidDowngrade;
 use Drupal\automatic_updates\Validator\VersionPolicy\ForbidMinorUpdates;
 use Drupal\automatic_updates\Validator\VersionPolicy\MajorVersionMatch;
@@ -24,7 +25,6 @@ use Drupal\automatic_updates\Validator\VersionPolicy\TargetVersionInstallable;
 use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\package_manager\Event\PreCreateEvent;
-use Drupal\package_manager\Event\StageEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -49,8 +49,8 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
   /**
    * Validates a target version of Drupal core.
    *
-   * @param \Drupal\automatic_updates\UpdateStage $stage
-   *   The update stage which will perform the update.
+   * @param \Drupal\automatic_updates\UpdateSandboxManager $sandbox_manager
+   *   The sandbox manager which will perform the update.
    * @param string|null $target_version
    *   The target version of Drupal core, or NULL if it is not known.
    *
@@ -60,7 +60,7 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
    *
    * @see \Drupal\automatic_updates\Validator\VersionPolicy\RuleBase::validate()
    */
-  public function validateVersion(UpdateStage $stage, ?string $target_version): array {
+  public function validateVersion(UpdateSandboxManager $sandbox_manager, ?string $target_version): array {
     // Check that the installed version of Drupal isn't a dev snapshot.
     $rules = [
       ForbidDevSnapshot::class,
@@ -76,14 +76,14 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
       $rules[] = TargetVersionInstallable::class;
       // @todo Remove the need to check for the stage instance in
       //   https://drupal.org/i/3398782.
-      if ($stage->getType() !== 'automatic_updates:unattended') {
+      if ($sandbox_manager->getType() !== 'automatic_updates:unattended') {
         // ...and must be either a release candidate, or stable.
         $rules[] = TargetVersionNotPreRelease::class;
       }
     }
 
     // If this is a cron update, we may need to do additional checks.
-    if ($stage->getType() === 'automatic_updates:unattended') {
+    if ($sandbox_manager->getType() === 'automatic_updates:unattended') {
       $mode = $this->cronUpdateRunner->getMode();
 
       // @todo Remove the need to check if cron updates are disabled in
@@ -112,7 +112,7 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
     }
 
     $installed_version = $this->getInstalledVersion();
-    $available_releases = $this->getAvailableReleases($stage);
+    $available_releases = $this->getAvailableReleases($sandbox_manager);
 
     // Let all the rules flag whatever messages they need to.
     $messages = [];
@@ -166,19 +166,19 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
   /**
    * Checks that the target version of Drupal is valid.
    *
-   * @param \Drupal\package_manager\Event\StageEvent $event
+   * @param \Drupal\package_manager\Event\SandboxEvent $event
    *   The event object.
    */
-  public function checkVersion(StageEvent $event): void {
-    $stage = $event->stage;
+  public function checkVersion(SandboxEvent $event): void {
+    $sandbox_manager = $event->sandboxManager;
 
     // Only do these checks for automatic updates.
-    if (!$stage instanceof UpdateStage) {
+    if (!$sandbox_manager instanceof UpdateSandboxManager) {
       return;
     }
     $target_version = $this->getTargetVersion($event);
 
-    $messages = $this->validateVersion($stage, $target_version);
+    $messages = $this->validateVersion($sandbox_manager, $target_version);
     if ($messages) {
       $installed_version = $this->getInstalledVersion();
 
@@ -200,7 +200,7 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
   /**
    * Returns the target version of Drupal core.
    *
-   * @param \Drupal\package_manager\Event\StageEvent $event
+   * @param \Drupal\package_manager\Event\SandboxEvent $event
    *   The event object.
    *
    * @return string|null
@@ -214,13 +214,13 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
    *   desired package versions, or the list of package versions does not
    *   include any Drupal core packages.
    */
-  private function getTargetVersion(StageEvent $event): ?string {
-    $stage = $event->stage;
+  private function getTargetVersion(SandboxEvent $event): ?string {
+    $sandbox_manager = $event->sandboxManager;
 
     // If we're not doing a status check, we expect the stage to have been
     // created, and the requested package versions recorded.
     if (!$event instanceof StatusCheckEvent) {
-      $package_versions = $stage->getPackageVersions()['production'];
+      $package_versions = $sandbox_manager->getPackageVersions()['production'];
     }
 
     $unknown_target = new \LogicException('The target version of Drupal core could not be determined.');
@@ -236,8 +236,8 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
       }
     }
     elseif ($event instanceof StatusCheckEvent) {
-      if ($stage->getType() === 'automatic_updates:unattended') {
-        $target_release = $stage->getTargetRelease();
+      if ($sandbox_manager->getType() === 'automatic_updates:unattended') {
+        $target_release = $sandbox_manager->getTargetRelease();
         if ($target_release) {
           return $target_release->getVersion();
         }
@@ -251,21 +251,21 @@ final class VersionPolicyValidator implements EventSubscriberInterface {
   /**
    * Returns the available releases of Drupal core for a given update stage.
    *
-   * @param \Drupal\automatic_updates\UpdateStage $stage
-   *   The update stage which will perform the update.
+   * @param \Drupal\automatic_updates\UpdateSandboxManager $sandbox_manager
+   *   The sandbox manager which will perform the update.
    *
    * @return \Drupal\update\ProjectRelease[]
    *   The available releases of Drupal core, keyed by version number and in
    *   descending order (i.e., newest first). Will be in ascending order (i.e.,
-   *   oldest first) if $stage is the cron update runner.
+   *   oldest first) if $sandbox_manager is the cron update runner.
    *
    * @see \Drupal\package_manager\ProjectInfo::getInstallableReleases()
    */
-  private function getAvailableReleases(UpdateStage $stage): array {
+  private function getAvailableReleases(UpdateSandboxManager $sandbox_manager): array {
     $project_info = new ProjectInfo('drupal');
     $available_releases = $project_info->getInstallableReleases() ?? [];
 
-    if ($stage->getType() === 'automatic_updates:unattended') {
+    if ($sandbox_manager->getType() === 'automatic_updates:unattended') {
       $available_releases = array_reverse($available_releases);
     }
     return $available_releases;

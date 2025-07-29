@@ -31,7 +31,10 @@ class DeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Are you sure you want to delete the @plugin matcher from the %profile profile?', ['%profile' => $this->linkitProfile->label(), '@plugin' => $this->linkitMatcher->getLabel()]);
+    return $this->t('Are you sure you want to delete the @plugin matcher from the %profile profile?', [
+      '%profile' => $this->linkitProfile->label(),
+      '@plugin' => $this->linkitMatcher->getLabel(),
+    ]);
   }
 
   /**

@@ -91,7 +91,7 @@ class GeocoderApiEnpoints extends ControllerBase {
     $geocoders_configs = $this->config->get('plugins_options') ?: [];
 
     // Get possible query string specific geocoders options.
-    $geocoders_options = $request->get('options') ?: [];
+    $geocoders_options = (array) ($request->query->all()['options'] ?? []);
 
     // Return merged geocoders options.
     return NestedArray::mergeDeep($geocoders_configs, $geocoders_options);
@@ -245,14 +245,14 @@ class GeocoderApiEnpoints extends ControllerBase {
    *   The geocode response.
    */
   public function geocode(Request $request) {
-    $address = $request->get('address');
-    $geocoders_ids = $request->get('geocoder');
-    $format = $request->get('format');
+    $address = $request->query->get('address');
+    $geocoders_ids = $request->query->get('geocoder');
+    $format = $request->query->get('format');
 
     try {
       $geocoders = $this->entityTypeManager->getStorage('geocoder_provider')
         ->loadMultiple(explode(',', str_replace(' ', '', $geocoders_ids)));
-      $address_format = $request->get('address_format');
+      $address_format = $request->query->get('address_format');
 
       if (isset($address)) {
         $dumper = $this->getDumper($format);
@@ -279,15 +279,15 @@ class GeocoderApiEnpoints extends ControllerBase {
    */
   public function reverseGeocode(Request $request) {
 
-    $latlng = $request->get('latlng');
-    $geocoders_ids = $request->get('geocoder');
-    $format = $request->get('format');
+    $latlng = $request->query->get('latlng');
+    $geocoders_ids = $request->query->get('geocoder');
+    $format = $request->query->get('format');
 
     try {
       $geocoders = $this->entityTypeManager->getStorage('geocoder_provider')
         ->loadMultiple(explode(',', $geocoders_ids));
       if (isset($latlng)) {
-        $latlng = explode(',', $request->get('latlng'));
+        $latlng = explode(',', $request->query->get('latlng'));
         $dumper = $this->getDumper($format);
         $geo_collection = $this->geocoder->reverse($latlng[0], $latlng[1], $geocoders);
         if ($geo_collection instanceof AddressCollection) {

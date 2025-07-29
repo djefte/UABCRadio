@@ -6,11 +6,13 @@ namespace Drupal\automatic_updates\Form;
 
 use Drupal\automatic_updates\BatchProcessor;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\package_manager\Exception\StageFailureMarkerException;
+use Drupal\package_manager\Exception\FailureMarkerExistsException;
+use Drupal\package_manager\Exception\SandboxException;
+use Drupal\package_manager\Exception\SandboxOwnershipException;
 use Drupal\package_manager\FailureMarker;
 use Drupal\package_manager\ProjectInfo;
 use Drupal\automatic_updates\ReleaseChooser;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\update\ProjectRelease;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Extension\ExtensionVersion;
@@ -20,8 +22,6 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
-use Drupal\package_manager\Exception\StageException;
-use Drupal\package_manager\Exception\StageOwnershipException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\system\SystemManager;
 use Drupal\update\UpdateManagerInterface;
@@ -38,7 +38,7 @@ final class UpdaterForm extends UpdateFormBase {
 
   public function __construct(
     private readonly StateInterface $state,
-    private readonly UpdateStage $stage,
+    private readonly UpdateSandboxManager $sandboxManager,
     private readonly EventDispatcherInterface $eventDispatcher,
     private readonly ReleaseChooser $releaseChooser,
     private readonly RendererInterface $renderer,
@@ -59,7 +59,7 @@ final class UpdaterForm extends UpdateFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('state'),
-      $container->get(UpdateStage::class),
+      $container->get(UpdateSandboxManager::class),
       $container->get('event_dispatcher'),
       $container->get(ReleaseChooser::class),
       $container->get('renderer'),
@@ -75,15 +75,15 @@ final class UpdaterForm extends UpdateFormBase {
     try {
       $this->failureMarker->assertNotExists();
     }
-    catch (StageFailureMarkerException $e) {
+    catch (FailureMarkerExistsException $e) {
       $this->messenger()->addError($e->getMessage());
       return $form;
     }
-    if ($this->stage->isAvailable()) {
-      $stage_exists = FALSE;
+    if ($this->sandboxManager->isAvailable()) {
+      $sandbox_exists = FALSE;
     }
     else {
-      $stage_exists = TRUE;
+      $sandbox_exists = TRUE;
 
       // If there's a stage ID stored in the session, try to claim the stage
       // with it. If we succeed, then an update is already in progress, and the
@@ -91,12 +91,12 @@ final class UpdaterForm extends UpdateFormBase {
       $stage_id = $this->getRequest()->getSession()->get(BatchProcessor::STAGE_ID_SESSION_KEY);
       if ($stage_id) {
         try {
-          $this->stage->claim($stage_id);
+          $this->sandboxManager->claim($stage_id);
           return $this->redirect('automatic_updates.confirmation_page', [
             'stage_id' => $stage_id,
           ]);
         }
-        catch (StageOwnershipException) {
+        catch (SandboxOwnershipException) {
           // We already know a stage exists, even if it's not ours, so we don't
           // have to do anything else here.
         }
@@ -116,7 +116,7 @@ final class UpdaterForm extends UpdateFormBase {
       foreach ($support_branches as $support_branch) {
         $support_branch_extension_version = ExtensionVersion::createFromSupportBranch($support_branch);
         if ($support_branch_extension_version->getMajorVersion() === $installed_version->getMajorVersion() && $support_branch_extension_version->getMinorVersion() >= $installed_version->getMinorVersion()) {
-          $recent_release_in_minor = $this->releaseChooser->getMostRecentReleaseInMinor($this->stage, $support_branch . '0');
+          $recent_release_in_minor = $this->releaseChooser->getMostRecentReleaseInMinor($this->sandboxManager, $support_branch . '0');
           if ($recent_release_in_minor) {
             $releases[$support_branch] = $recent_release_in_minor;
           }
@@ -130,12 +130,12 @@ final class UpdaterForm extends UpdateFormBase {
       return $form;
     }
 
-    if ($form_state->getUserInput() || $stage_exists) {
+    if ($form_state->getUserInput() || $sandbox_exists) {
       $results = [];
     }
     else {
       try {
-        $results = $this->runStatusCheck($this->stage, $this->eventDispatcher);
+        $results = $this->runStatusCheck($this->sandboxManager, $this->eventDispatcher);
       }
       catch (\Throwable $e) {
         $this->messenger()->addError($e->getMessage());
@@ -195,7 +195,7 @@ final class UpdaterForm extends UpdateFormBase {
         $release_status = $this->t('Available update');
         $type = 'update-recommended';
     }
-    $create_update_buttons = !$stage_exists && ValidationResult::getOverallSeverity($results) !== SystemManager::REQUIREMENT_ERROR;
+    $create_update_buttons = !$sandbox_exists && ValidationResult::getOverallSeverity($results) !== SystemManager::REQUIREMENT_ERROR;
 
     $installed_minor_release = FALSE;
     $next_minor_release_count = 0;
@@ -288,7 +288,7 @@ final class UpdaterForm extends UpdateFormBase {
       '#markup' => $this->t('It\'s a good idea to <a href=":url">back up your database and site code</a> before you begin.', [':url' => 'https://www.drupal.org/node/22281']),
     ];
 
-    if ($stage_exists) {
+    if ($sandbox_exists) {
       // If the form has been submitted, do not display this error message
       // because ::deleteExistingUpdate() may run on submit. The message will
       // still be displayed on form build if needed.
@@ -311,10 +311,10 @@ final class UpdaterForm extends UpdateFormBase {
    */
   public function deleteExistingUpdate(): void {
     try {
-      $this->stage->destroy(TRUE);
+      $this->sandboxManager->destroy(TRUE);
       $this->messenger()->addMessage($this->t("Staged update deleted"));
     }
-    catch (StageException $e) {
+    catch (SandboxException $e) {
       $this->messenger()->addError($e->getMessage());
     }
   }

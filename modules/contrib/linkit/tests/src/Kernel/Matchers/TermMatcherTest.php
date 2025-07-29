@@ -11,7 +11,7 @@ use Drupal\Tests\linkit\Kernel\LinkitKernelTestBase;
 /**
  * Tests term matcher.
  *
- * @todo: Use TaxonomyTestTrait when the methods allow us to define own values.
+ * @todo Use TaxonomyTestTrait when the methods allow us to define own values.
  *
  * @group linkit
  */

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\automatic_updates\Build;
 
 use Behat\Mink\Element\DocumentElement;
-use Drupal\automatic_updates\ConsoleUpdateStage;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\ConsoleUpdateSandboxManager;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\package_manager\Event\PostApplyEvent;
 use Drupal\package_manager\Event\PostCreateEvent;
 use Drupal\package_manager\Event\PostRequireEvent;
@@ -73,14 +73,14 @@ class CoreUpdateTest extends UpdateTestBase {
     // fixtures/release-history/drupal.0.0.xml).
     $this->setUpstreamCoreVersion('9.8.1');
     $this->setReleaseMetadata([
-      'drupal' => __DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
     ]);
 
     // Ensure that Drupal thinks we are running 9.8.0, then refresh information
     // about available updates and ensure that an update to 9.8.1 is available.
     $this->assertCoreVersion('9.8.0');
     $this->checkForUpdates();
-    $this->visit('/admin/modules/update');
+    $this->visit('/admin/reports/updates/update');
     $this->getMink()->assertSession()->pageTextContains('9.8.1');
 
     $this->assertStatusReportChecksSuccessful();
@@ -109,7 +109,7 @@ class CoreUpdateTest extends UpdateTestBase {
     $update_status_code = $session->getStatusCode();
     $file_contents = $session->getPage()->getContent();
     $this->assertExpectedStageEventsFired(
-      UpdateStage::class,
+      UpdateSandboxManager::class,
       [
         // ::assertReadOnlyFileSystemError attempts to start an update
         // multiple times so 'PreCreateEvent' will be fired multiple times.
@@ -159,7 +159,7 @@ class CoreUpdateTest extends UpdateTestBase {
     // Make another request so that Automated Cron will be triggered at the end
     // of the request.
     $this->visit('/');
-    $this->assertExpectedStageEventsFired(ConsoleUpdateStage::class, wait: 360);
+    $this->assertExpectedStageEventsFired(ConsoleUpdateSandboxManager::class, wait: 360);
     $this->assertCronUpdateSuccessful();
   }
 
@@ -180,7 +180,7 @@ class CoreUpdateTest extends UpdateTestBase {
     $assert_session->pageTextContains('Update complete!');
     $assert_session->pageTextContains('Up to date');
     $assert_session->pageTextNotContains('There is a security update available for your version of Drupal.');
-    $this->assertExpectedStageEventsFired(UpdateStage::class);
+    $this->assertExpectedStageEventsFired(UpdateSandboxManager::class);
     $this->assertUpdateSuccessful('9.8.1');
     $this->assertRequestedChangesWereLogged([
       'Update drupal/core-dev from 9.8.0 to 9.8.1',
@@ -209,7 +209,7 @@ class CoreUpdateTest extends UpdateTestBase {
 
     $session->getPage()->clickLink('Run cron');
     $this->assertSame(200, $session->getStatusCode());
-    $this->assertExpectedStageEventsFired(ConsoleUpdateStage::class, wait: 360);
+    $this->assertExpectedStageEventsFired(ConsoleUpdateSandboxManager::class, wait: 360);
     $this->assertCronUpdateSuccessful();
   }
 
@@ -236,7 +236,7 @@ class CoreUpdateTest extends UpdateTestBase {
       PreApplyEvent::class,
       PostApplyEvent::class,
     ];
-    $this->assertExpectedStageEventsFired(ConsoleUpdateStage::class, $expected_events, 360);
+    $this->assertExpectedStageEventsFired(ConsoleUpdateSandboxManager::class, $expected_events, 360);
     $this->assertCronUpdateSuccessful();
   }
 
@@ -375,7 +375,7 @@ class CoreUpdateTest extends UpdateTestBase {
     // ...but it should have been updated in the dev dependencies.
     $this->assertSame($expected_version, $info['devRequires']['drupal/core-dev']);
     // The update form should not have any available updates.
-    $this->visit('/admin/modules/update');
+    $this->visit('/admin/reports/updates/update');
     $assert_session = $this->getMink()->assertSession();
     $assert_session->pageTextContains('No update available');
     $assert_session->pageTextNotContains('Automatic updates failed to apply, and the site is in an indeterminate state. Consider restoring the code and database from a backup.');
@@ -465,7 +465,7 @@ class CoreUpdateTest extends UpdateTestBase {
     $this->assertStringContainsString('Drupal core was successfully updated to 9.8.1!', $output);
     $this->assertStringContainsString('Deleting unused stage directories...', $output);
     $this->assertUpdateSuccessful('9.8.1');
-    $this->assertExpectedStageEventsFired(ConsoleUpdateStage::class);
+    $this->assertExpectedStageEventsFired(ConsoleUpdateSandboxManager::class);
 
     $pattern = '/^Unused stage directory deleted: (.+)$/m';
     $matches = [];

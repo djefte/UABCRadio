@@ -5,13 +5,13 @@ namespace Drupal\project_browser\Controller;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Extension\Requirement\RequirementSeverity;
 use Drupal\Core\Url;
-use Drupal\package_manager\Exception\StageException;
+use Drupal\package_manager\Exception\SandboxException;
 use Drupal\package_manager\StatusCheckTrait;
 use Drupal\project_browser\ComposerInstaller\Installer;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\InstallState;
-use Drupal\system\SystemManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -176,7 +176,7 @@ final class InstallerController extends ControllerBase {
       // accessed after. This final check ensures a destroy is not attempted
       // during apply.
       if ($this->installer->isApplying()) {
-        throw new StageException($this->installer, 'Another project is being added. Try again in a few minutes.');
+        throw new SandboxException($this->installer, 'Another project is being added. Try again in a few minutes.');
       }
 
       // Adding the TRUE parameter to destroy is dangerous, but we provide it
@@ -309,7 +309,7 @@ final class InstallerController extends ControllerBase {
     }
     if ($errors) {
       $error_message = '<ul><li>' . implode('</li><li>', $errors) . '</li></ul>';
-      return $this->errorResponse(new StageException($this->installer, $error_message));
+      return $this->errorResponse(new SandboxException($this->installer, $error_message));
     }
 
     try {
@@ -361,8 +361,8 @@ final class InstallerController extends ControllerBase {
    *   Status message.
    */
   public function apply(string $stage_id): JsonResponse {
-    foreach (array_keys($this->installState->toArray()) as $project_id) {
-      $this->installState->setState($project_id, 'applying');
+    foreach ($this->installState->toArray() as $project) {
+      $this->installState->setState($project['project_id'], 'applying');
     }
     try {
       $this->installer->claim($stage_id)->apply();
@@ -430,7 +430,7 @@ final class InstallerController extends ControllerBase {
       'warnings' => [],
     ];
     foreach ($this->runStatusCheck($this->installer, $this->eventDispatcher) as $result) {
-      $group = $result->severity === SystemManager::REQUIREMENT_ERROR
+      $group = $result->severity === RequirementSeverity::Error->value
         ? 'errors'
         : 'warnings';
 

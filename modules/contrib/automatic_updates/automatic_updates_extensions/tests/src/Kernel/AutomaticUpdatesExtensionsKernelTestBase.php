@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates_extensions\Kernel;
 
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
-use Drupal\package_manager\Event\PreOperationStageEvent;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\package_manager\Event\SandboxValidationEvent;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\Validator\ComposerValidator;
 use Drupal\Tests\automatic_updates\Kernel\AutomaticUpdatesKernelTestBase;
 
@@ -24,6 +24,7 @@ abstract class AutomaticUpdatesExtensionsKernelTestBase extends AutomaticUpdates
    * {@inheritdoc}
    */
   protected static $modules = [
+    'automatic_updates',
     'automatic_updates_extensions',
     'package_manager_test_release_history',
   ];
@@ -85,7 +86,7 @@ abstract class AutomaticUpdatesExtensionsKernelTestBase extends AutomaticUpdates
    *   be passed if $expected_results is not empty.
    */
   protected function assertUpdateResults(array $project_versions, array $expected_results, ?string $event_class = NULL): void {
-    $stage = $this->container->get(ExtensionUpdateStage::class);
+    $stage = $this->container->get(ExtensionUpdateSandboxManager::class);
 
     try {
       $stage->begin($project_versions);
@@ -97,11 +98,11 @@ abstract class AutomaticUpdatesExtensionsKernelTestBase extends AutomaticUpdates
       // If we did not get an exception, ensure we didn't expect any results.
       $this->assertEmpty($expected_results);
     }
-    catch (StageEventException $e) {
+    catch (SandboxEventException $e) {
       $this->assertNotEmpty($expected_results);
       $exception_event = $e->event;
       $this->assertInstanceOf($event_class, $exception_event);
-      $this->assertInstanceOf(PreOperationStageEvent::class, $exception_event);
+      $this->assertInstanceOf(SandboxValidationEvent::class, $exception_event);
       $this->assertValidationResultsEqual($expected_results, $e->event->getResults());
     }
   }

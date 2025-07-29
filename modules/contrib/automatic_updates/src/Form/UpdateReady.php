@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Drupal\automatic_updates\Form;
 
 use Drupal\automatic_updates\BatchProcessor;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\package_manager\ComposerInspector;
-use Drupal\package_manager\Exception\StageFailureMarkerException;
+use Drupal\package_manager\Exception\FailureMarkerExistsException;
+use Drupal\package_manager\Exception\SandboxException;
+use Drupal\package_manager\Exception\SandboxOwnershipException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\State\StateInterface;
-use Drupal\package_manager\Exception\StageException;
-use Drupal\package_manager\Exception\StageOwnershipException;
 use Drupal\system\SystemManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -29,7 +29,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 final class UpdateReady extends UpdateFormBase {
 
   public function __construct(
-    private readonly UpdateStage $stage,
+    private readonly UpdateSandboxManager $sandboxManager,
     private readonly StateInterface $state,
     private readonly RendererInterface $renderer,
     private readonly EventDispatcherInterface $eventDispatcher,
@@ -48,7 +48,7 @@ final class UpdateReady extends UpdateFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get(UpdateStage::class),
+      $container->get(UpdateSandboxManager::class),
       $container->get('state'),
       $container->get('renderer'),
       $container->get('event_dispatcher'),
@@ -61,13 +61,13 @@ final class UpdateReady extends UpdateFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, ?string $stage_id = NULL) {
     try {
-      $this->stage->claim($stage_id);
+      $this->sandboxManager->claim($stage_id);
     }
-    catch (StageOwnershipException $e) {
+    catch (SandboxOwnershipException $e) {
       $this->messenger()->addError($e->getMessage());
       return $form;
     }
-    catch (StageFailureMarkerException $e) {
+    catch (FailureMarkerExistsException $e) {
       $this->messenger()->addError($e->getMessage());
       return $form;
     }
@@ -75,7 +75,7 @@ final class UpdateReady extends UpdateFormBase {
     $messages = [];
 
     try {
-      $staged_core_packages = $this->composerInspector->getInstalledPackagesList($this->stage->getStageDirectory())
+      $staged_core_packages = $this->composerInspector->getInstalledPackagesList($this->sandboxManager->getSandboxDirectory())
         ->getCorePackages()
         ->getArrayCopy();
     }
@@ -132,7 +132,7 @@ final class UpdateReady extends UpdateFormBase {
 
     // Don't run the status checks once the form has been submitted.
     if (!$form_state->getUserInput()) {
-      $results = $this->runStatusCheck($this->stage, $this->eventDispatcher);
+      $results = $this->runStatusCheck($this->sandboxManager, $this->eventDispatcher);
       // This will have no effect if $results is empty.
       $this->displayResults($results, $this->renderer);
       // If any errors occurred, return the form early so the user cannot
@@ -180,11 +180,11 @@ final class UpdateReady extends UpdateFormBase {
    */
   public function cancel(array &$form, FormStateInterface $form_state): void {
     try {
-      $this->stage->destroy();
+      $this->sandboxManager->destroy();
       $this->messenger()->addStatus($this->t('The update was successfully cancelled.'));
-      $form_state->setRedirect('update.report_update');
+      $form_state->setRedirect('automatic_updates.update_form');
     }
-    catch (StageException $e) {
+    catch (SandboxException $e) {
       $this->messenger()->addError($e->getMessage());
     }
   }

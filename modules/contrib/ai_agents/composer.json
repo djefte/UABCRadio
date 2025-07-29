@@ -8,10 +8,12 @@
   "license": "GPL-2.0-or-later",
   "require": {
     "drupal/core": "^10.2 || ^11",
-    "drupal/ai": "^1.0.0"
+    "drupal/ai": "^1.1.0"
   },
   "require-dev": {
-    "drupal/webform": "^6.0"
+    "drupal/webform": "^6.0",
+    "drupal/modeler_api": "1.0.x-dev",
+    "drupal/bpmn_io": "3.0.x-dev"
   },
   "suggest": {
     "drupal/unstructured": "Makes the AI Form integrations work better by allowing many file contexts.",

@@ -17,3 +17,6 @@ services:
   Drupal\project_browser_test\TestUninstallValidator:
     tags:
       - { name: module_install.uninstall_validator }
+  Drupal\project_browser_test\SettingsSubscriber:
+    tags:
+      - { name: event_subscriber }

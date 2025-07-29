@@ -22,7 +22,7 @@ services:
 
   trash.ignore_subscriber:
     class: Drupal\trash\EventSubscriber\TrashIgnoreSubscriber
-    arguments: ['@trash.manager', '@current_route_match']
+    autowire: true
     tags:
       - { name: event_subscriber }
 

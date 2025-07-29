@@ -54,14 +54,17 @@ class TokenOrTokensPreAlter {
           }
           else {
             // This is a token replacement.
-            $result = $this->token->replace('[' . $sub_token . ']', $data, $options);
+            $sub_token = "[$sub_token]";
+            $result = $this->token->replace($sub_token, $data, $options);
           }
-          if ($result) {
+          if ($result && $result != $sub_token) {
             $text = str_replace($match, $result, $text);
             break;
           }
         }
-        $text = str_replace($match, '', $text);
+        if (!empty($options['clear'])) {
+          $text = str_replace($match, '', $text);
+        }
       }
     }
   }

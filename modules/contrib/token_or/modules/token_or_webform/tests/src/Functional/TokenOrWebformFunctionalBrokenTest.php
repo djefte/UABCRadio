@@ -63,7 +63,7 @@ class TokenOrWebformFunctionalBrokenTest extends BrowserTestBase {
     // If not exists first param, use fallback.
     $this->drupalGet('webform/test');
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertSession()->elementExists('xpath', '//*[@id="edit-current-page-query"][@value="Lorem lorem [current-page:query:cid]"]');
+    $this->assertSession()->elementExists('xpath', '//*[@id="edit-current-page-query"][@value="Lorem lorem foobar"]');
   }
 
   /**
@@ -75,7 +75,7 @@ class TokenOrWebformFunctionalBrokenTest extends BrowserTestBase {
     // If not exists first param, use fallback.
     $this->drupalGet('webform/test');
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertSession()->elementExists('xpath', '//*[@id="edit-current-page-query-clear"][@value="Lorem lorem "]');
+    $this->assertSession()->elementExists('xpath', '//*[@id="edit-current-page-query-clear"][@value="Lorem lorem foobar"]');
   }
 
   /**

@@ -7,7 +7,7 @@ namespace Drupal\Tests\automatic_updates\Functional;
 use Drupal\automatic_updates_test\EventSubscriber\TestSubscriber1;
 use Drupal\package_manager\Event\PreApplyEvent;
 use Drupal\package_manager\Event\StatusCheckEvent;
-use Drupal\package_manager_test_validation\StagedDatabaseUpdateValidator;
+use Drupal\package_manager_test_validation\TestSandboxDatabaseUpdatesValidator;
 use Drupal\system\SystemManager;
 
 /**
@@ -18,26 +18,14 @@ use Drupal\system\SystemManager;
 class StagedDatabaseUpdateTest extends UpdaterFormTestBase {
 
   /**
-   * Data provider for testStagedDatabaseUpdates().
-   *
-   * @return bool[][]
-   *   The test cases.
-   */
-  public static function providerStagedDatabaseUpdates(): array {
-    return [
-      'maintenance mode on' => [TRUE],
-      'maintenance mode off' => [FALSE],
-    ];
-  }
-
-  /**
    * Tests the update form when staged modules have database updates.
    *
    * @param bool $maintenance_mode_on
    *   Whether the site should be in maintenance mode at the beginning of the
    *   update process.
    *
-   * @dataProvider providerStagedDatabaseUpdates
+   * @testWith [true]
+   *   [false]
    */
   public function testStagedDatabaseUpdates(bool $maintenance_mode_on): void {
     $this->getStageFixtureManipulator()->setCorePackageVersion('9.8.1');
@@ -56,13 +44,13 @@ class StagedDatabaseUpdateTest extends UpdaterFormTestBase {
     TestSubscriber1::setTestResult($expected_results, StatusCheckEvent::class);
     $messages = reset($expected_results)->messages;
 
-    StagedDatabaseUpdateValidator::setExtensionsWithUpdates([
+    TestSandboxDatabaseUpdatesValidator::setExtensionsWithUpdates([
       'system',
       'automatic_updates_theme_with_updates',
     ]);
 
     $page = $this->getSession()->getPage();
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     // The warning should be visible.
     $assert_session = $this->assertSession();
     $assert_session->pageTextContains((reset($messages))->render());
@@ -104,7 +92,7 @@ class StagedDatabaseUpdateTest extends UpdaterFormTestBase {
     $assert_session->pageTextContainsOnce('An error has occurred.');
     $assert_session->pageTextContainsOnce('Continue to the error page');
     $page->clickLink('the error page');
-    $assert_session->pageTextContains('Some modules have database schema updates to install. You should run the database update script immediately.');
+    $assert_session->pageTextContains('Some modules have database updates pending. You should run the database update script immediately.');
     $assert_session->linkExists('database update script');
     $assert_session->linkByHrefExists('/update.php');
     $page->clickLink('database update script');

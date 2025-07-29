@@ -1,0 +1,6 @@
+services:
+  media_library_importer.commands:
+    class: Drupal\media_library_importer\Commands\MediaLibraryImporterCommands
+    arguments: ['@media_library_importer.service', '@queue', '@queue_ui.batch']
+    tags:
+      - {name: drush.command}

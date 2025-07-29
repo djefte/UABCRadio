@@ -57,9 +57,10 @@ include:
 variables:
   _PHPUNIT_CONCURRENT: '1'
   _PHPUNIT_TESTGROUPS: ''
-  # Always test against the previous minor version of core.
-  OPT_IN_TEST_PREVIOUS_MINOR: '1'
-  OPT_IN_TEST_PREVIOUS_MAJOR: '1'
+  # Don't test against the previous minor of core (11.0.x) because it doesn't
+  # have Package Manager.
+  OPT_IN_TEST_PREVIOUS_MINOR: '0'
+  OPT_IN_TEST_NEXT_MINOR: '1'
   # Test against the next major version of core, with Automatic Updates and
   # Package Manager included as core modules.
   OPT_IN_TEST_NEXT_MAJOR: '1'
@@ -148,17 +149,17 @@ composer:
     # Copy to web as well as \Drupal\Composer\Composer will expect it be there.
     - cp -R /tmp/drupal-core/composer web
 
-composer (previous minor):
+composer (next minor):
   before_script:
     - !reference [composer, before_script]
   after_script:
     - !reference [composer, after_script]
 
-composer (previous major):
-  before_script:
-    - !reference [composer, before_script]
-  after_script:
-    - !reference [composer, after_script]
+#composer (previous minor):
+#  before_script:
+#    - !reference [composer, before_script]
+#  after_script:
+#    - !reference [composer, after_script]
 
 #composer (next major):
 #  image:
@@ -183,7 +184,6 @@ composer (previous major):
 #    - composer run core-convert --working-dir=$MODULE_DIR -- $CI_PROJECT_DIR/$_WEB_ROOT --gitlabci_path=$CI_PROJECT_DIR --core_target_branch=$CORE_REF
 #    # Confirm that both modules are now in core, then remove the contrib module.
 #    - test -d $_WEB_ROOT/core/modules/auto_updates
-#    - test -d $_WEB_ROOT/core/modules/package_manager
 #    - rm -r -f $MODULE_DIR
 #  artifacts: !reference [composer (next major), artifacts]
 
@@ -209,7 +209,6 @@ phpunit:
       - MODULE:
           - automatic_updates_extensions
           - automatic_updates
-          - package_manager
         TEST_TYPE:
           - Unit
           - Kernel
@@ -217,23 +216,18 @@ phpunit:
           - FunctionalJavascript
           - Build
   rules:
+    # Remove this line when Drupal 11.2 is the minimum supported version of core.
+    - when: never
     # Automatic Updates Extensions has no unit or functional JavaScript tests.
     - if: $MODULE == "automatic_updates_extensions" && ($TEST_TYPE == "Unit" || $TEST_TYPE == "FunctionalJavascript")
-      when: never
-    # Package Manager has no functional JavaScript tests.
-    - if: $MODULE == "package_manager" && $TEST_TYPE == "FunctionalJavascript"
       when: never
     - when: on_success
   variables:
     _PHPUNIT_EXTRA: '--types PHPUnit-$TEST_TYPE --module $MODULE'
 
-phpunit (previous major):
-  rules:
-    - !reference [phpunit, rules]
-
-phpunit (previous minor):
-  rules:
-    - !reference [phpunit, rules]
+#phpunit (previous minor):
+#  rules:
+#    - !reference [phpunit, rules]
 
 #phpunit (next major):
 #  allow_failure: false
@@ -250,10 +244,7 @@ phpunit (previous minor):
 #    - core conversion
 #  parallel:
 #    matrix:
-#      - MODULE:
-#          - auto_updates
-#          - package_manager
-#        TEST_TYPE:
+#      - TEST_TYPE:
 #          - Unit
 #          - Kernel
 #          - Functional
@@ -262,12 +253,9 @@ phpunit (previous minor):
 #  rules:
 #    - if: $OPT_IN_TEST_NEXT_MAJOR != "1" || $SKIP_PHPUNIT == "1"
 #      when: never
-#    # Package Manager has no functional JavaScript tests.
-#    - if: $MODULE == "package_manager" && $TEST_TYPE == "FunctionalJavascript"
-#      when: never
 #    - when: on_success
 #  variables:
-#    _PHPUNIT_EXTRA: '--types PHPUnit-$TEST_TYPE --module $MODULE'
+#    _PHPUNIT_EXTRA: '--types PHPUnit-$TEST_TYPE --module auto_updates'
 #    # This variable prevents a deprecation error; see https://www.drupal.org/node/3422624.
 #    MINK_DRIVER_ARGS_WEBDRIVER: '["chrome", {"browserName":"chrome","goog:chromeOptions":{"args":["--disable-dev-shm-usage","--disable-gpu","--headless"]}}, "http://localhost:9515"]'
 #    # Ensure deprecations will cause tests to fail, except for deprecations that core

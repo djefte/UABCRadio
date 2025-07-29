@@ -44,8 +44,8 @@ class SubThemeCommands extends DrushCommands {
 
       $this->printHeading("🟡 STEP 1");
       $this->logger()->notice("Enable and set {$name} as the default theme:");
-      $this->printCommand("drush then {$name} -y");
-      $this->printCommand("drush config-set system.theme default {$name} -y");
+      $this->printCommand("ddev drush then {$name} -y");
+      $this->printCommand("ddev drush config-set system.theme default {$name} -y");
 
       $this->printHeading("🟡 STEP 2");
       $this->logger()->notice("Go to the root of the {$name} theme:");
@@ -69,6 +69,10 @@ class SubThemeCommands extends DrushCommands {
       $this->printHeading("✅ STEP 7");
       $this->logger()->notice("Run the following command to compile Sass, JS and watch for other changes:");
       $this->printCommand('npm run watch');
+
+      $this->printHeading("✅ STEP 8");
+      $this->logger()->notice("Clear the cache and start building 🥷");
+      $this->printCommand("drush cr");
     }
     catch (\Exception $exception) {
       $this->logger()->error($exception->getMessage());
@@ -144,13 +148,37 @@ class SubThemeCommands extends DrushCommands {
    */
   private function generateTheme(string $themeName) {
     $drupalRoot = Drush::bootstrapManager()->getRoot();
+    
+    // Get info from the original starterkit info.yml file
+    $infoFile = $drupalRoot . '/themes/contrib/radix/src/kits/radix_starterkit/radix_starterkit.info.yml';
+    $info = \Drupal\Component\Serialization\Yaml::decode(file_get_contents($infoFile));
+    
+    // Get the description and version from the info file
+    $description = $info['description'] ?? '';
+    $version = $info['version'] ?? '1.0.0';
+    
+    // Replace radix_starterkit with the actual theme name in the description
+    $description = str_replace('radix_starterkit', $themeName, $description);
+    
     $process = new Process([
-      'php', $drupalRoot . '/core/scripts/drupal', 'generate-theme', '--starterkit', 'radix_starterkit', $themeName, '--path', 'themes/custom',
+      'php', $drupalRoot . '/core/scripts/drupal', 'generate-theme', 
+      '--starterkit', 'radix_starterkit', 
+      $themeName, 
+      '--path', 'themes/custom',
+      '--description', $description
     ]);
     $process->run();
-
+    
     if (!$process->isSuccessful()) {
       throw new \RuntimeException($process->getErrorOutput());
+    }
+    
+    // Update the version in the generated theme's info.yml file
+    $newInfoFile = $drupalRoot . '/themes/custom/' . $themeName . '/' . $themeName . '.info.yml';
+    if (file_exists($newInfoFile)) {
+      $newInfo = \Drupal\Component\Serialization\Yaml::decode(file_get_contents($newInfoFile));
+      $newInfo['version'] = $version;
+      file_put_contents($newInfoFile, \Drupal\Component\Serialization\Yaml::encode($newInfo));
     }
   }
 
@@ -159,7 +187,11 @@ class SubThemeCommands extends DrushCommands {
    */
   private function removeCopiedStarterKit() {
     $filesystem = new Filesystem();
-    $filesystem->remove('../web/themes/custom/radix_starterkit');
+    $drupalRoot = Drush::bootstrapManager()->getRoot();
+    $starterkit = $drupalRoot . '/themes/custom/radix_starterkit';
+    if (is_dir($starterkit)) {
+      $filesystem->remove($starterkit);
+    }
   }
 
   /**

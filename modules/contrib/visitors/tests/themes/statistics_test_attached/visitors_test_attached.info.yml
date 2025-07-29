@@ -5,7 +5,7 @@ description: 'Theme for testing attached library'
 # version: VERSION
 core_version_requirement: ^10.1 || ^11
 
-# Information added by Drupal.org packaging script on 2025-04-01
-version: '8.x-2.28'
+# Information added by Drupal.org packaging script on 2025-05-31
+version: '8.x-2.31'
 project: 'visitors'
-datestamp: 1743466093
+datestamp: 1748725097

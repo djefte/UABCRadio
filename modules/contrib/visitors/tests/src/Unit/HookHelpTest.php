@@ -36,7 +36,7 @@ class HookHelpTest extends UnitTestCase {
 
     $help = visitors_help('help.page.visitors', $route_match);
 
-    $has_coverage = strpos($help, 'https://git.drupalcode.org/project/visitors/badges/8.x-2.x/coverage.svg');
+    $has_coverage = strpos($help['description']['#markup'], 'https://git.drupalcode.org/project/visitors/badges/8.x-2.x/coverage.svg');
     $this->assertNotFalse($has_coverage);
   }
 

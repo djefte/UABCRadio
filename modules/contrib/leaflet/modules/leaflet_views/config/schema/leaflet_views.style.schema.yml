@@ -4,6 +4,35 @@ views.style.leaflet_map:
   type: views_style
   label: 'Leaflet map'
   mapping:
+    grouping:
+      type: sequence
+      label: Overlays - Leaflet Grouping
+      sequence:
+        type: mapping
+        label: Grouping Sequence
+        mapping:
+          field:
+            type: string
+            label: Grouping Field
+          rendered:
+            type: boolean
+            label: Use rendered output to group rows
+          overlays_options:
+            type: mapping
+            label: Layers options
+            mapping:
+              disabled_overlays:
+                type: sequence
+                label: Disabled Layers
+                sequence:
+                  type: string
+                  label: Disabled Layer
+              hidden_overlays_controls:
+                type: sequence
+                label: Hidden Layers Controls
+                sequence:
+                  type: string
+                  label: Hidden Layer Control
     data_source:
       type: sequence
       label: 'Data sources'
@@ -21,27 +50,27 @@ views.style.leaflet_map:
       label: 'Simple Tooltip'
     leaflet_tooltip:
       type: mapping
-      label: 'Tooltip Source'
+      label: 'Leaflet Tooltip'
       mapping:
         value:
           type: string
-          label: 'Value'
+          label: 'Tooltip Source'
         options:
           type: text
           label: 'Tooltip Options'
     leaflet_popup:
       type: mapping
-      label: 'Popup Source'
+      label: 'Leaflet Popup'
       mapping:
         value:
           type: string
-          label: 'Value'
+          label: 'Popup Source'
+        view_mode:
+          type: string
+          label: 'Popup Source View mode'
         options:
           type: text
           label: 'Popup Options'
-    view_mode:
-      type: string
-      label: 'View mode'
     leaflet_map:
       type: string
       label: 'Leaflet map'
@@ -213,12 +242,15 @@ views.style.leaflet_map:
         control:
           type: boolean
           label: 'Control'
-        include_path:
-          type: boolean
-          label: 'Include Path'
+        excluded:
+          type: text
+          label: 'Exclude flag'
         options:
           type: text
-          label: 'Options'
+          label: 'Marker Cluster Additional Options'
+        include_path:
+          type: boolean
+          label: 'Enable Markeclustering of Paths elements'
     fullscreen:
       type: mapping
       label: 'Leaflet Fullscreen'
@@ -232,6 +264,13 @@ views.style.leaflet_map:
     path:
       type: string
       label: 'Path'
+    feature_properties:
+      type: mapping
+      label: 'Feature Additional Properties'
+      mapping:
+        values:
+          type: text
+          label: 'Values'
     geocoder:
       type: mapping
       label: 'Geocoder'

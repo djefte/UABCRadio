@@ -27,6 +27,16 @@ class TokenOrTest extends KernelTestBase {
   protected $tokenService;
 
   /**
+   * Token replacement methods.
+   *
+   * @var string[]
+   */
+  protected $renderMethods = [
+    'replace',
+    'replacePlain',
+  ];
+
+  /**
    * {@inheritdoc}
    */
   protected static $modules = [
@@ -47,28 +57,55 @@ class TokenOrTest extends KernelTestBase {
    * Tests the basic functionality.
    */
   public function testTokenReplacement() {
-    $value = $this->tokenService->replace('[token_or:test|token_or:test2]');
-    $this->assertEquals('test', $value);
+    $clear_option = ['clear' => TRUE];
 
-    $value = $this->tokenService->replace('[token_or:empty|token_or:empty2]');
-    $this->assertEmpty($value);
+    foreach ($this->renderMethods as $method) {
+      $value = $this->tokenService->$method('[token_or:test|token_or:test2]');
+      $this->assertEquals('test', $value);
 
-    $value = $this->tokenService->replace('[token_or:empty|token_or:empty2]/[token_or:test]');
-    $this->assertEquals('/test', $value);
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]');
+      $this->assertEquals('[token_or:empty|token_or:empty2]', $value);
 
-    $value = $this->tokenService->replace('[token_or:empty|token_or:empty2]/[token_or:empty|token_or:test]/[token_or:test2]');
-    $this->assertEquals('/test/test2', $value);
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]', [], ['clear' => FALSE]);
+      $this->assertEquals('[token_or:empty|token_or:empty2]', $value);
 
-    $value = $this->tokenService->replace('[token_or:empty|token_or:empty2]/[token_or:empty2|token_or:empty]/[token_or:test2]');
-    $this->assertEquals('//test2', $value);
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]', [], $clear_option);
+      $this->assertEmpty($value);
+
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]/[token_or:test]');
+      $this->assertEquals('[token_or:empty|token_or:empty2]/test', $value);
+
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]/[token_or:test]', [], $clear_option);
+      $this->assertEquals('/test', $value);
+
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]/[token_or:empty|token_or:test]/[token_or:test2]');
+      $this->assertEquals('[token_or:empty|token_or:empty2]/test/test2', $value);
+
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]/[token_or:empty|token_or:test]/[token_or:test2]', [], $clear_option);
+      $this->assertEquals('/test/test2', $value);
+
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]/[token_or:empty2|token_or:empty]/[token_or:test2]');
+      $this->assertEquals('[token_or:empty|token_or:empty2]/[token_or:empty2|token_or:empty]/test2', $value);
+
+      $value = $this->tokenService->$method('[token_or:empty|token_or:empty2]/[token_or:empty2|token_or:empty]/[token_or:test2]', [], $clear_option);
+      $this->assertEquals('//test2', $value);
+
+      $value = $this->tokenService->$method('[token_or:invalid|token_or:test]');
+      $this->assertEquals('test', $value);
+
+      $value = $this->tokenService->$method('[token_or:invalid|token_or:test]', [], ['clear' => TRUE]);
+      $this->assertEquals('test', $value);
+    }
   }
 
   /**
    * Tests the string replacement functionality.
    */
   public function testStringReplacement() {
-    $value = $this->tokenService->replace('[token_or:empty|"' . self::$stringReplacement . '"]');
-    $this->assertEquals(self::$stringReplacement, $value);
+    foreach ($this->renderMethods as $method) {
+      $value = $this->tokenService->$method('[token_or:empty|"' . self::$stringReplacement . '"]');
+      $this->assertEquals(self::$stringReplacement, $value);
+    }
   }
 
   /**
@@ -91,16 +128,29 @@ class TokenOrTest extends KernelTestBase {
    * Tests the multiple token functionality.
    */
   public function testMultipleTokens() {
-    $value = $this->tokenService->replace('[token_or:test] [token_or:test|token_or:test2]');
-    $this->assertEquals('test test', $value);
+    foreach ($this->renderMethods as $method) {
+      $value = $this->tokenService->$method('[token_or:test] [token_or:test|token_or:test2]');
+      $this->assertEquals('test test', $value);
+    }
   }
 
   /**
    * Tests the null replacement functionality.
    */
   public function testNullReplacement() {
+    // ReplacePlain require a string, so just test replace method.
     $value = $this->tokenService->replace(NULL);
     $this->assertEquals(NULL, $value);
+  }
+
+  /**
+   * Tests the empty replacement functionality.
+   */
+  public function testEmptyReplacement() {
+    foreach ($this->renderMethods as $method) {
+      $value = $this->tokenService->$method('');
+      $this->assertEquals('', $value);
+    }
   }
 
   /**

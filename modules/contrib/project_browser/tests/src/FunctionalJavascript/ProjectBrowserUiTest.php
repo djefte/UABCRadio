@@ -9,6 +9,7 @@ use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\project_browser\ProjectBrowser\Filter\TextFilter;
+use PHPUnit\Framework\Attributes\Group;
 
 // cspell:ignore coverageall doomer eggman quiznos statusactive statusmaintained
 // cspell:ignore vetica
@@ -23,6 +24,7 @@ use Drupal\project_browser\ProjectBrowser\Filter\TextFilter;
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class ProjectBrowserUiTest extends WebDriverTestBase {
 
   use ProjectBrowserUiTestTrait;
@@ -585,7 +587,8 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
     $this->svelteInitHelper('text', 'Helvetica');
     $assert_session->waitForButton('Helvetica')?->click();
     // Check the detail modal displays.
-    $this->assertElementIsVisible('xpath', '//span[contains(@class, "ui-dialog-title") and text()="Helvetica"]');
+    $this->assertElementIsVisible('css', '.ui-dialog-title');
+    $assert_session->elementTextEquals('css', '.ui-dialog-title', 'Helvetica');
     $assert_session->elementExists('css', 'button.pb__action_button');
     // Close the modal.
     $assert_session->waitForButton('Close')?->click();
@@ -601,19 +604,22 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
     $this->svelteInitHelper('text', 'Helvetica');
     $assert_session->waitForButton('Helvetica')?->click();
     // Check the detail modal displays.
-    $this->assertElementIsVisible('xpath', '//span[contains(@class, "ui-dialog-title") and text()="Helvetica"]');
+    $this->assertElementIsVisible('css', '.ui-dialog-title');
+    $assert_session->elementTextEquals('css', '.ui-dialog-title', 'Helvetica');
     $assert_session->elementExists('css', 'button.pb__action_button');
     // Close the modal and check it no longer exists.
     $assert_session->waitForButton('Close')?->click();
     $assert_session->elementNotExists('xpath', '//span[contains(@class, "ui-dialog-title") and text()="Helvetica"]');
     // Check that a different module modal can be opened.
     $assert_session->waitForButton('Octopus')?->click();
-    $this->assertElementIsVisible('xpath', '//span[contains(@class, "ui-dialog-title") and text()="Octopus"]');
+    $this->assertElementIsVisible('css', '.ui-dialog-title');
+    $assert_session->elementTextEquals('css', '.ui-dialog-title', 'Octopus');
     $assert_session->waitForButton('Close')?->click();
-    $assert_session->elementNotExists('xpath', '//span[contains(@class, "ui-dialog-title") and text()="Octopus"]');
+    $assert_session->elementNotExists('css', '.ui-dialog-title');
     // Check that first detail modal can be reopened.
     $assert_session->waitForButton('Helvetica')?->click();
-    $this->assertElementIsVisible('xpath', '//span[contains(@class, "ui-dialog-title") and text()="Helvetica"]');
+    $this->assertElementIsVisible('css', '.ui-dialog-title');
+    $assert_session->elementTextEquals('css', '.ui-dialog-title', 'Helvetica');
     $assert_session->elementExists('css', 'button.pb__action_button');
   }
 

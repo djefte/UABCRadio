@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\automatic_updates_extensions\Kernel\Validator;
 
-use Drupal\automatic_updates_extensions\ExtensionUpdateStage;
-use Drupal\package_manager\Exception\StageEventException;
+use Drupal\automatic_updates_extensions\ExtensionUpdateSandboxManager;
+use Drupal\package_manager\Exception\SandboxEventException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\Tests\automatic_updates_extensions\Kernel\AutomaticUpdatesExtensionsKernelTestBase;
 
@@ -33,7 +33,7 @@ class ForbidCoreChangesValidatorTest extends AutomaticUpdatesExtensionsKernelTes
   public function testErrorMessages(array $staged_versions, array $new_packages, array $expected_results): void {
     $this->setReleaseMetadata([
       'semver_test' => __DIR__ . '/../../../fixtures/release-history/semver_test.1.1.xml',
-      'drupal' => __DIR__ . '/../../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
     ]);
     $this->getStageFixtureManipulator()->addPackage([
       'name' => 'drupal/non-core',
@@ -53,7 +53,7 @@ class ForbidCoreChangesValidatorTest extends AutomaticUpdatesExtensionsKernelTes
     }
     $this->getStageFixtureManipulator()->setVersion('drupal/semver_test', '8.1.1');
 
-    $stage = $this->container->get(ExtensionUpdateStage::class);
+    $stage = $this->container->get(ExtensionUpdateSandboxManager::class);
     $stage->begin([
       'semver_test' => '8.1.1',
     ]);
@@ -63,7 +63,7 @@ class ForbidCoreChangesValidatorTest extends AutomaticUpdatesExtensionsKernelTes
       $stage->apply();
       $this->fail('Expecting an exception.');
     }
-    catch (StageEventException $exception) {
+    catch (SandboxEventException $exception) {
       $this->assertExpectedResultsFromException($expected_results, $exception);
     }
   }

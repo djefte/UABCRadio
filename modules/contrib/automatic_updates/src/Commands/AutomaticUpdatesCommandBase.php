@@ -2,7 +2,7 @@
 
 namespace Drupal\automatic_updates\Commands;
 
-use Drupal\automatic_updates\ConsoleUpdateStage;
+use Drupal\automatic_updates\ConsoleUpdateSandboxManager;
 use Drupal\automatic_updates\CronUpdateRunner;
 use Drupal\automatic_updates\StatusCheckMailer;
 use Drupal\automatic_updates\Validation\StatusChecker;
@@ -43,9 +43,9 @@ abstract class AutomaticUpdatesCommandBase extends Command {
   /**
    * The console update stage.
    *
-   * @var \Drupal\automatic_updates\ConsoleUpdateStage
+   * @var \Drupal\automatic_updates\ConsoleUpdateSandboxManager
    */
-  protected ConsoleUpdateStage $stage;
+  protected ConsoleUpdateSandboxManager $sandboxManager;
 
   /**
    * Constructs an AutomaticUpdatesCommandBase object.
@@ -103,9 +103,9 @@ abstract class AutomaticUpdatesCommandBase extends Command {
     $kernel->preHandle($request);
     $this->container = $kernel->getContainer();
 
-    $this->stage = $this->container->get(ConsoleUpdateStage::class);
-    $this->stage->output = $output;
-    $this->stage->isFromWeb = $input->getOption('is-from-web');
+    $this->sandboxManager = $this->container->get(ConsoleUpdateSandboxManager::class);
+    $this->sandboxManager->output = $output;
+    $this->sandboxManager->isFromWeb = $input->getOption('is-from-web');
 
     return static::SUCCESS;
   }
@@ -132,7 +132,7 @@ abstract class AutomaticUpdatesCommandBase extends Command {
 
     // To ensure consistent results, only run the status checks if we're
     // explicitly configured to do unattended updates on the command line.
-    if ($needs_run && (($settings['method'] === 'web' && $this->stage->isFromWeb) || $settings['method'] === 'console')) {
+    if ($needs_run && (($settings['method'] === 'web' && $this->sandboxManager->isFromWeb) || $settings['method'] === 'console')) {
       // Only send failure notifications if unattended updates are enabled.
       if ($settings['level'] !== CronUpdateRunner::DISABLED) {
         $this->container->get(StatusCheckMailer::class)

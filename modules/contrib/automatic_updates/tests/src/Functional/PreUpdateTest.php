@@ -34,7 +34,7 @@ class PreUpdateTest extends UpdaterFormTestBase {
    * Checks RC releases of the next minor are available on the form.
    */
   public function testNextMinorRc(): void {
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.0-rc1.xml');
+    $this->setReleaseMetadata(static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.0-rc1.xml');
     $this->mockActiveCoreVersion('9.7.0');
     $this->config('automatic_updates.settings')
       ->set('allow_core_minor_updates', TRUE)
@@ -50,7 +50,7 @@ class PreUpdateTest extends UpdaterFormTestBase {
    * Checks Beta releases of the next minor are not available on the form.
    */
   public function testNextMinorBeta(): void {
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.0-beta1.xml');
+    $this->setReleaseMetadata(static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.0-beta1.xml');
     $this->mockActiveCoreVersion('9.7.0');
     $this->config('automatic_updates.settings')
       ->set('allow_core_minor_updates', TRUE)

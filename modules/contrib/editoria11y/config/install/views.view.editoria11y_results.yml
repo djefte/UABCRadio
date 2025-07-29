@@ -91,16 +91,17 @@ display:
         type: none
         options: {  }
       empty:
-        title:
-          id: title
+        area_text_custom:
+          id: area_text_custom
           table: views
-          field: title
+          field: area_text_custom
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: title
+          plugin_id: text_custom
           empty: true
-          title: 'No known issues at this url'
+          content: 'No alerts found.'
+          tokenize: false
       sorts: {  }
       arguments: {  }
       filters: {  }
@@ -192,7 +193,7 @@ display:
     display_plugin: block
     position: 2
     display_options:
-      title: 'Recent issues'
+      title: 'Recent Editoria11y Alerts'
       fields:
         created:
           id: created
@@ -497,7 +498,7 @@ display:
       link_display: recent__page
       link_url: ''
       display_extenders: {  }
-      block_description: 'Editoria11y - Most frequent issues'
+      block_description: 'Editoria11y - Recent alerts'
       block_category: Editoria11y
     cache_metadata:
       max-age: -1
@@ -511,7 +512,7 @@ display:
     display_plugin: block
     position: 2
     display_options:
-      title: 'Most frequent alerts'
+      title: 'Most Frequent Editoria11y Alerts'
       fields:
         result_name:
           id: result_name
@@ -706,7 +707,7 @@ display:
       link_display: issues__page
       link_url: ''
       display_extenders: {  }
-      block_description: 'Editoria11y - Most frequent issues'
+      block_description: 'Editoria11y - Most frequent alerts'
       block_category: Editoria11y
     cache_metadata:
       max-age: -1
@@ -720,7 +721,7 @@ display:
     display_plugin: block
     position: 2
     display_options:
-      title: 'Pages with the most alerts'
+      title: 'Pages with the most Editoria11y alerts'
       fields:
         page_title:
           id: page_title
@@ -953,6 +954,8 @@ display:
       use_more_text: 'All pages with issues'
       header: {  }
       display_extenders: {  }
+      block_description: 'Editoria11y - Pages with the most alerts'
+      block_category: Editoria11y
       allow:
         items_per_page: false
     cache_metadata:
@@ -1197,7 +1200,7 @@ display:
     display_plugin: page
     position: 2
     display_options:
-      title: ''
+      title: 'Issues on specified page'
       fields:
         result_name_count:
           id: result_name_count

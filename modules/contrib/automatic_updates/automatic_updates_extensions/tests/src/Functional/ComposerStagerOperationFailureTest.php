@@ -30,7 +30,7 @@ class ComposerStagerOperationFailureTest extends UpdaterFormTestBase {
   public function testComposerOperationFailure(string $exception_class, string $service_class): void {
     $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
-    $this->setReleaseMetadata(__DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml');
+    $this->setReleaseMetadata(static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.2.xml');
     $this->setReleaseMetadata(__DIR__ . '/../../fixtures/release-history/semver_test.1.1.xml');
     $this->setProjectInstalledVersion(['semver_test' => '8.1.0']);
     $this->checkForUpdates();

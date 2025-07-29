@@ -23,6 +23,8 @@ The Leaflet module requires the
 - Easy to use API for extended Leaflet Map definition & customisation;
 - Leaflet Default Widget, with advanced integration with [Leaflet-Geoman plugin](https://github.com/geoman-io/leaflet-geoman)
   for creating and editing Points and Geometries (Linestring, Polygon) Layers;
+- Integration of GeoJSON external & internal sources, acting as overlays on
+Leaflet Widget for interactive and precise drawing with snapping references;;
 - Leaflet Tooltips and Popups;
 - Leaflet Multi Maps Base Layers Control;
 - Leaflet Overlays Control via Drupal Views Grouping;
@@ -54,6 +56,8 @@ composer.json file is situated):
 dependency and GeoPHP library.
 - Enable the **Leaflet** module to be able to use
 **Leaflet Map Geofield Widget** and **Leaflet Map Geofield Formatter**;
+- Eventually integrate **internal / external GeoJSON Overlays** for precision
+drawing on Leaflet Map Widget;
 - Enable **Leaflet Views** (leaflet_views) submodule for **Leaflet Map Views
 integration**. You need to add at least one geofield to the Fields list,
 and select the Leaflet Map style in the Display Format;

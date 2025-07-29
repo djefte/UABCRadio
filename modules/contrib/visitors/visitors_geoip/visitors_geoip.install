@@ -2102,3 +2102,32 @@ function visitors_geoip_update_8228() {
 
   $view->save();
 }
+
+/**
+ * Adds date range cache context for better performance.
+ */
+function visitors_geoip_update_8229() {
+  drupal_flush_all_caches();
+
+  $view = \Drupal::configFactory()->getEditable('views.view.visitors_geoip');
+
+  $view->set('display.default.display_options.cache.type', 'tag');
+
+  $default_context = $view->get('display.default.cache_metadata.contexts');
+  $default_context[] = 'visitors_date_range';
+  $view->set('display.default.cache_metadata.contexts', $default_context);
+
+  $city_context = $view->get('display.city_table.cache_metadata.contexts');
+  $city_context[] = 'visitors_date_range';
+  $view->set('display.city_table.cache_metadata.contexts', $city_context);
+
+  $recent_view_context = $view->get('display.recent_view_table.cache_metadata.contexts');
+  $recent_view_context[] = 'visitors_date_range';
+  $view->set('display.recent_view_table.cache_metadata.contexts', $recent_view_context);
+
+  $region_context = $view->get('display.region_table.cache_metadata.contexts');
+  $region_context[] = 'visitors_date_range';
+  $view->set('display.region_table.cache_metadata.contexts', $region_context);
+
+  $view->save();
+}

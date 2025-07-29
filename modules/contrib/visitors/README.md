@@ -35,7 +35,7 @@ Composer is the preferred method to install visitors.
 
 ## Configuration
 
-1. Enable the module at Administration > Extend.
+1. Enable the module at **admin/modules**
 1. Configure **admin/config/system/visitors**
 
 
@@ -48,6 +48,7 @@ git clone git@git.drupal.org:project/visitors.git
 cd visitors
 ddev config --project-type=drupal --docroot=web --php-version=8.3 --corepack-enable --project-name=visitors
 ddev add-on get ddev/ddev-drupal-contrib
+ddev add-on get ddev/ddev-selenium-standalone-chrome
 ddev start
 ddev poser
 ddev symlink-project

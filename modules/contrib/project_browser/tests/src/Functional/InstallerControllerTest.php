@@ -8,6 +8,7 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Extension\ModuleInstallerInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+use Drupal\project_browser\Controller\InstallerController;
 use Drupal\Tests\ApiRequestTrait;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\project_browser\Traits\PackageManagerFixtureUtilityTrait;
@@ -23,6 +24,8 @@ use Drupal\project_browser\ComposerInstaller\Installer;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\InstallState;
 use GuzzleHttp\RequestOptions;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use Psr\Http\Message\ResponseInterface;
 
 // cspell:ignore crashmore
@@ -30,10 +33,10 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Tests the installer controller.
  *
- * @coversDefaultClass \Drupal\project_browser\Controller\InstallerController
- *
  * @group project_browser
  */
+#[CoversClass(InstallerController::class)]
+#[Group('project_browser')]
 final class InstallerControllerTest extends BrowserTestBase {
 
   use PackageManagerFixtureUtilityTrait;
@@ -159,7 +162,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Confirms install endpoint not available if UI installs are not enabled.
    *
-   * @covers ::access
+   * @legacy-covers ::access
    */
   public function testUiInstallUnavailableIfDisabled(): void {
     $this->config('project_browser.admin_settings')->set('allow_ui_install', FALSE)->save();
@@ -171,7 +174,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Confirms a require will stop if package already present.
    *
-   * @covers ::require
+   * @legacy-covers ::require
    */
   public function testInstallAlreadyPresentPackage(): void {
     $install_state = $this->container->get(InstallState::class)->toArray();
@@ -186,13 +189,13 @@ final class InstallerControllerTest extends BrowserTestBase {
       ['project_browser_test_mock/core'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
-    $this->assertSame('{"message":"StageEventException: The following package is already installed: drupal\/core\n","phase":"require"}', (string) $response->getBody());
+    $this->assertSame('{"message":"SandboxEventException: The following package is already installed: drupal\/core\n","phase":"require"}', (string) $response->getBody());
   }
 
   /**
    * Calls the endpoint that begins installation.
    *
-   * @covers ::begin
+   * @legacy-covers ::begin
    */
   private function doStart(): void {
     $install_state = $this->container->get(InstallState::class)->toArray();
@@ -207,7 +210,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Calls the endpoint that continues to the require phase of installation.
    *
-   * @covers ::require
+   * @legacy-covers ::require
    */
   private function doRequire(): void {
     $response = $this->getPostResponse(
@@ -222,7 +225,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Calls the endpoint that continues to the apply phase of installation.
    *
-   * @covers ::apply
+   * @legacy-covers ::apply
    */
   private function doApply(): void {
     $this->drupalGet("/admin/modules/project_browser/install-apply/$this->stageId");
@@ -234,7 +237,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Calls the endpoint that continues to the post apply phase of installation.
    *
-   * @covers ::postApply
+   * @legacy-covers ::postApply
    */
   private function doPostApply(): void {
     $this->drupalGet("/admin/modules/project_browser/install-post_apply/$this->stageId");
@@ -246,7 +249,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Calls the endpoint that continues to the destroy phase of installation.
    *
-   * @covers ::destroy
+   * @legacy-covers ::destroy
    */
   private function doDestroy(): void {
     $this->drupalGet("/admin/modules/project_browser/install-destroy/$this->stageId");
@@ -269,7 +272,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Tests an error during a pre create event.
    *
-   * @covers ::create
+   * @legacy-covers ::create
    */
   public function testPreCreateError(): void {
     $message = new TranslatableMarkup('This is a PreCreate error.');
@@ -277,39 +280,39 @@ final class InstallerControllerTest extends BrowserTestBase {
     TestSubscriber::setTestResult([$result], PreCreateEvent::class);
     $contents = $this->drupalGet('admin/modules/project_browser/install-begin');
     $this->assertSession()->statusCodeEquals(500);
-    $this->assertSame('{"message":"StageEventException: This is a PreCreate error.\n","phase":"create"}', $contents);
+    $this->assertSame('{"message":"SandboxEventException: This is a PreCreate error.\n","phase":"create"}', $contents);
   }
 
   /**
    * Tests an exception during a pre create event.
    *
-   * @covers ::create
+   * @legacy-covers ::create
    */
   public function testPreCreateException(): void {
     $error = new \Exception('PreCreate did not go well.');
     TestSubscriber::setException($error, PreCreateEvent::class);
     $contents = $this->drupalGet('admin/modules/project_browser/install-begin');
     $this->assertSession()->statusCodeEquals(500);
-    $this->assertSame('{"message":"StageEventException: PreCreate did not go well.","phase":"create"}', $contents);
+    $this->assertSame('{"message":"SandboxEventException: PreCreate did not go well.","phase":"create"}', $contents);
   }
 
   /**
    * Tests an exception during a post create event.
    *
-   * @covers ::create
+   * @legacy-covers ::create
    */
   public function testPostCreateException(): void {
     $error = new \Exception('PostCreate did not go well.');
     TestSubscriber::setException($error, PostCreateEvent::class);
     $contents = $this->drupalGet('admin/modules/project_browser/install-begin');
     $this->assertSession()->statusCodeEquals(500);
-    $this->assertSame('{"message":"StageEventException: PostCreate did not go well.","phase":"create"}', $contents);
+    $this->assertSame('{"message":"SandboxEventException: PostCreate did not go well.","phase":"create"}', $contents);
   }
 
   /**
    * Tests an error during a pre require event.
    *
-   * @covers ::require
+   * @legacy-covers ::require
    */
   public function testPreRequireError(): void {
     $message = new TranslatableMarkup('This is a PreRequire error.');
@@ -321,13 +324,13 @@ final class InstallerControllerTest extends BrowserTestBase {
       ['project_browser_test_mock/awesome_module'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
-    $this->assertSame('{"message":"StageEventException: This is a PreRequire error.\n","phase":"require"}', (string) $response->getBody());
+    $this->assertSame('{"message":"SandboxEventException: This is a PreRequire error.\n","phase":"require"}', (string) $response->getBody());
   }
 
   /**
    * Tests an exception during a pre require event.
    *
-   * @covers ::require
+   * @legacy-covers ::require
    */
   public function testPreRequireException(): void {
     $error = new \Exception('PreRequire did not go well.');
@@ -338,13 +341,13 @@ final class InstallerControllerTest extends BrowserTestBase {
       ['project_browser_test_mock/awesome_module'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
-    $this->assertSame('{"message":"StageEventException: PreRequire did not go well.","phase":"require"}', (string) $response->getBody());
+    $this->assertSame('{"message":"SandboxEventException: PreRequire did not go well.","phase":"require"}', (string) $response->getBody());
   }
 
   /**
    * Tests an exception during a post require event.
    *
-   * @covers ::require
+   * @legacy-covers ::require
    */
   public function testPostRequireException(): void {
     $error = new \Exception('PostRequire did not go well.');
@@ -355,13 +358,13 @@ final class InstallerControllerTest extends BrowserTestBase {
       ['project_browser_test_mock/awesome_module'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
-    $this->assertSame('{"message":"StageEventException: PostRequire did not go well.","phase":"require"}', (string) $response->getBody());
+    $this->assertSame('{"message":"SandboxEventException: PostRequire did not go well.","phase":"require"}', (string) $response->getBody());
   }
 
   /**
    * Tests an error during a pre apply event.
    *
-   * @covers ::apply
+   * @legacy-covers ::apply
    */
   public function testPreApplyError(): void {
     $message = new TranslatableMarkup('This is a PreApply error.');
@@ -371,13 +374,13 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->doRequire();
     $contents = $this->drupalGet("/admin/modules/project_browser/install-apply/$this->stageId");
     $this->assertSession()->statusCodeEquals(500);
-    $this->assertSame('{"message":"StageEventException: This is a PreApply error.\n","phase":"apply"}', $contents);
+    $this->assertSame('{"message":"SandboxEventException: This is a PreApply error.\n","phase":"apply"}', $contents);
   }
 
   /**
    * Tests an exception during a pre apply event.
    *
-   * @covers ::apply
+   * @legacy-covers ::apply
    */
   public function testPreApplyException(): void {
     $error = new \Exception('PreApply did not go well.');
@@ -386,13 +389,13 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->doRequire();
     $contents = $this->drupalGet("/admin/modules/project_browser/install-apply/$this->stageId");
     $this->assertSession()->statusCodeEquals(500);
-    $this->assertSame('{"message":"StageEventException: PreApply did not go well.","phase":"apply"}', $contents);
+    $this->assertSame('{"message":"SandboxEventException: PreApply did not go well.","phase":"apply"}', $contents);
   }
 
   /**
    * Tests an exception during a post apply event.
    *
-   * @covers ::apply
+   * @legacy-covers ::apply
    */
   public function testPostApplyException(): void {
     $error = new \Exception('PostApply did not go well.');
@@ -402,13 +405,13 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->doApply();
     $contents = $this->drupalGet("/admin/modules/project_browser/install-post_apply/$this->stageId");
     $this->assertSession()->statusCodeEquals(500);
-    $this->assertSame('{"message":"StageEventException: PostApply did not go well.","phase":"post apply"}', $contents);
+    $this->assertSame('{"message":"SandboxEventException: PostApply did not go well.","phase":"post apply"}', $contents);
   }
 
   /**
    * Confirms the various versions of the "install in progress" messages.
    *
-   * @covers ::unlock
+   * @legacy-covers ::unlock
    */
   public function testInstallUnlockMessage(): void {
     $this->doStart();
@@ -444,13 +447,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     $response = $this->drupalGet('admin/modules/project_browser/install-begin', $request_options);
     $this->assertSession()->statusCodeEquals(418);
     $assert_unlock_response($response, "The process for adding the project that was locked less than a minute ago might still be in progress. Consider waiting a few more minutes before using [+unlock link].");
-    $expected = [
-      'project_browser_test_mock/awesome_module' => [
-        'status' => 'requiring',
-      ],
-    ];
-    $install_state = $this->container->get(InstallState::class)->toArray();
-    $this->assertSame($expected, $install_state);
+    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', 'requiring');
     $this->assertFalse($this->installer->isAvailable());
     $this->assertFalse($this->installer->isApplying());
 
@@ -497,7 +494,7 @@ final class InstallerControllerTest extends BrowserTestBase {
    *
    * The break lock link is not available once the stage is applying.
    *
-   * @covers ::unlock
+   * @legacy-covers ::unlock
    */
   public function testCanBreakLock(): void {
     $this->doStart();
@@ -528,7 +525,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Confirms stage can be unlocked despite a missing Project Browser lock.
    *
-   * @covers ::unlock
+   * @legacy-covers ::unlock
    */
   public function testCanBreakStageWithMissingProjectBrowserLock(): void {
     $this->doStart();
@@ -558,7 +555,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Confirm a module and its dependencies can be installed via the endpoint.
    *
-   * @covers \Drupal\project_browser\Controller\ProjectBrowserEndpointController::activate
+   * @legacy-covers \Drupal\project_browser\Controller\ProjectBrowserEndpointController::activate
    */
   public function testActivate(): void {
     // Data for another source is cached in setUp, so we explicitly pass the
@@ -591,16 +588,14 @@ final class InstallerControllerTest extends BrowserTestBase {
    *
    * @param string $project_id
    *   The ID of the project being enabled.
-   * @param string|null $status
+   * @param string|null $expected_status
    *   The install state.
    */
-  protected function assertInstallInProgress(string $project_id, ?string $status = NULL): void {
-    $expect_install[$project_id] = [
-      'status' => $status,
-    ];
-    $install_state = $this->container->get(InstallState::class)
-      ->toArray();
-    $this->assertSame($expect_install, $install_state);
+  protected function assertInstallInProgress(string $project_id, ?string $expected_status = NULL): void {
+    $this->assertSame(
+      $expected_status,
+      $this->container->get(InstallState::class)->getStatus($project_id),
+    );
   }
 
   /**

@@ -282,8 +282,10 @@ class KlaroHelper {
     $cookie_domains = $config->get('deletable_cookie_domains');
     $langcode = $this->languageManager->getCurrentLanguage()->getId();
     // Get only the langcode part.
-    $langcode = explode('-', $langcode);
-    $langcode = reset($langcode);
+    if (\preg_match('/^(\w+)-(\w+)$/', $langcode, $matches)) {
+      $langcode = $matches[1];
+    }
+    $settings['config']['lang'] = $langcode;
 
     foreach ($this->getApps() as $app) {
       // Add app cookies to the config.

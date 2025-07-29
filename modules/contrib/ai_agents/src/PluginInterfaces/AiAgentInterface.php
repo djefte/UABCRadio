@@ -4,6 +4,7 @@ namespace Drupal\ai_agents\PluginInterfaces;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\ai\OperationType\Chat\ChatInput;
 use Drupal\ai_agents\Output\StructuredResultDataInterface;
 use Drupal\ai_agents\Task\TaskInterface;
 
@@ -105,6 +106,22 @@ interface AiAgentInterface extends PluginFormInterface, ConfigurableInterface {
    *   The task.
    */
   public function setTask(TaskInterface $task);
+
+  /**
+   * Gets the chat input.
+   *
+   * @return \Drupal\ai\OperationType\Chat\ChatInput
+   *   The chat input.
+   */
+  public function getChatInput(): ChatInput;
+
+  /**
+   * Sets the chat input.
+   *
+   * @param \Drupal\ai\OperationType\Chat\ChatInput $chatInput
+   *   The chat input.
+   */
+  public function setChatInput(ChatInput $chatInput);
 
   /**
    * Get the mode of the agent.
@@ -237,5 +254,38 @@ interface AiAgentInterface extends PluginFormInterface, ConfigurableInterface {
    * during the agent's run.
    */
   public function rollback();
+
+  /**
+   * Set Runner Id.
+   *
+   * Adds a runner id to follow multiple agents in the same session.
+   *
+   * @param string $runnerId
+   *   The runner id.
+   */
+  public function setRunnerId($runnerId);
+
+  /**
+   * Get data.
+   *
+   * The data that gets passed along from the determine to solve. Makes
+   * blueprints possible.
+   *
+   * @return array
+   *   The data.
+   */
+  public function getData();
+
+  /**
+   * Set data.
+   *
+   * The data that gets passed along from the determine to solve. Makes
+   * blueprints possible. You can store this in serialized form and then run
+   * the agent whenever you want.
+   *
+   * @param array $data
+   *   The data.
+   */
+  public function setData(array $data);
 
 }

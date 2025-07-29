@@ -6,7 +6,7 @@ namespace Drupal\Tests\automatic_updates_extensions\Functional;
 
 use Drupal\package_manager\Event\PreApplyEvent;
 use Drupal\package_manager\LegacyVersionUtility;
-use Drupal\package_manager_test_validation\StagedDatabaseUpdateValidator;
+use Drupal\package_manager_test_validation\TestSandboxDatabaseUpdatesValidator;
 
 /**
  * @covers \Drupal\automatic_updates_extensions\Form\UpdaterForm
@@ -59,15 +59,18 @@ final class SuccessfulUpdateTest extends UpdaterFormTestBase {
     // modules and themes. The two modules we're testing here (semver_test and
     // aaa_update_test) are already installed by static::$modules.
     $this->container->get('theme_installer')->install(['automatic_updates_extensions_test_theme']);
-    $this->setReleaseMetadata(__DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml');
-    $path_to_fixtures_folder = $project_name === 'aaa_update_test' ? '/../../../../package_manager/tests' : '/../..';
-    $this->setReleaseMetadata(__DIR__ . $path_to_fixtures_folder . '/fixtures/release-history/' . $project_name . '.1.1.xml');
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
+    $this->setReleaseMetadata("$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml");
+    $path_to_fixtures_folder = $project_name === 'aaa_update_test'
+      ? "$package_manager_dir/tests"
+      : __DIR__ . '/../..';
+    $this->setReleaseMetadata($path_to_fixtures_folder . '/fixtures/release-history/' . $project_name . '.1.1.xml');
     $this->setProjectInstalledVersion([$project_name => $installed_version]);
     $this->getStageFixtureManipulator()->setVersion($package_name, LegacyVersionUtility::convertToSemanticVersion($target_version));
     $this->checkForUpdates();
     $state = $this->container->get('state');
     $state->set('system.maintenance_mode', $maintenance_mode_on);
-    StagedDatabaseUpdateValidator::setExtensionsWithUpdates([
+    TestSandboxDatabaseUpdatesValidator::setExtensionsWithUpdates([
       'system',
       'automatic_updates_theme_with_updates',
     ]);

@@ -36,13 +36,13 @@ final class RequestedUpdateValidator implements EventSubscriberInterface {
    *   The pre-apply event.
    */
   public function checkRequestedStagedVersion(PreApplyEvent|StatusCheckEvent $event): void {
-    $stage = $event->stage;
-    if ($stage->getType() !== 'automatic_updates_extensions:attended' || !$stage->stageDirectoryExists()) {
+    $sandbox_manager = $event->sandboxManager;
+    if ($sandbox_manager->getType() !== 'automatic_updates_extensions:attended' || !$sandbox_manager->sandboxDirectoryExists()) {
       return;
     }
-    $requested_package_versions = $stage->getPackageVersions();
+    $requested_package_versions = $sandbox_manager->getPackageVersions();
     $active = $this->composerInspector->getInstalledPackagesList($this->pathLocator->getProjectRoot());
-    $staged = $this->composerInspector->getInstalledPackagesList($event->stage->getStageDirectory());
+    $staged = $this->composerInspector->getInstalledPackagesList($event->sandboxManager->getSandboxDirectory());
     $changed_stage_packages = $staged->getPackagesWithDifferentVersionsIn($active)->getArrayCopy();
 
     if (empty($changed_stage_packages)) {

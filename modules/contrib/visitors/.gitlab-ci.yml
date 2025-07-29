@@ -85,10 +85,9 @@ phpunit (coverage):
     - echo -e '[pcov]\npcov.directory=.' > /usr/local/etc/php/conf.d/pcov.ini
     - docker-php-ext-enable pcov
   variables:
-    SYMFONY_DEPRECATIONS_HELPER: weak
     REPORT_COVERAGE: "true"
     _PHPUNIT_EXTRA:
-      value: --coverage-cobertura $CI_PROJECT_DIR/coverage.xml --coverage-text --colors=never --coverage-html $CI_PROJECT_DIR/public/coverage
+      value: --coverage-cobertura $CI_PROJECT_DIR/coverage.xml --coverage-text --colors=never --coverage-html $CI_PROJECT_DIR/coverage
   coverage: /^\s*Lines:\s*\d+.\d+\%/
   artifacts:
     reports:
@@ -100,11 +99,21 @@ phpunit (coverage):
       - apache.access.log.txt
       - $BROWSERTEST_OUTPUT_DIRECTORY
       - coverage.xml
-      - public
+      - coverage
+
+pages:
+  stage: test
+  needs:
+    - job: phpunit (coverage)
+  before_script:
+    - cp $CI_PROJECT_DIR/README.md $CI_PROJECT_DIR/docs/index.md
+    - cp -R $CI_PROJECT_DIR/coverage $CI_PROJECT_DIR/docs/coverage
 
 phpunit:
   rules:
     - when: never
+
+
 
 ###################################################################################
 #

@@ -1,0 +1,13 @@
+name: Media Image EXIF Importer
+description: 'Allows EXIF information from images to be imported into Media Images.'
+type: module
+package: Media
+core_version_requirement: ^9.2 || ^10 | ^11
+dependencies:
+  - drupal:media
+
+
+# Information added by Drupal.org packaging script on 2025-06-01
+version: '2.1.5'
+project: 'media_library_importer'
+datestamp: 1748781823

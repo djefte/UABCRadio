@@ -26,6 +26,7 @@ use Symfony\Component\Yaml\Yaml;
 #[AiAgent(
   id: 'webform_agent',
   label: new TranslatableMarkup('Webform Agent'),
+  module_dependencies: ['webform'],
 )]
 class Webform extends AiAgentBase implements ContainerFactoryPluginInterface {
 
@@ -187,21 +188,6 @@ class Webform extends AiAgentBase implements ContainerFactoryPluginInterface {
   /**
    * {@inheritDoc}
    */
-  public function isAvailable() {
-    // Check if webform module is installed.
-    return $this->agentHelper->isModuleEnabled('webform');
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getRetries() {
-    return 5;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public function approveSolution() {
   }
 
@@ -234,6 +220,10 @@ class Webform extends AiAgentBase implements ContainerFactoryPluginInterface {
    * {@inheritDoc}
    */
   public function determineSolvability() {
+    $task = $this->getTask();
+    // Empty files.
+    $task->setFiles([]);
+    $this->setTask($task);
     parent::determineSolvability();
     $this->taskType = $this->determineTypeOfTask();
     switch ($this->taskType) {
@@ -247,20 +237,16 @@ class Webform extends AiAgentBase implements ContainerFactoryPluginInterface {
         return AiAgentInterface::JOB_NEEDS_ANSWERS;
 
       case 'edit':
-        return AiAgentInterface::JOB_SOLVABLE;
-
-      case 'question':
-        return AiAgentInterface::JOB_SHOULD_ANSWER_QUESTION;
-
-      case 'submission_info':
-        return AiAgentInterface::JOB_SHOULD_ANSWER_QUESTION;
-
       case 'submission_delete':
         return AiAgentInterface::JOB_SOLVABLE;
 
+      case 'question':
+      case 'submission_info':
+        return AiAgentInterface::JOB_SHOULD_ANSWER_QUESTION;
+
     }
 
-    return "string";
+    return AiAgentInterface::JOB_NOT_SOLVABLE;
   }
 
   /**
@@ -274,6 +260,10 @@ class Webform extends AiAgentBase implements ContainerFactoryPluginInterface {
    * {@inheritDoc}
    */
   public function solve() {
+    $task = $this->getTask();
+    // Empty files.
+    $task->setFiles([]);
+    $this->setTask($task);
     parent::solve();
     // If its creation.
     switch ($this->taskType) {

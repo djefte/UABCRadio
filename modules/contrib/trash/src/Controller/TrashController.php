@@ -97,9 +97,10 @@ class TrashController extends ControllerBase implements ContainerInjectionInterf
     ];
 
     $entity_type = $this->entityTypeManager()->getDefinition($entity_type_id);
+    $header = $this->buildHeader($entity_type);
     $build['table'] = [
       '#type' => 'table',
-      '#header' => $this->buildHeader($entity_type),
+      '#header' => $header,
       '#rows' => [],
       '#empty' => $this->t('There are no deleted @label.', ['@label' => $entity_type->getPluralLabel()]),
       '#cache' => [
@@ -107,7 +108,7 @@ class TrashController extends ControllerBase implements ContainerInjectionInterf
         'tags' => $entity_type->getListCacheTags(),
       ],
     ];
-    foreach ($this->load($entity_type) as $entity) {
+    foreach ($this->load($entity_type, $header) as $entity) {
       if ($row = $this->buildRow($entity)) {
         $build['table']['#rows'][$entity->id()] = $row;
       }
@@ -126,16 +127,18 @@ class TrashController extends ControllerBase implements ContainerInjectionInterf
    *
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
    *   The entity type.
+   * @param array $header
+   *   The array containing the header column.
    *
    * @return \Drupal\Core\Entity\EntityInterface[]
    *   An array of entities implementing \Drupal\Core\Entity\EntityInterface
    *   indexed by their IDs.
    */
-  protected function load(EntityTypeInterface $entity_type): array {
+  protected function load(EntityTypeInterface $entity_type, $header): array {
     $storage = $this->entityTypeManager()->getStorage($entity_type->id());
     $entity_ids = $storage->getQuery()
       ->accessCheck(TRUE)
-      ->sort('deleted', 'DESC')
+      ->tableSort($header)
       ->pager(50)
       ->execute();
     return $storage->loadMultiple($entity_ids);
@@ -148,21 +151,47 @@ class TrashController extends ControllerBase implements ContainerInjectionInterf
    *   The entity type.
    *
    * @return array
-   *   A render array structure of header strings.
+   *   A renderable array containing a table header column.
    */
   protected function buildHeader(EntityTypeInterface $entity_type): array {
-    $row['label'] = $this->t('Title');
-    $row['bundle'] = $entity_type->getBundleLabel();
+    $row['label'] = [
+      'data' => $this->t('Title'),
+      'specifier' => $entity_type->getKey('label'),
+      'field' => $entity_type->getKey('label'),
+    ];
+    $row['bundle'] = [
+      'data' => $entity_type->getBundleLabel(),
+      'specifier' => $entity_type->getKey('bundle'),
+      'field' => $entity_type->getKey('bundle'),
+    ];
     if ($entity_type->entityClassImplements(EntityOwnerInterface::class)) {
-      $row['owner'] = $this->t('Author');
+      $row['owner'] = [
+        'data' => $this->t('Author'),
+        'specifier' => $entity_type->getKey('owner'),
+        'field' => $entity_type->getKey('owner'),
+      ];
     }
     if ($entity_type->entityClassImplements(EntityPublishedInterface::class)) {
-      $row['published'] = $this->t('Status');
+      $row['published'] = [
+        'data' => $this->t('Status'),
+        'specifier' => $entity_type->getKey('published'),
+        'field' => $entity_type->getKey('published'),
+      ];
     }
     if ($entity_type->entityClassImplements(RevisionLogInterface::class)) {
-      $row['revision_user'] = $this->t('Deleted by');
+      /** @var \Drupal\Core\Entity\ContentEntityTypeInterface $entity_type */
+      $row['revision_user'] = [
+        'data' => $this->t('Deleted by'),
+        'specifier' => $entity_type->getRevisionMetadataKey('revision_user'),
+        'field' => $entity_type->getRevisionMetadataKey('revision_user'),
+      ];
     }
-    $row['deleted'] = $this->t('Deleted on');
+    $row['deleted'] = [
+      'data' => $this->t('Deleted'),
+      'specifier' => 'deleted',
+      'field' => 'deleted',
+      'sort' => 'desc',
+    ];
     $row['operations'] = $this->t('Operations');
     return $row;
   }

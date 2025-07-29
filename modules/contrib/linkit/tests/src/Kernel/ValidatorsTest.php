@@ -13,7 +13,7 @@ use Drupal\Tests\ckeditor5\Kernel\ValidatorsTest as CKEditor5CoreValidatorsTest;
  *
  * @group linkit
  */
-abstract class AbstractValidatorsTest extends CKEditor5CoreValidatorsTest {
+abstract class ValidatorsTest extends CKEditor5CoreValidatorsTest {
 
   /**
    * {@inheritdoc}
@@ -38,8 +38,10 @@ abstract class AbstractValidatorsTest extends CKEditor5CoreValidatorsTest {
 if (version_compare(\Drupal::VERSION, '10.3', '>')) {
   /**
    * {@inheritdoc}
+   *
+   * @group linkit
    */
-  class ValidatorsTest extends AbstractValidatorsTest {
+  class LinkitValidatorsTest extends ValidatorsTest {
 
     /**
      * {@inheritdoc}
@@ -138,22 +140,24 @@ if (version_compare(\Drupal::VERSION, '10.3', '>')) {
 else {
   /**
    * {@inheritdoc}
+   *
+   * @group linkit
    */
-  class ValidatorsTest extends AbstractValidatorsTest {
+  class LinkitValidatorsTest extends ValidatorsTest {
 
     /**
      * {@inheritdoc}
      */
-    public function providerPair(): array {
-      // Linkit is 100% independent of the text format, so no need for this test.
+    public static function providerPair(): array {
+      // Linkit is 100% independent of the text format, so no need for this
+      // test.
       return [];
     }
 
-
     /**
      * {@inheritdoc}
      */
-    public function provider(): array {
+    public static function provider(): array {
       $linkit_test_cases_toolbar_settings = ['items' => ['link']];
 
       $data = [];

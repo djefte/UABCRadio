@@ -6,7 +6,7 @@ class Ed11y {
 
   constructor(options) {
 
-    Ed11y.version = '2.3.10';
+    Ed11y.version = '2.3.13';
 
     let defaultOptions = {
 
@@ -29,13 +29,17 @@ class Ed11y {
 
       // Ignore Aria on these elements (Gutenberg labels headings while editing.)
       ignoreAriaOnElements: false, // e.g. 'h1,h2,h3,h4,h5,h6'
+      ignoreTextInElements: false, // e.g. '.inner-node-hidden-in-CSS'
 
       // Disable tests on specific elements
       // Include and modify this entire object in your call
       ignoreByKey: {
         'p': 'table p',
         // 'h': false,
-        'img': '[aria-hidden], [aria-hidden] img, a[href][aria-label] img, button[aria-label] img, a[href][aria-labelledby] img, button[aria-labelledby] img', // May get false negatives in accordions, but needed for icons
+        'img': '[aria-hidden], [aria-hidden] img, ' +
+          '[role="presentation"], ' +
+          'a[href][aria-label] img, button[aria-label] img, ' +
+          'a[href][aria-labelledby] img, button[aria-labelledby] img',
         'a': '[aria-hidden][tabindex]', // disable link text check on properly disabled links
         // 'li': false,
         // 'blockquote': false,
@@ -457,7 +461,7 @@ class Ed11y {
             if (Ed11y.panelToggle) {
               Ed11y.panelToggle.querySelector('.ed11y-sr-only').textContent = Ed11y.M.toggleAccessibilityTools;
             }
-            window.requestAnimationFrame(() => Ed11y.updatePanel());
+            Ed11y.updatePanel();
           }, 0);
         }
 
@@ -529,7 +533,7 @@ class Ed11y {
 
     let oldResultString = '';
     const newIncrementalResults = function() {
-      if (Ed11y.results.length !== Ed11y.oldResults.length) {
+      if (Ed11y.forceFullCheck || Ed11y.results.length !== Ed11y.oldResults.length) {
         return true;
       }
       let newResultString = `${Ed11y.errorCount} ${Ed11y.warningCount}`;
@@ -555,11 +559,14 @@ class Ed11y {
           }*/
           Ed11y.resetResults();
         } else {
+          // Todo: commented out in 2.3.11:
+          // Reconnect map
           Ed11y.results = Ed11y.oldResults;
           window.setTimeout(function() {
             if ( !Ed11y.alignPending ) {
               Ed11y.alignButtons();
               Ed11y.alignPanel();
+              Ed11y.alignPending = false;
             }
             Ed11y.running = false;
           },0);
@@ -588,7 +595,7 @@ class Ed11y {
           Ed11y.onLoad = false;
 
           if (!Ed11y.options.inlineAlerts) {
-            // todo temp temp temp!
+            // todo move to incremental check or timeout; no need to do on load.
             oldResultString = `${Ed11y.errorCount} ${Ed11y.warningCount}`;
             Ed11y.results.forEach(result => {
               oldResultString += result.test + result.element.outerHTML;
@@ -625,7 +632,9 @@ class Ed11y {
 
 
           // Decide whether to open the panel on load.
-          if (Ed11y.ignoreAll) {
+          if (Ed11y.ignoreAll ||
+            (!Ed11y.options.inlineAlerts && Ed11y.totalCount > 75)
+          ) {
             Ed11y.showPanel = false;
           } else if (Ed11y.options.alertMode === 'active' ||
             !Ed11y.options.userPrefersShut ||
@@ -1006,7 +1015,8 @@ class Ed11y {
         console.warn('Editable content detected; Editoria11y inline alerts disabled');
       }
       Ed11y.findElements('p', 'p');
-      Ed11y.findElements('h', 'h1, h2, h3, h4, h5, h6, [role="heading"][aria-level]', Ed11y.options.headingsOnlyFromCheckRoots);
+      Ed11y.findElements('h', 'h1, h2, h3, h4, h5, h6, [role="heading"][aria-level]');
+      Ed11y.findElements('allH', 'h1, h2, h3, h4, h5, h6, [role="heading"][aria-level]', false);
       Ed11y.findElements('img', 'img');
       Ed11y.findElements('a', 'a[href]');
       Ed11y.findElements('li', 'li');
@@ -1059,18 +1069,17 @@ class Ed11y {
       // Send record to storage or dispatch an event to an API.
       if (Ed11y.options.syncedDismissals === false) {
         localStorage.setItem('ed11ydismissed', JSON.stringify(Ed11y.dismissedAlerts));
-      } else {
-        let dismissalDetail = {
-          dismissPage: Ed11y.options.currentPage,
-          dismissTest: test,
-          dismissKey: dismissalKey,
-          dismissAction: dismissalType,
-        };
-        let ed11yDismissalUpdate = new CustomEvent('ed11yDismissalUpdate', { detail: dismissalDetail });
-        window.setTimeout(() => {
-          document.dispatchEvent(ed11yDismissalUpdate);
-        },100);
       }
+      let dismissalDetail = {
+        dismissPage: Ed11y.options.currentPage,
+        dismissTest: test,
+        dismissKey: dismissalKey,
+        dismissAction: dismissalType,
+      };
+      let ed11yDismissalUpdate = new CustomEvent('ed11yDismissalUpdate', { detail: dismissalDetail });
+      window.setTimeout(() => {
+        document.dispatchEvent(ed11yDismissalUpdate);
+      },100);
     };
 
     Ed11y.dismissThis = function (dismissalType, all = false) {
@@ -1286,17 +1295,20 @@ class Ed11y {
       if (!Ed11y.panelElement) {
         return false;
       }
+      if (Ed11y.options.panelPinTo === 'left') {
+        Ed11y.panel.classList.add('ed11y-pin-left');
+      }
       let xMost = 0;
       let yMost = 0;
       if (Ed11y.elements.panelPin) {
         Ed11y.elements.panelPin.forEach(el => {
           let bounds = el.getBoundingClientRect();
           if (Ed11y.options.panelPinTo === 'right') {
-            xMost = windowWidth - bounds.left > xMost ? windowWidth - bounds.left : xMost;
+            xMost = windowWidth - bounds.left > xMost && bounds.left > windowWidth / 3 ? windowWidth - bounds.left : xMost;
           } else {
-            xMost = bounds.right > xMost ? bounds.right : xMost;
+            xMost = bounds.right > xMost && xMost + bounds.right < windowWidth / 3 ? xMost + bounds.right : xMost;
           }
-          yMost = bounds.height > yMost ? bounds.height : yMost;
+          yMost = bounds.height > yMost && bounds.height + yMost < window.innerHeight / 2 ? yMost + bounds.height : yMost;
         });
       }
       if (xMost > 0 && xMost < windowWidth - 240) {
@@ -1332,7 +1344,16 @@ class Ed11y {
         // Compute based on target position.
 
         Ed11y.jumpList.forEach((mark, i) => {
+          if (!mark.result.element.isConnected) {
+            // Something broke; rebuild jumplist on next loop.
+            Ed11y.forceFullCheck = true;
+            Ed11y.interaction = true;
+            mark.style.display = 'none';
+          } else {
+            //mark.visibility = 'visible';
+          }
           let targetOffset = mark.result.element.getBoundingClientRect();
+
           let top = targetOffset.top + scrollTop;
           //let rightBound = windowWidth;
           if (!Ed11y.visible(mark.result.element)) {
@@ -1911,6 +1932,8 @@ class Ed11y {
         const newLabel = `${el.shadowRoot.querySelector('.toggle').getAttribute('aria-label')}, ${i + 1} / ${Ed11y.jumpList.length - 1}`;
         el.shadowRoot.querySelector('.toggle').setAttribute('aria-label', newLabel);
       });
+      let tipsPainted = new CustomEvent('ed11yResultsPainted');
+      document.dispatchEvent(tipsPainted);
       Ed11y.resumeObservers();
     };
 
@@ -2064,34 +2087,50 @@ class Ed11y {
       });
     };
 
-    Ed11y.recentlyAddedNodes = [];
+    Ed11y.recentlyAddedNodes = new WeakMap();
     Ed11y.addedNodeReadyToCheck = function(el) {
-      if (Ed11y.recentlyAddedNodes.length === 0) {
+      if (!Ed11y.recentlyAddedNodes.has(el)) {
         return true;
       }
-      const thisWasAdded = Ed11y.recentlyAddedNodes.indexOf(el);
-      if (thisWasAdded > -1) {
-        if (el.textContent.trim().length === 0 || Ed11y.activeRange && el.contains(Ed11y.activeRange.startContainer)) {
-          // New node does not yet have text, or is selected.
+      const hasText = el.textContent.trim().length;
+      if ((!hasText && Ed11y.recentlyAddedNodes.get(el) > Date.now() - 5000) ||
+        Ed11y.activeRange && el.contains(Ed11y.activeRange.startContainer)) {
+        // Do not check recent nodes if they are empty or selected.
+        return false;
+      } else if (el.matches('table') && el.querySelectorAll('td:not(:empty)')) {
+        // Only check tables once there is content in a non-heading cell.
+        let cumulativeText = '';
+        if (hasText) {
+          const cells = el.querySelectorAll('td:not(:empty)');
+          cells.forEach((cell) => {
+            cumulativeText += cell.textContent;
+          });
+        }
+        if (!cumulativeText) {
           return false;
         } else {
-          // New node is ready for checking.
-          Ed11y.recentlyAddedNodes.splice(thisWasAdded, 1);
+          // Text in body cells.
+          Ed11y.recentlyAddedNodes.delete(el);
           return true;
         }
       } else {
+        // New node is ready for checking.
+        Ed11y.recentlyAddedNodes.delete(el);
         return true;
       }
     };
 
     Ed11y.incrementalAlign = debounce(() => {
-      if (!Ed11y.running) {
+      if (!Ed11y.running && !Ed11y.alignPending) {
         Ed11y.scrollPending++;
         Ed11y.updateTipLocations();
+        Ed11y.alignPending = false;
+      } else {
+        Ed11y.incrementalAlign();
       }
     }, 10);
     Ed11y.interaction = false;
-    window.addEventListener('keyup', () => {
+    window.addEventListener('keydown', () => {
       Ed11y.interaction = true;
     });
     window.addEventListener('click', () => {
@@ -2111,6 +2150,7 @@ class Ed11y {
           Ed11y.closedByDisable = false;
           Ed11y.disabled = false;
         }
+        //Ed11y.forceFullCheck = true; // todo no
         Ed11y.checkAll();
         window.setTimeout(function() {
           if (Ed11y.visualizing) {
@@ -2125,9 +2165,16 @@ class Ed11y {
         // Todo: optimize tip placement so we do not need as much debounce.
         Ed11y.browserLag = browserSpeed < 1 ? 0 : browserSpeed * 100 + Ed11y.totalCount;
       } else {
-        window.setTimeout(Ed11y.incrementalCheck, 250);
+        // Ed11y was running, try again later.
+        window.setTimeout(() => {Ed11y.incrementalCheck();}, 250);
       }
     }, 250);
+    Ed11y.slowIncremental = debounce(() => {
+      //Ed11y.incrementalAlign(); // Immediately realign tips.
+      //Ed11y.alignPending = false;
+      Ed11y.interaction = true;
+      Ed11y.incrementalCheck();
+    }, 1000);
 
     Ed11y.pauseObservers = function() {
       Ed11y.watching?.forEach(observer => {
@@ -2175,44 +2222,53 @@ class Ed11y {
         * before the user has a chance to edit them. This is crude, but it
         * delays flagging.
         * */
-        //:is(table, h1, h2, h3, h4, h5, h6):
         if (!node || node.nodeType !== 1 || !node.isConnected || node.closest('script, link, head, .ed11y-wrapper, .ed11y-style, .ed11y-element')) {
-          return false;
+          return 0;
+        }
+        if (Ed11y.options.inlineAlerts) {
+          return 1;
+        }
+        if (!node.matches('[contenteditable] *')) {
+          return 0;
         }
         if (Ed11y.options.inlineAlerts) {
           return true;
         }
-        if (Ed11y.editableContent && node.matches('[contenteditable] *)') && !node.matches('table, h1, h2, h3, h4, h5, h6, blockquote')) {
-          node = node.querySelector('table, h1, h2, h3, h4, h5, h6, blockquote');
+        const searchList = 'table, h1, h2, h3, h4, h5, h6, blockquote';
+        if (!Ed11y.options.inlineAlerts &&
+          !node.matches(node.matches(searchList)) &&
+          node.matches('[contenteditable] *')) {
+          if (node.matches('table *')) {
+            node = node.closest('table');
+          } else if (!node.matches(searchList)) {
+            node = node.querySelector(searchList);
+          }
         }
-        if (node) {
-          Ed11y.recentlyAddedNodes.push(node);
+        if (node && node.matches(searchList)) {
+          Ed11y.recentlyAddedNodes.set(node, Date.now());
           Ed11y.incrementalAlign(); // Immediately realign tips.
-          Ed11y.alignPending = false;
-          window.setTimeout(function (node) {
-            // Don't repeatedly recheck on repeated changes to same node.
-            let stillWaiting = Ed11y.recentlyAddedNodes.indexOf(node);
-            if (stillWaiting > -1) {
-              Ed11y.recentlyAddedNodes.splice(stillWaiting, 1);
-              Ed11y.incrementalAlign(); // Immediately realign tips.
-              Ed11y.alignPending = false;
-              Ed11y.incrementalCheck();
-            }
-          }, 5000, node);
-          return false;
+          return 0;
         }
-        return true;
+        return 1;
       };
 
       // Create an observer instance linked to the callback function
       const callback = (mutationList) => {
-        let align = true;
+        let align = 0;
         for (const mutation of mutationList) {
-          if (mutation.type === 'childList') {
-            //newNodes = true; // Force redrawing buttons.
-            if (mutation.addedNodes.length > 0) {
+          if (mutation.type === 'characterData' &&
+            mutation.target.parentElement &&
+            mutation.target.parentElement.matches('[contenteditable] *')) {
+            Ed11y.incrementalAlign();
+            Ed11y.slowIncremental();
+            return;
+          } else if (mutation.type === 'childList') {
+            // Recheck if there are relevant node changes.
+            if (mutation.removedNodes.length > 0) {
+              align += 1;
+            } else if (mutation.addedNodes.length > 0) {
               mutation.addedNodes.forEach(node => {
-                align = logNode(node);
+                align += logNode(node);
               });
             }
           }
@@ -2221,9 +2277,11 @@ class Ed11y {
         if (!align) {
           return;
         }
-        Ed11y.incrementalAlign(); // Immediately realign tips.
-        Ed11y.alignPending = false;
-        Ed11y.incrementalCheck(); // Recheck after delay.
+        window.setTimeout(function () {
+          Ed11y.incrementalAlign(); // Immediately realign tips.
+          Ed11y.alignPending = false;
+          Ed11y.incrementalCheck(); // Recheck after delay.
+        },0);
       };
 
       // Create an observer instance linked to the callback function
@@ -2398,6 +2456,16 @@ class Ed11y {
       Ed11y.alignPanel();
     };
 
+    // Move toggles when something expands or collapses.
+    const mightExpand = document.querySelectorAll('[aria-expanded], [aria-controls]');
+    mightExpand?.forEach(expandable => {
+      expandable.addEventListener('click', () => {
+        window.setTimeout(() => {
+          Ed11y.windowResize();
+        }, 333);
+      });
+    });
+
     // Escape key closes panels.
     Ed11y.escapeWatch = function (event) {
       if (event.keyCode === 27) {
@@ -2442,6 +2510,10 @@ class Ed11y {
       if (Ed11y.options.ignoreAriaOnElements && element.matches(Ed11y.options.ignoreAriaOnElements)) {
         return 'noAria';
       }
+      if (Ed11y.options.ignoreTextInElements && element.matches(Ed11y.options.ignoreTextInElements)) {
+        return '';
+      }
+
       const labelledBy = element.getAttribute('aria-labelledby');
       if (!recursing && labelledBy) {
         const target = labelledBy.split(/\s+/);
@@ -2585,7 +2657,8 @@ class Ed11y {
           }
           continue;
         case 'IMG':
-          if (treeWalker.currentNode.hasAttribute('alt')) {
+          if (treeWalker.currentNode.hasAttribute('alt') &&
+            !treeWalker.currentNode.matches('[role="presentation"]')) {
             computedText += treeWalker.currentNode.getAttribute('alt');
           }
           continue;
@@ -2608,6 +2681,12 @@ class Ed11y {
             aText = false;
           }
           computedText += Ed11y.wrapPseudoContent(treeWalker.currentNode, '');
+          break;
+        case 'INPUT':
+          computedText += Ed11y.wrapPseudoContent(treeWalker.currentNode, '');
+          if (treeWalker.currentNode.hasAttribute('title')) {
+            addTitleIfNoName = treeWalker.currentNode.getAttribute('title');
+          }
           break;
         case 'SLOT':
           if (treeWalker.currentNode.assignedNodes()) {

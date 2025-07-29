@@ -4,6 +4,7 @@ A field is a form element that allows the user to input data. It can be used to 
 
 ## Usage
 
+**Example 1**
 ```twig
 {%
   include 'radix:field' with {
@@ -21,6 +22,15 @@ A field is a form element that allows the user to input data. It can be used to 
     label_display: 'above',
     attributes: create_attribute(),
     title_attributes: create_attribute()
+  }
+%}
+```
+
+**Example 2**
+```twig
+{%
+  include "radix:field" with {
+    field_item_utility_classes: ['ratio', 'ratio-16x9'],
   }
 %}
 ```

@@ -67,3 +67,31 @@ function easy_email_update_10001(&$sandbox) {
   $config->set('email_collection_access', TRUE);
   $config->save();
 }
+
+/**
+ * Add default security settings for email attachments.
+ */
+function easy_email_update_10002(&$sandbox) {
+  $config = \Drupal::configFactory()->getEditable('easy_email.settings');
+
+  // Set default blocked extensions for security
+  $default_blocked_extensions = [
+    'exe', 'bat', 'cmd', 'com', 'pif', 'scr', 'vbs', 'js', 'jar', 'php', 'php3', 'php4', 'php5', 'phtml',
+    'pl', 'py', 'cgi', 'asp', 'aspx', 'jsp', 'sh', 'bash', 'zsh', 'fish', 'ksh', 'csh', 'ps1', 'vb'
+  ];
+  $config->set('blocked_attachment_extensions', $default_blocked_extensions);
+
+  // Set default blocked MIME types for security
+  $default_blocked_mime_types = [
+    'application/x-executable', 'application/x-msdownload', 'application/x-msdos-program',
+    'application/x-msi', 'application/x-php', 'text/x-php', 'application/x-httpd-php',
+    'application/javascript', 'text/javascript', 'application/x-javascript'
+  ];
+  $config->set('blocked_attachment_mime_types', $default_blocked_mime_types);
+
+  // Initialize empty allowed lists (optional restrictions)
+  $config->set('allowed_attachment_extensions', []);
+  $config->set('allowed_attachment_mime_types', []);
+
+  $config->save();
+}

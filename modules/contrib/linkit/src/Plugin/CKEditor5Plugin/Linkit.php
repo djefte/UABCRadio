@@ -157,7 +157,7 @@ class Linkit extends CKEditor5PluginDefault implements CKEditor5PluginElementsSu
         'profile' => $this->configuration['linkit_profile'],
         'autocompleteUrl' => Url::fromRoute('linkit.autocomplete', ['linkit_profile_id' => $this->configuration['linkit_profile']])
           ->toString(TRUE)
-          ->getGeneratedUrl()
+          ->getGeneratedUrl(),
       ],
     ];
   }

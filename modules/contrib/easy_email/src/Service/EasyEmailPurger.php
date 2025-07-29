@@ -48,7 +48,7 @@ class EasyEmailPurger implements EasyEmailPurgerInterface {
     }
 
     if (!empty($purge_conditions)) {
-      $easy_email_storage = \Drupal::entityTypeManager()->getStorage('easy_email');
+      $easy_email_storage = $this->entityTypeManager->getStorage('easy_email');
       $query = $easy_email_storage->getQuery();
       $or = $query->orConditionGroup();
       foreach ($purge_conditions as $type => $timestamp) {
@@ -63,11 +63,9 @@ class EasyEmailPurger implements EasyEmailPurgerInterface {
         ->range(0, $limit);
 
       $results = $query->accessCheck(FALSE)->execute();
-      foreach ($results as $email_id) {
-        $email = $easy_email_storage->load($email_id);
-        if ($email !== NULL) {
-          $email->delete();
-        }
+      if (!empty($results)) {
+        $emails = $easy_email_storage->loadMultiple($results);
+        $easy_email_storage->delete($emails);
       }
     }
   }

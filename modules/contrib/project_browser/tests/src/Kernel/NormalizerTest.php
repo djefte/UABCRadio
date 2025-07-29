@@ -9,11 +9,16 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\ProjectBrowser\Normalizer;
 use Drupal\Tests\user\Traits\UserCreationTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\project_browser\ProjectBrowser\Normalizer
+ * Tests the Normalizer class.
+ *
  * @group project_browser
  */
+#[CoversClass(NormalizerTest::class)]
+#[Group('project_browser')]
 final class NormalizerTest extends KernelTestBase {
 
   use UserCreationTrait;

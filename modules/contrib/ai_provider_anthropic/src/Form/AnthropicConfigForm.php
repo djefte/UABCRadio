@@ -128,37 +128,41 @@ class AnthropicConfigForm extends ConfigFormBase {
       ->save();
 
     // Get the configuration of the AI External Moderation.
-    $config = $this->configFactory->getEditable('ai_external_moderation.settings');
-    $moderations = $config->get('moderations') ?? [];
-    if ($form_state->getValue('openai_moderation')) {
-      foreach ($moderations as $key => $value) {
-        if ($value['provider'] === 'anthropic') {
-          break;
+    if ($this->moduleHandler->moduleExists('ai_external_moderation')) {
+      $config = $this->configFactory->getEditable('ai_external_moderation.settings');
+      $moderations = $config->get('moderations') ?? [];
+      if ($form_state->getValue('openai_moderation')) {
+        foreach ($moderations as $key => $value) {
+          if ($value['provider'] === 'anthropic') {
+            break;
+          }
+        }
+        $moderations[] = [
+          'provider' => 'anthropic',
+          'tags' => '',
+          'model_title' => '',
+          'models' => [
+            'openai__text-moderation-latest',
+          ],
+        ];
+      }
+      else {
+        foreach ($moderations as $key => $value) {
+          if ($value['provider'] === 'anthropic' && isset($value['models'][0]) && $value['models'][0] === 'openai__text-moderation-latest') {
+            unset($moderations[$key]);
+          }
         }
       }
-      $moderations[] = [
-        'provider' => 'anthropic',
-        'tags' => '',
-        'model_title' => '',
-        'models' => [
-          'openai__text-moderation-latest',
-        ],
-      ];
+      $config->set('moderations', $moderations);
+      $config->save();
     }
-    else {
-      foreach ($moderations as $key => $value) {
-        if ($value['provider'] === 'anthropic' && isset($value['models'][0]) && $value['models'][0] === 'openai__text-moderation-latest') {
-          unset($moderations[$key]);
-        }
-      }
-    }
-    $config->set('moderations', $moderations);
-    $config->save();
 
     // Set some defaults.
     $this->aiProviderManager->defaultIfNone('chat', 'anthropic', 'claude-3-5-sonnet-latest');
     $this->aiProviderManager->defaultIfNone('chat_with_image_json', 'anthropic', 'claude-3-5-sonnet-latest');
     $this->aiProviderManager->defaultIfNone('chat_with_complex_json', 'anthropic', 'claude-3-5-sonnet-latest');
+    $this->aiProviderManager->defaultIfNone('chat_with_tools', 'anthropic', 'claude-3-5-sonnet-latest');
+    $this->aiProviderManager->defaultIfNone('chat_with_structured_response', 'anthropic', 'claude-3-5-sonnet-latest');
 
     parent::submitForm($form, $form_state);
   }

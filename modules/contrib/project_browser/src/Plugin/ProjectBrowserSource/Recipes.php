@@ -195,17 +195,19 @@ final class Recipes extends ProjectBrowserSourceBase {
   private function getFinder(): Finder {
     $search_in = [$this->appRoot . '/core/recipes'];
 
-    // If any recipes have been installed by Composer, also search there. The
-    // recipe system requires that all non-core recipes be located next to each
-    // other, in the same directory.
-    $contrib_recipe_names = InstalledVersions::getInstalledPackagesByType(Recipe::COMPOSER_PROJECT_TYPE);
-    if ($contrib_recipe_names) {
-      $path = InstalledVersions::getInstallPath($contrib_recipe_names[0]);
-      assert(is_string($path));
-      $path = $this->fileSystem->realpath(dirname($path));
-      assert(is_string($path));
-
-      $search_in[] = $path;
+    // Search wherever Composer is configured to install recipes. The recipe
+    // system requires that all non-core recipes be located next to each other,
+    // in the same directory.
+    $recipes_dir = static::getRecipesPath();
+    if ($recipes_dir) {
+      // Handle the most common case, where the recipe name is the last part
+      // of the path.
+      if (basename($recipes_dir) === '{$name}') {
+        $recipes_dir = dirname($recipes_dir);
+      }
+      $recipes_dir = $this->fileSystem->realpath($recipes_dir);
+      assert(is_string($recipes_dir), 'Could not determine where Composer is configured to install recipes.');
+      $search_in[] = $recipes_dir;
     }
 
     $finder = Finder::create()
@@ -227,6 +229,32 @@ final class Recipes extends ProjectBrowserSourceBase {
       );
     }
     return $finder;
+  }
+
+  /**
+   * Determines where Composer is configured to install recipes.
+   *
+   * @return string|null
+   *   The absolute path where Composer is configured to install recipes, or
+   *   NULL if it cannot be determined. The path may contain relative path
+   *   references and symlinks will not have been resolved.
+   */
+  public static function getRecipesPath(): ?string {
+    ['install_path' => $project_root] = InstalledVersions::getRootPackage();
+    $file = $project_root . DIRECTORY_SEPARATOR . 'composer.json';
+
+    if (file_exists($file)) {
+      $data = file_get_contents($file);
+      assert(is_string($data));
+      $data = Json::decode($data);
+
+      foreach ($data['extra']['installer-paths'] ?? [] as $path => $criteria) {
+        if (in_array('type:' . Recipe::COMPOSER_PROJECT_TYPE, $criteria, TRUE)) {
+          return $project_root . DIRECTORY_SEPARATOR . $path;
+        }
+      }
+    }
+    return NULL;
   }
 
 }

@@ -34,6 +34,7 @@ checker that addresses three critical needs for content authors:
   of the screen with an issue count. Users can press the button to view details
   of any alerts or access additional tools ("full check"), including visualizers
   for the document outline and image alt attributes.
+* In edit mode, it also checks within CKEditor5 and Gutenberg edit boxes. CKEditor4 boxes cannot be checked. 
 * Depending on configuration settings, the panel may open automatically if new
   issues are detected.
 
@@ -87,11 +88,13 @@ checker that addresses three critical needs for content authors:
 
 ### Adding custom Tests
 
-First, in the module config, add 1 to the "Custom tests" options so it knows to watch for the tests.
+First, in the module config, add 1 to the "Custom tests" options so it knows to
+watch for the tests.
 
 Then [create a Drupal JS library](https://www.drupal.org/docs/develop/creating-modules/adding-assets-css-js-to-a-drupal-module-via-librariesyml) with your tests in your theme or module, using the [guide to writing custom tests](https://editoria11y.princeton.edu/configuration/#customtests).
 
-Then call your JS library for users with sufficient permissions to see Editoria11y:
+Then call your JS library for users with sufficient permissions to see 
+Editoria11y:
 
 ```php
 /**
@@ -111,10 +114,12 @@ function MYMODULE_page_attachments(array &$page) {
 
 ### Programmatically modifying the options array
 
-Before initiating the Editoria11y library, the module checks at the JavaScript level to see if a module or theme has
-requested to modify the options generated from the module config.
+Before initiating the Editoria11y library, the module checks at the JavaScript
+level to see if a module or theme has requested to modify the options generated
+from the module config.
 
-This is done by setting editoria11yOptionsOverride to true, and then providing an editoria11yOptions function that will process the options object.
+This is done by setting editoria11yOptionsOverride to true, and then providing
+an editoria11yOptions function that will process the options object.
 
 Example use (in JS in your theme or module) to provide a default ignored item,
 or add it to the list provided in the GUI:
@@ -136,7 +141,8 @@ You can set or override any of the [library's parameters](https://editoria11y.pr
 
 ### Attaching custom CSS
 
-First set up the options override, as above, then override theme parameters as needed.
+First set up the options override, as above, then override theme parameters as
+needed.
 
 For simple overrides of color and font, try using the exposed parameters:
 ```js
@@ -164,13 +170,15 @@ var editoria11yOptions = function(options) {
   },
   buttonZIndex: 9999, 
   baseFontSize: '14px', // px
-  baseFontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif',
+  baseFontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+                  "Helvetica Neue",Arial,sans-serif',
 
   return options;
 }
 ```
 
-If you want to provide your own CSS entirely, place a file in the filesystem and add it to the 'cssUrls' array, e.g.:
+If you want to provide your own CSS entirely, place a file in the filesystem 
+and add it to the 'cssUrls' array, e.g.:
 ```js
 var editoria11yOptionsOverride = true;
 var editoria11yOptions = function(options) {
@@ -251,12 +259,13 @@ document.addEventListener("ed11yHiddenHandler", function (event) {
     * Clear cache...
     * Make sure a selector has not been added to the "Disable the scanner if..."
       configuration setting that matches something on every page.
-    * Make sure it's not hidden due to config or CSS. Use your browser inspector to
-      inspect the page and see if an element with an ID of "ed11y-main-toggle"
-      is present. If it is _there_, see if something in your theme is covering
-      it (z-index) or clipping it (overflow: hidden). You may need to use a
-      little CSS to increase the z-index of `#ed11y-panel` or translate it up or
-      left to get it out from under another component.
+    * Make sure it's not hidden due to config or CSS. Use your browser 
+      inspector to inspect the page and see if an element with an ID of 
+      "ed11y-main-toggle" is present. If it is _there_, see if something in 
+      your theme is covering it (z-index) or clipping it (overflow: hidden).
+      You may need to use a little CSS to increase the z-index of 
+      `#ed11y-panel` or translate it up or left to get it out from under
+      another component.
     * Make sure there are no JS errors in your browser console. Typos in
       selectors on the config page _will_ throw an error and block the checker
       from running.
@@ -274,13 +283,46 @@ document.addEventListener("ed11yHiddenHandler", function (event) {
 
 ### You don't like the default error messages
 
-* Feel welcome to override localization.js by adding this to your theme's .info
-  file, just note that you may need to update your file when installing future
-  versions of Editoria11y:
+If you only want to override a few, overwrite the strings at runtime using the JS events system:
+```
+// Listen for event
+const overrideEd11y = function() {
+  Ed11y.M.linkNewWindow = {
+      title: 'Manual check: is opening a new window expected?',
+      tip: () =>
+        `<p>Readers can always choose to open a link a new window. When a link forces open a new window, it can be confusing and annoying, especially for assistive device users who may wonder why their browser's "back" button is suddenly disabled.</p>
+                <p>There are two general exceptions:</p>
+                <ul>
+                    <li>When the user is filling out a form, and opening a link in the same window would cause them to lose their work.</li>
+                    <li>When the user is clearly warned a link will open a new window.</li>
+                </ul>
+                <p><strong>To fix:</strong> set this link back its default target, or add a screen-reader accessible warning (text or an icon with alt text).</p>
+                `,
+    },
+  document.removeEventListener('ed11yResults', overrideEd11y);
+}
+
+document.addEventListener('ed11yResults', overrideEd11y);
+
+```
+
+If you want to write your own localization file (...not recommended...), you can swap out the library file using Drupal's [libraries-override YML](https://www.drupal.org/node/2497313) in your module or theme.
+
+For English language sites, you will also need to switch to the "unpacked" library to override the localization file, as it is otherwise packaged in the min file. In theory this should work:
+```
+libraries-override:
+  'editoria11y/editoria11y-unpacked':
+    js:
+      library/js/ed11y-localization.js: js/MY-LOCAL-THEME-VERSION-OF-THE-SAME.js
+      
+  editoria11y/editoria11y: editoria11y/editoria11y-unpacked
+```
+
+For non-English language sites, you only need to override the Drupal translation file, which is not part of the library -dist:
 
 ```
 libraries-override:
-  'editoria11y/editoria11y':
+  'editoria11y/localization':
     js:
       js/editoria11y-localization.js: js/MY-LOCAL-THEME-VERSION-OF-THE-SAME.js
 ```

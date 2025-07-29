@@ -2,8 +2,6 @@
 
 namespace Drupal\project_browser\ProjectBrowser;
 
-use Drupal\Component\Assertion\Inspector;
-
 /**
  * One page of search results from a query.
  *
@@ -18,7 +16,7 @@ final class ProjectsResultsPage {
    *
    * @param int $totalResults
    *   Total number of results, across all pages.
-   * @param \Drupal\project_browser\ProjectBrowser\Project[] $list
+   * @param list<\Drupal\project_browser\ProjectBrowser\Project> $list
    *   A numerically indexed array of projects to display on this page.
    * @param string $pluginLabel
    *   The source plugin's label.
@@ -34,8 +32,6 @@ final class ProjectsResultsPage {
     public readonly string $pluginId,
     public readonly ?string $error = NULL,
   ) {
-    assert(array_is_list($list));
-    assert(Inspector::assertAllObjects($list, Project::class));
   }
 
   /**

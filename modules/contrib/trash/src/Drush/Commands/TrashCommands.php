@@ -97,7 +97,7 @@ final class TrashCommands extends DrushCommands {
       $entity_type_ids = $this->trashManager->getEnabledEntityTypes();
 
       if ($entity_type_ids !== []) {
-        if (!$choice = $this->io()->select('Select the entity type you want to restore.', array_combine($entity_type_ids, $entity_type_ids))) {
+        if (!$choice = $this->io()->choice('Select the entity type you want to restore.', array_combine($entity_type_ids, $entity_type_ids))) {
           throw new UserAbortException();
         }
 
@@ -118,7 +118,7 @@ final class TrashCommands extends DrushCommands {
       $entity_type_ids = $this->trashManager->getEnabledEntityTypes();
 
       if ($entity_type_ids !== []) {
-        if (!$choice = $this->io()->select('Select the entity type you want to purge.', array_combine($entity_type_ids, $entity_type_ids))) {
+        if (!$choice = $this->io()->choice('Select the entity type you want to purge.', array_combine($entity_type_ids, $entity_type_ids))) {
           throw new UserAbortException();
         }
 

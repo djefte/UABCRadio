@@ -11,14 +11,17 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\project_browser\Activator\ActivationStatus;
 use Drupal\project_browser\Activator\ModuleActivator;
 use Drupal\project_browser\EnabledSourceHandler;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Tests the module activator.
  *
  * @group project_browser
- * @covers \Drupal\project_browser\Activator\ModuleActivator
  */
+#[CoversClass(ModuleActivator::class)]
+#[Group('project_browser')]
 final class ModuleActivatorTest extends KernelTestBase {
 
   /**

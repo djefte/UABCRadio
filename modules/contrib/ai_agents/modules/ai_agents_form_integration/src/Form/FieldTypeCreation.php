@@ -80,49 +80,16 @@ class FieldTypeCreation extends FormBase {
       ],
     ];
 
-    $missing = [];
-    $allowed_file_types = [
-      'csv',
-      'txt',
-    ];
-    if ($this->aiProvider->getDefaultProviderForOperationType('chat_with_image_vision')) {
-      $allowed_file_types[] = 'jpg';
-      $allowed_file_types[] = 'jpeg';
-      $allowed_file_types[] = 'png';
-    }
-    else {
-      $missing[] = 'set a default provider for Chat with Image Vision';
-    }
-
-    // Check if unstructured is installed.
-    if ($this->moduleHandler->moduleExists('unstructured')) {
-      $allowed_file_types[] = 'pdf';
-      $allowed_file_types[] = 'doc';
-      $allowed_file_types[] = 'docx';
-      $allowed_file_types[] = 'ppt';
-      $allowed_file_types[] = 'pptx';
-      $allowed_file_types[] = 'xls';
-      $allowed_file_types[] = 'xlsx';
-    }
-    else {
-      $missing[] = 'install the Unstructured module';
-    }
-
-    if (!empty($missing)) {
-      $this->messenger()->addWarning($this->t('The following need to be done before you can use certain file types on this form: %missing.', [
-        '%missing' => implode(', ', $missing),
-      ]));
-    }
-
     $form['document'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Document'),
       '#upload_location' => 'public://',
+      '#required' => FALSE,
       '#description' => $this->t('The file that contains the context for the field types. This is optional if you provide a prompt. Currently takes the following files: %file_types.', [
-        '%file_types' => implode(', ', $allowed_file_types),
+        '%file_types' => 'csv',
       ]),
-      '#upload_validators' => [
-        'file_validate_extensions' => [implode(' ', $allowed_file_types)],
+      '#upload_validators'  => [
+        'FileExtension' => ['extensions' => 'csv'],
       ],
     ];
 
@@ -153,16 +120,23 @@ class FieldTypeCreation extends FormBase {
     $bundle = $form_state->getValue('bundle');
     // Get the file type.
     $file = $form_state->getValue('document');
-    $file = $file[0];
-    /** @var \Drupal\file\Entity\File */
-    $file = $this->entityTypeManager->getStorage('file')->load($file);
-    $file_path = $file->getFileUri();
-
     $data = [];
-    switch ($file->getMimeType()) {
-      case 'text/csv':
-        $data = $this->getBatchDataForCsv($file_path);
-        break;
+    // If prompt is not empty.
+    $prompt = $form_state->getValue('prompt');
+    if (!empty($prompt)) {
+      $data[] = $prompt;
+    }
+    // If document is not empty.
+    if (!empty($file)) {
+      $file = $file[0];
+      /** @var \Drupal\file\Entity\File */
+      $file = $this->entityTypeManager->getStorage('file')->load($file);
+      $file_path = $file->getFileUri();
+      switch ($file->getMimeType()) {
+        case 'text/csv':
+          $data = $this->getBatchDataForCsv($file_path);
+          break;
+      }
     }
     if (count($data)) {
       // Start batch jobs.

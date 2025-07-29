@@ -16,6 +16,7 @@ use Drupal\Core\Recipe\RecipeInputFormTrait;
 use Drupal\Core\Recipe\RecipeRunner;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
+use Drupal\project_browser\Plugin\ProjectBrowserSource\Recipes;
 use Drupal\project_browser\ProjectBrowser\Project;
 use Drupal\project_browser\ProjectType;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -219,11 +220,15 @@ final class RecipeActivator implements InstructionsInterface, EventSubscriberInt
         $path = $this->moduleList->getPath('project_browser') . '/tests/fixtures/' . $project->machineName;
       }
       else {
-        // The package isn't installed, so we can't get the path.
-        $path = NULL;
+        // The package isn't installed, but it might be unpacked if the unpack
+        // plugin is installed, in which case we need to try to figure out the
+        // recipe's path from the installer-paths info in composer.json.
+        $dir = Recipes::getRecipesPath();
+        $path = $dir
+          ? str_replace(['{$vendor}', '{$name}'], explode('/', $project->packageName, 2), $dir)
+          : NULL;
       }
     }
-
     return $path ? ($this->fileSystem->realpath($path) ?: NULL) : NULL;
   }
 

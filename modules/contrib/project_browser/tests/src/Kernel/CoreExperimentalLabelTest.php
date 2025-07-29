@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\project_browser\Plugin\ProjectBrowserSource\DrupalCore;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Drupal\project_browser\ProjectBrowser\Project;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests 'Core (Experimental)' label change.
  *
- * @coversDefaultClass \Drupal\project_browser\Plugin\ProjectBrowserSource\DrupalCore
- *
  * @group project_browser
  */
+#[CoversClass(DrupalCore::class)]
+#[Group('project_browser')]
 final class CoreExperimentalLabelTest extends KernelTestBase {
 
   /**
@@ -31,7 +34,7 @@ final class CoreExperimentalLabelTest extends KernelTestBase {
    * If it fails, we need to update `DrupalCore::projectIsCovered` to look for
    * the new language that indicates a module is experimental.
    *
-   * @covers ::getProjectData
+   * @legacy-covers ::getProjectData
    */
   public function testCoreExperimentalLabel(): void {
     /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $plugin_instance */

@@ -19,6 +19,7 @@ use GuzzleHttp\ClientInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Drupal\Core\Extension\ModuleExtensionList;
 
 /**
  * Defines a base class for sources that interact with the Drupal.org API.
@@ -72,6 +73,7 @@ abstract class DrupalDotOrgSourceBase extends ProjectBrowserSourceBase implement
     protected readonly CacheBackendInterface $cacheBin,
     protected readonly TimeInterface $time,
     protected readonly ModuleHandlerInterface $moduleHandler,
+    protected readonly ModuleExtensionList $extensionListModule,
     protected ?LoggerInterface $logger = NULL,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -90,6 +92,7 @@ abstract class DrupalDotOrgSourceBase extends ProjectBrowserSourceBase implement
       $container->get('cache.project_browser'),
       $container->get(TimeInterface::class),
       $container->get(ModuleHandlerInterface::class),
+      $container->get(ModuleExtensionList::class),
       $container->get(LoggerChannelFactoryInterface::class)->get('project_browser'),
     );
   }
@@ -119,8 +122,15 @@ abstract class DrupalDotOrgSourceBase extends ProjectBrowserSourceBase implement
     $params = [];
     try {
       if (!empty($query_params)) {
+        $drupal_version = \Drupal::VERSION;
+        // @todo Change the $user_agent when Project Browser is part of Drupal core.
+        $project_browser_version = $this->extensionListModule->getExtensionInfo('project_browser')['version'] ?? 'unknown';
+        $user_agent = "ProjectBrowser/{$project_browser_version} (Drupal/{$drupal_version})";
         $params = [
           'query' => $query_params,
+          'headers' => [
+            'User-Agent' => $user_agent,
+          ],
         ];
       }
       $response = $this->httpClient->request('GET', $url, $params);

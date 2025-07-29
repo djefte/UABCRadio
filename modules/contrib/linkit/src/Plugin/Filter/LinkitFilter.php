@@ -22,6 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   description = @Translation("Updates links inserted by Linkit to point to entity URL aliases."),
  *   settings = {
  *     "title" = TRUE,
+ *     "media_substitution" = "metadata",
  *   },
  *   type = Drupal\filter\Plugin\FilterInterface::TYPE_TRANSFORM_REVERSIBLE
  * )
@@ -93,7 +94,7 @@ class LinkitFilter extends FilterBase implements ContainerFactoryPluginInterface
   public function process($text, $langcode) {
     $result = new FilterProcessResult($text);
 
-    if (strpos($text, 'data-entity-type') !== FALSE && strpos($text, 'data-entity-uuid') !== FALSE) {
+    if (!empty($text) && strpos($text, 'data-entity-type') !== FALSE && strpos($text, 'data-entity-uuid') !== FALSE) {
       $dom = Html::load($text);
       $xpath = new \DOMXPath($dom);
 
@@ -115,6 +116,12 @@ class LinkitFilter extends FilterBase implements ContainerFactoryPluginInterface
           // for content created before the substitution feature.
           if (!$substitution_type = $element->getAttribute('data-entity-substitution')) {
             $substitution_type = $entity_type === 'file' ? 'file' : SubstitutionManagerInterface::DEFAULT_SUBSTITUTION;
+          }
+          if ($entity_type === 'media') {
+            $substitution_options = $this->substitutionManager->getApplicablePluginsOptionList('media');
+            if (in_array($this->settings['media_substitution'], array_keys($substitution_options))) {
+              $substitution_type = $this->settings['media_substitution'];
+            }
           }
 
           $entity = $this->entityRepository->loadEntityByUuid($entity_type, $uuid);
@@ -188,6 +195,17 @@ class LinkitFilter extends FilterBase implements ContainerFactoryPluginInterface
       '#title' => $this->t('Automatically set the <code>title</code> attribute to that of the (translated) referenced content'),
       '#default_value' => $this->settings['title'],
     ];
+    if (\Drupal::moduleHandler()->moduleExists('media')) {
+      $substitution_options = $this->substitutionManager->getApplicablePluginsOptionList('media');
+      $form['media_substitution'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Media entity URL substitution'),
+        '#options' => [
+          'metadata' => $this->t('Use metadata from when the link was created'),
+        ] + $substitution_options,
+        '#default_value' => $this->settings['media_substitution'] ?? 'metadata',
+      ];
+    }
     return $form;
   }
 

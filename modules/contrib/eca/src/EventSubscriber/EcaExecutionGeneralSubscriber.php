@@ -5,7 +5,7 @@ namespace Drupal\eca\EventSubscriber;
 use Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\eca\Attributes\Token;
+use Drupal\eca\Attribute\Token;
 use Drupal\eca\EcaEvents;
 use Drupal\eca\Event\AccountEventInterface;
 use Drupal\eca\Event\AfterInitialExecutionEvent;

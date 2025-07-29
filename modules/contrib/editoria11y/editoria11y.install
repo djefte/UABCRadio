@@ -439,3 +439,13 @@ function editoria11y_update_9008() {
   $config->set('live_h2', 'form[id^="node-"] #edit-body-wrapper .ck-content');
   $config->save();
 }
+
+/**
+ * Set Editoria11y config to make CK5 insert tables with a header row.
+ */
+function editoria11y_update_9009() {
+  $config_factory = Drupal::configFactory();
+  $config = $config_factory->getEditable('editoria11y.settings');
+  $config->set('ck5_table_headers', 'row');
+  $config->save();
+}

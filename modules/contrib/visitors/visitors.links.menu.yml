@@ -1,5 +1,5 @@
 visitors.settings:
-  title: Visitors
+  title: Visitor Settings
   route_name: visitors.settings
   parent: system.admin_config_system
   description: 'Configure visitors settings.'

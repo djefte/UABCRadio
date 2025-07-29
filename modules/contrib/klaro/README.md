@@ -63,7 +63,7 @@ For installing the Drupal module via composer use:
 `composer require drupal/klaro`
 
 The package `drupal/klaro_js` is required by drupal/klaro and will install the
-javascript library. (You may have to whitelist `drupal/klaro_js` in your
+javascript library. (You may have to allow `drupal/klaro_js` in your
 definition of `repo.packagist.org` in your project's composer.json.)
 
 The original library is [klaro-org/klaro-js](https://github.com/klaro-org/klaro-js/).

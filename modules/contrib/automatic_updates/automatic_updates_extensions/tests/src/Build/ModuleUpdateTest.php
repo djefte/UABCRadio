@@ -23,8 +23,10 @@ final class ModuleUpdateTest extends UpdateTestBase {
    */
   protected function createTestProject(string $template): void {
     parent::createTestProject($template);
+
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
     $this->setReleaseMetadata([
-      'drupal' => __DIR__ . '/../../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml',
+      'drupal' => "$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml",
       'alpha'  => __DIR__ . '/../../fixtures/release-history/alpha.1.1.0.xml',
       'new_module' => __DIR__ . '/../../fixtures/release-history/new_module.1.1.0.xml',
     ]);
@@ -40,7 +42,7 @@ final class ModuleUpdateTest extends UpdateTestBase {
 \$config['update_test.settings']['system_info'] = $system_info;
 END;
     $this->writeSettings($code);
-    $alpha_repo_path = $this->copyFixtureToTempDirectory(__DIR__ . '/../../../../package_manager/tests/fixtures/build_test_projects/alpha/1.0.0');
+    $alpha_repo_path = $this->copyFixtureToTempDirectory("$package_manager_dir/tests/fixtures/build_test_projects/alpha/1.0.0");
     $this->addRepository('alpha', $alpha_repo_path);
     $this->runComposer('composer require drupal/alpha --update-with-all-dependencies', 'project');
     $this->assertModuleVersion('alpha', '1.0.0');
@@ -53,7 +55,7 @@ END;
     ]);
 
     // Change the module's upstream version.
-    static::copyFixtureFilesTo(__DIR__ . '/../../../../package_manager/tests/fixtures/build_test_projects/alpha/1.1.0', $alpha_repo_path);
+    static::copyFixtureFilesTo("$package_manager_dir/tests/fixtures/build_test_projects/alpha/1.1.0", $alpha_repo_path);
 
     // Ensure that none of the above changes have caused any status check or
     // other errors on the status report.
@@ -94,7 +96,7 @@ END;
     $updated_composer_json = $this->getWebRoot() . 'modules/contrib/alpha/composer.json';
     // Assert the module was updated.
     $this->assertFileEquals(
-      __DIR__ . '/../../../../package_manager/tests/fixtures/build_test_projects/alpha/1.1.0/composer.json',
+      static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/build_test_projects/alpha/1.1.0/composer.json',
       $updated_composer_json,
     );
     $this->assertRequestedChangesWereLogged(['Update drupal/alpha from 1.0.0 to 1.1.0']);

@@ -40,8 +40,8 @@ final class PackageNotInstalledValidator implements EventSubscriberInterface {
    *   The event object.
    */
   public function validatePackagesNotAlreadyInstalled(PreRequireEvent $event): void {
-    $stage = $event->stage;
-    if (!$stage instanceof Installer) {
+    $sandbox_manager = $event->sandboxManager;
+    if (!$sandbox_manager instanceof Installer) {
       return;
     }
 

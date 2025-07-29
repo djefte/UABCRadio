@@ -8,12 +8,14 @@ use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\Tests\BrowserTestBase;
 use Drush\TestTraits\DrushTestTrait;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests clearing stored project data in various ways.
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class ClearStorageTest extends BrowserTestBase {
 
   use DrushTestTrait;
@@ -55,7 +57,7 @@ final class ClearStorageTest extends BrowserTestBase {
   /**
    * Tests clearing the cache by calling the method which does it.
    *
-   * @covers \Drupal\project_browser\EnabledSourceHandler::clearStorage
+   * @legacy-covers \Drupal\project_browser\EnabledSourceHandler::clearStorage
    */
   public function testClearCacheDirectly(): void {
     \Drupal::service(EnabledSourceHandler::class)->clearStorage();

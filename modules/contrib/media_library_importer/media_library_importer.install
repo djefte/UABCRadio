@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Installation functions for Lorem ipsum module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function media_library_importer_install() {
+  // user_role_change_permissions(RoleInterface::ANONYMOUS_ID, array(
+  // 'Configure media library importer' => TRUE,
+  // ));.
+}
+
+/**
+ * Enable the queue_ui module (new dependency).
+ */
+function media_library_importer_update_9001()
+{
+  $installer = \Drupal::service('module_installer');
+  $installer->install(['queue_ui']);
+}

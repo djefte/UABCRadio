@@ -511,9 +511,6 @@ function visitors_update_8215(&$sandbox) {
 
   if (!isset($sandbox['progress'])) {
     $sandbox['max'] = 10;
-    // Clear all caches.
-    drupal_flush_all_caches();
-
     // Update visitors.config.
     $settings = \Drupal::service('config.factory')->getEditable('visitors.config');
     $config = \Drupal::config('visitors.config');
@@ -1447,7 +1444,7 @@ function visitors_update_8218(&$sandbox) {
 
     $browser = array_pop($sandbox['browser']);
     $browser_name = $browser->config_browser_name ?? '';
-    if ($browser_name > 2) {
+    if (strlen($browser_name) > 2) {
       $short_name = Browser::getBrowserShortName($browser_name);
       /** @var \Drupal\Core\Database\Connection $database */
       $database = \Drupal::database();
@@ -13079,4 +13076,701 @@ function visitors_update_8227() {
   ]);
 
   $view->save();
+}
+
+/**
+ * Adds date range cache context for better performance.
+ */
+function visitors_update_8229() {
+  drupal_flush_all_caches();
+
+  $view = \Drupal::configFactory()->getEditable('views.view.visitors');
+
+  $view->set('display.default.display_options.cache.type', 'tag');
+
+  $default_context = $view->get('display.default.cache_metadata.contexts');
+  $default_context[] = 'visitors_date_range';
+  $view->set('display.default.cache_metadata.contexts', $default_context);
+
+  $browser_engine_pie_context = $view->get('display.browser_engine_pie.cache_metadata.contexts');
+  $browser_engine_pie_context[] = 'visitors_date_range';
+  $view->set('display.browser_engine_pie.cache_metadata.contexts', $browser_engine_pie_context);
+
+  $browser_engine_table_context = $view->get('display.browser_engine_table.cache_metadata.contexts');
+  $browser_engine_table_context[] = 'visitors_date_range';
+  $view->set('display.browser_engine_table.cache_metadata.contexts', $browser_engine_table_context);
+
+  $browser_name_table_context = $view->get('display.browser_name_table.cache_metadata.contexts');
+  $browser_name_table_context[] = 'visitors_date_range';
+  $view->set('display.browser_name_table.cache_metadata.contexts', $browser_name_table_context);
+
+  $browser_version_table_context = $view->get('display.browser_version_table.cache_metadata.contexts');
+  $browser_version_table_context[] = 'visitors_date_range';
+  $view->set('display.browser_version_table.cache_metadata.contexts', $browser_version_table_context);
+
+  $continent_pie_context = $view->get('display.continent_pie.cache_metadata.contexts');
+  $continent_pie_context[] = 'visitors_date_range';
+  $view->set('display.continent_pie.cache_metadata.contexts', $continent_pie_context);
+
+  $continent_table_context = $view->get('display.continent_table.cache_metadata.contexts');
+  $continent_table_context[] = 'visitors_date_range';
+  $view->set('display.continent_table.cache_metadata.contexts', $continent_table_context);
+
+  $country_table_context = $view->get('display.country_table.cache_metadata.contexts');
+  $country_table_context[] = 'visitors_date_range';
+  $view->set('display.country_table.cache_metadata.contexts', $country_table_context);
+
+  $daily_column_context = $view->get('display.daily_column.cache_metadata.contexts');
+  $daily_column_context[] = 'visitors_date_range';
+  $view->set('display.daily_column.cache_metadata.contexts', $daily_column_context);
+
+  $day_of_month_column_context = $view->get('display.day_of_month_column.cache_metadata.contexts');
+  $day_of_month_column_context[] = 'visitors_date_range';
+  $view->set('display.day_of_month_column.cache_metadata.contexts', $day_of_month_column_context);
+
+  $day_of_month_table_context = $view->get('display.day_of_month_table.cache_metadata.contexts');
+  $day_of_month_table_context[] = 'visitors_date_range';
+  $view->set('display.day_of_month_table.cache_metadata.contexts', $day_of_month_table_context);
+
+  $day_of_week_column_context = $view->get('display.day_of_week_column.cache_metadata.contexts');
+  $day_of_week_column_context[] = 'visitors_date_range';
+  $view->set('display.day_of_week_column.cache_metadata.contexts', $day_of_week_column_context);
+
+  $day_of_week_table_context = $view->get('display.day_of_week_table.cache_metadata.contexts');
+  $day_of_week_table_context[] = 'visitors_date_range';
+  $view->set('display.day_of_week_table.cache_metadata.contexts', $day_of_week_table_context);
+
+  $device_brand_table_context = $view->get('display.device_brand_table.cache_metadata.contexts');
+  $device_brand_table_context[] = 'visitors_date_range';
+  $view->set('display.device_brand_table.cache_metadata.contexts', $device_brand_table_context);
+
+  $device_config_table_context = $view->get('display.device_config_table.cache_metadata.contexts');
+  $device_config_table_context[] = 'visitors_date_range';
+  $view->set('display.device_config_table.cache_metadata.contexts', $device_config_table_context);
+
+  $device_model_table_context = $view->get('display.device_model_table.cache_metadata.contexts');
+  $device_model_table_context[] = 'visitors_date_range';
+  $view->set('display.device_model_table.cache_metadata.contexts', $device_model_table_context);
+
+  $device_resolution_table_context = $view->get('display.device_resolution_table.cache_metadata.contexts');
+  $device_resolution_table_context[] = 'visitors_date_range';
+  $view->set('display.device_resolution_table.cache_metadata.contexts', $device_resolution_table_context);
+
+  $device_type_table_context = $view->get('display.device_type_table.cache_metadata.contexts');
+  $device_type_table_context[] = 'visitors_date_range';
+  $view->set('display.device_type_table.cache_metadata.contexts', $device_type_table_context);
+
+  $distinct_countries_list_context = $view->get('display.distinct_countries_list.cache_metadata.contexts');
+  $distinct_countries_list_context[] = 'visitors_date_range';
+  $view->set('display.distinct_countries_list.cache_metadata.contexts', $distinct_countries_list_context);
+
+  $hour_column_context = $view->get('display.hour_column.cache_metadata.contexts');
+  $hour_column_context[] = 'visitors_date_range';
+  $view->set('display.hour_column.cache_metadata.contexts', $hour_column_context);
+
+  $hour_table_context = $view->get('display.hour_table.cache_metadata.contexts');
+  $hour_table_context[] = 'visitors_date_range';
+  $view->set('display.hour_table.cache_metadata.contexts', $hour_table_context);
+
+  $language_code_table_context = $view->get('display.language_code_table.cache_metadata.contexts');
+  $language_code_table_context[] = 'visitors_date_range';
+  $view->set('display.language_code_table.cache_metadata.contexts', $language_code_table_context);
+
+  $language_table_context = $view->get('display.language_table.cache_metadata.contexts');
+  $language_table_context[] = 'visitors_date_range';
+  $view->set('display.language_table.cache_metadata.contexts', $language_table_context);
+
+  $local_hour_column_context = $view->get('display.local_hour_column.cache_metadata.contexts');
+  $local_hour_column_context[] = 'visitors_date_range';
+  $view->set('display.local_hour_column.cache_metadata.contexts', $local_hour_column_context);
+
+  $local_hour_table_context = $view->get('display.local_hour_table.cache_metadata.contexts');
+  $local_hour_table_context[] = 'visitors_date_range';
+  $view->set('display.local_hour_table.cache_metadata.contexts', $local_hour_table_context);
+
+  $monthly_column_context = $view->get('display.monthly_column.cache_metadata.contexts');
+  $monthly_column_context[] = 'visitors_date_range';
+  $view->set('display.monthly_column.cache_metadata.contexts', $monthly_column_context);
+
+  $monthly_table_context = $view->get('display.monthly_table.cache_metadata.contexts');
+  $monthly_table_context[] = 'visitors_date_range';
+  $view->set('display.monthly_table.cache_metadata.contexts', $monthly_table_context);
+
+  $os_family_table_context = $view->get('display.os_family_table.cache_metadata.contexts');
+  $os_family_table_context[] = 'visitors_date_range';
+  $view->set('display.os_family_table.cache_metadata.contexts', $os_family_table_context);
+
+  $os_version_table_context = $view->get('display.os_version_table.cache_metadata.contexts');
+  $os_version_table_context[] = 'visitors_date_range';
+  $view->set('display.os_version_table.cache_metadata.contexts', $os_version_table_context);
+
+  $performance_daily_column_context = $view->get('display.performance_daily_column.cache_metadata.contexts');
+  $performance_daily_column_context[] = 'visitors_date_range';
+  $view->set('display.performance_daily_column.cache_metadata.contexts', $performance_daily_column_context);
+
+  $performance_hourly_column_context = $view->get('display.performance_hourly_column.cache_metadata.contexts');
+  $performance_hourly_column_context[] = 'visitors_date_range';
+  $view->set('display.performance_hourly_column.cache_metadata.contexts', $performance_hourly_column_context);
+
+  $performance_weekly_column_context = $view->get('display.performance_weekly_column.cache_metadata.contexts');
+  $performance_weekly_column_context[] = 'visitors_date_range';
+  $view->set('display.performance_weekly_column.cache_metadata.contexts', $performance_weekly_column_context);
+
+  $recent_view_table_context = $view->get('display.recent_view_table.cache_metadata.contexts');
+  $recent_view_table_context[] = 'visitors_date_range';
+  $view->set('display.recent_view_table.cache_metadata.contexts', $recent_view_table_context);
+
+  $referrer_table_context = $view->get('display.referrer_table.cache_metadata.contexts');
+  $referrer_table_context[] = 'visitors_date_range';
+  $view->set('display.referrer_table.cache_metadata.contexts', $referrer_table_context);
+
+  $top_host_table_context = $view->get('display.top_host_table.cache_metadata.contexts');
+  $top_host_table_context[] = 'visitors_date_range';
+  $view->set('display.top_host_table.cache_metadata.contexts', $top_host_table_context);
+
+  $top_path_table_context = $view->get('display.top_path_table.cache_metadata.contexts');
+  $top_path_table_context[] = 'visitors_date_range';
+  $view->set('display.top_path_table.cache_metadata.contexts', $top_path_table_context);
+
+  $top_route_table_context = $view->get('display.top_route_table.cache_metadata.contexts');
+  $top_route_table_context[] = 'visitors_date_range';
+  $view->set('display.top_route_table.cache_metadata.contexts', $top_route_table_context);
+
+  $weekly_column_context = $view->get('display.weekly_column.cache_metadata.contexts');
+  $weekly_column_context[] = 'visitors_date_range';
+  $view->set('display.weekly_column.cache_metadata.contexts', $weekly_column_context);
+
+  $weekly_table_context = $view->get('display.weekly_table.cache_metadata.contexts');
+  $weekly_table_context[] = 'visitors_date_range';
+  $view->set('display.weekly_table.cache_metadata.contexts', $weekly_table_context);
+
+  // Browser plugins.
+  $browser_plugin_list = [
+    'id' => 'browser_plugin_list',
+    'display_title' => 'Browser Plugins',
+    'display_plugin' => 'embed',
+    'position' => 39,
+    'display_options' =>
+  [
+    'title' => 'Browser Plugins',
+    'fields' =>
+    [
+      'config_cookie' =>
+      [
+        'id' => 'config_cookie',
+        'table' => 'visitors',
+        'field' => 'config_cookie',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_cookie',
+        'label' => 'Cookie',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-cookie-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_pdf' =>
+      [
+        'id' => 'config_pdf',
+        'table' => 'visitors',
+        'field' => 'config_pdf',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_pdf',
+        'label' => 'PDF',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-pdf-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_flash' =>
+      [
+        'id' => 'config_flash',
+        'table' => 'visitors',
+        'field' => 'config_flash',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_flash',
+        'label' => 'Flash',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-flash-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_java' =>
+      [
+        'id' => 'config_java',
+        'table' => 'visitors',
+        'field' => 'config_java',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_java',
+        'label' => 'Java',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-java-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_silverlight' =>
+      [
+        'id' => 'config_silverlight',
+        'table' => 'visitors',
+        'field' => 'config_silverlight',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_silverlight',
+        'label' => 'Silverlight',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-silverlight-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_windowsmedia' =>
+      [
+        'id' => 'config_windowsmedia',
+        'table' => 'visitors',
+        'field' => 'config_windowsmedia',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_windowsmedia',
+        'label' => 'Windows Media',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-windows-media-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_quicktime' =>
+      [
+        'id' => 'config_quicktime',
+        'table' => 'visitors',
+        'field' => 'config_quicktime',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_quicktime',
+        'label' => 'Quicktime',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-quicktime-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+      'config_realplayer' =>
+      [
+        'id' => 'config_realplayer',
+        'table' => 'visitors',
+        'field' => 'config_realplayer',
+        'relationship' => 'none',
+        'group_type' => 'sum',
+        'admin_label' => '',
+        'plugin_id' => 'visitors_realplayer',
+        'label' => 'Realplayer',
+        'exclude' => FALSE,
+        'alter' =>
+        [
+          'alter_text' => FALSE,
+          'text' => '',
+          'make_link' => FALSE,
+          'path' => '',
+          'absolute' => FALSE,
+          'external' => FALSE,
+          'replace_spaces' => FALSE,
+          'path_case' => 'none',
+          'trim_whitespace' => FALSE,
+          'alt' => '',
+          'rel' => '',
+          'link_class' => '',
+          'prefix' => '',
+          'suffix' => '',
+          'target' => '',
+          'nl2br' => FALSE,
+          'max_length' => 0,
+          'word_boundary' => TRUE,
+          'ellipsis' => TRUE,
+          'more_link' => FALSE,
+          'more_link_text' => '',
+          'more_link_path' => '',
+          'strip_tags' => FALSE,
+          'trim' => FALSE,
+          'preserve_tags' => '',
+          'html' => FALSE,
+        ],
+        'element_type' => '',
+        'element_class' => '',
+        'element_label_type' => '',
+        'element_label_class' => '.visitors-realplayer-plugin-icon',
+        'element_label_colon' => TRUE,
+        'element_wrapper_type' => '',
+        'element_wrapper_class' => '',
+        'element_default_classes' => TRUE,
+        'empty' => '',
+        'hide_empty' => TRUE,
+        'empty_zero' => TRUE,
+        'hide_alter_empty' => TRUE,
+        'icon' => FALSE,
+      ],
+    ],
+    'pager' =>
+    [
+      'type' => 'none',
+      'options' =>
+      [
+        'offset' => 0,
+      ],
+    ],
+    'sorts' =>
+    [],
+    'style' =>
+    [
+      'type' => 'default',
+      'options' =>
+      [
+        'grouping' =>
+        [],
+        'row_class' => '',
+        'default_row_class' => TRUE,
+      ],
+    ],
+    'row' =>
+    [
+      'type' => 'fields',
+      'options' =>
+      [
+        'default_field_elements' => TRUE,
+        'inline' =>
+        [],
+        'separator' => '',
+        'hide_empty' => FALSE,
+      ],
+    ],
+    'defaults' =>
+    [
+      'title' => FALSE,
+      'pager' => FALSE,
+      'style' => FALSE,
+      'row' => FALSE,
+      'fields' => FALSE,
+      'sorts' => FALSE,
+      'header' => FALSE,
+      'footer' => FALSE,
+    ],
+    'display_description' => '',
+    'display_extenders' =>
+    [],
+    'header' => [],
+    'footer' => [
+      'area_text_custom' => [
+        'id' => 'area_text_custom',
+        'table' => 'views',
+        'field' => 'area_text_custom',
+        'relationship' => 'none',
+        'group_type' => 'group',
+        'admin_label' => '',
+        'plugin_id' => 'text_custom',
+        'empty' => FALSE,
+        'content' => 'Note: Plugin detection does not work in Internet Explorer before 11. This report is only based on non-IE browsers and newer versions of IE.',
+        'tokenize' => FALSE,
+      ],
+    ],
+  ],
+    'cache_metadata' =>
+    [
+      'max-age' => -1,
+      'contexts' =>
+    [
+      0 => 'languages:language_interface',
+      1 => 'visitors_date_range',
+    ],
+      'tags' =>
+      [],
+    ],
+  ];
+  $view->set('display.browser_plugin_list', $browser_plugin_list);
+
+  $view->save();
+}
+
+/**
+ * Adds visitors page attachments service.
+ */
+function visitors_update_8231() {
+  drupal_flush_all_caches();
 }

@@ -1,6 +1,110 @@
 .visitors-main .layout-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
+
 .visitors-main .layout-column--half.views-element-container {
-  display: table-cell;
+  flex: 1 1 45%;
+}
+
+@media (max-width: 768px) {
+  .visitors-main .layout-column--half.views-element-container {
+    flex: 1 1 100%; /* stack columns on smaller screens */
+  }
+}
+
+.visitors-cookie-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/cookie.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.visitors-pdf-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/pdf.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.visitors-flash-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/flash.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+.visitors-java-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/java.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.visitors-silverlight-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/silverlight.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+.visitors-windows-media-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: url("../icons/plugins/windowsmedia.png");
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/windowsmedia.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.visitors-realplayer-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/realplayer.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.visitors-quicktime-plugin-icon::before {
+  display: inline-block;
+  width: 16px; /* Desired width */
+  height: 16px; /* Desired height */
+  margin-right: 0.5em;
+  content: "";
+  vertical-align: middle;
+  background-image: url("../icons/plugins/quicktime.png");
+  background-repeat: no-repeat;
+  background-size: contain;
 }

@@ -147,7 +147,7 @@ class SymfonyMailer implements MailInterface, ContainerFactoryPluginInterface {
    * @param $mime_type_guesser
    * @param AssetOptimizerInterface|null $cssOptimizer
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, ConfigFactoryInterface $config_factory, LoggerInterface $logger, RendererInterface $renderer, ModuleHandlerInterface $module_handler, MailManagerInterface $mail_manager, ThemeManagerInterface $theme_manager, AssetResolverInterface $asset_resolver, EmbeddedImageValidatorInterface $embedded_image_validator, MailerInterface $mailer, AssetOptimizerInterface $cssOptimizer = NULL) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, ConfigFactoryInterface $config_factory, LoggerInterface $logger, RendererInterface $renderer, ModuleHandlerInterface $module_handler, MailManagerInterface $mail_manager, ThemeManagerInterface $theme_manager, AssetResolverInterface $asset_resolver, EmbeddedImageValidatorInterface $embedded_image_validator, MailerInterface $mailer, ?AssetOptimizerInterface $cssOptimizer = NULL) {
     $this->entityTypeManager = $entity_type_manager;
     $this->configFactory = $config_factory;
     $this->logger = $logger;
@@ -310,7 +310,7 @@ class SymfonyMailer implements MailInterface, ContainerFactoryPluginInterface {
         $email->to(...$to);
       }
       if (!empty($message['headers']['From'])) {
-        $email->from($message['headers']['From']);
+        $email->from($this->parseMailbox($message['headers']['From']));
       }
       if (!empty($message['headers']['Reply-To'])) {
         $email->replyTo($message['headers']['Reply-To']);
@@ -783,7 +783,7 @@ class SymfonyMailer implements MailInterface, ContainerFactoryPluginInterface {
     // Code copied from Drupal Symfony Mailer module's MailerHelper class,
     // which copied from \Symfony\Component\Mime\Address::create().
     if (strpos($value, '<')) {
-      if (preg_match('~(?<displayName>[^<]*)<(?<addrSpec>.*)>[^>]*~', $value, $matches)) {
+      if (preg_match('~(?<displayName>.*)<(?<addrSpec>.*)>[^>]*~', $value, $matches)) {
         return new Address($matches['addrSpec'], trim($matches['displayName'], ' \'"'));
       }
       $this->logger->error("Could not parse @part as an address.", ['@part' => $value]);

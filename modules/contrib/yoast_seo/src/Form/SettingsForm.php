@@ -36,6 +36,8 @@ class SettingsForm extends ConfigFormBase {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
+   * @param \Drupal\Core\Config\TypedConfigManagerInterface $typedConfigManager
+   *   The typed configuration manager.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   A module handler.
    * @param \Drupal\Core\Session\AccountInterface $current_user
@@ -45,7 +47,7 @@ class SettingsForm extends ConfigFormBase {
     ConfigFactoryInterface $config_factory,
     TypedConfigManagerInterface $typedConfigManager,
     ModuleHandlerInterface $module_handler,
-    AccountInterface $current_user
+    AccountInterface $current_user,
   ) {
     parent::__construct($config_factory, $typedConfigManager);
 

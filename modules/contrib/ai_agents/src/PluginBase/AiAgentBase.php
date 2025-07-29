@@ -9,7 +9,7 @@ use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ExtensionPathResolver;
-use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginBase;
@@ -97,6 +97,14 @@ abstract class AiAgentBase extends PluginBase implements AiAgentInterface, Conta
   protected Task $task;
 
   /**
+   * The chat input.
+   *
+   * @var \Drupal\ai\OperationType\Chat\ChatInput
+   *   The chat input.
+   */
+  protected ChatInput $chatInput;
+
+  /**
    * Create directly (or give a Blueprint)
    *
    * @var bool
@@ -160,7 +168,7 @@ abstract class AiAgentBase extends PluginBase implements AiAgentInterface, Conta
     $plugin_id,
     $plugin_definition,
     protected AgentHelper $agentHelper,
-    protected FileSystem $fileSystem,
+    protected FileSystemInterface $fileSystem,
     protected ConfigFactoryInterface $config,
     protected AccountProxyInterface $currentUser,
     protected ExtensionPathResolver $extensionPathResolver,
@@ -225,14 +233,38 @@ abstract class AiAgentBase extends PluginBase implements AiAgentInterface, Conta
    * {@inheritDoc}
    */
   public function isAvailable() {
-    return TRUE;
+    $return = TRUE;
+
+    $definition = $this->getPluginDefinition();
+
+    foreach ($definition['module_dependencies'] as $module) {
+      if (!$this->agentHelper->isModuleEnabled($module)) {
+        $return = FALSE;
+      }
+    }
+
+    // Check if taxonomy module is installed.
+    return $return;
   }
 
   /**
-   * {@inheritDoc}
+   * Provide a user facing message to display if agent not available.
+   *
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup
+   *   The Message.
    */
   public function isNotAvailableMessage() {
-    return $this->t('Nothing');
+    $message = $this->t('Nothing');
+
+    if ($definition = $this->getPluginDefinition()) {
+      if (!empty($definition['module_dependencies'])) {
+        $message = $this->t('You must enable the @module @plural to use this agent.', [
+          '@module' => explode(', ', $definition['module_dependencies']),
+          '@plural' => (count($definition['module_dependencies']) > 1) ? 'modules' : 'module',
+        ]);
+      }
+    }
+    return $message;
   }
 
   /**
@@ -323,6 +355,20 @@ abstract class AiAgentBase extends PluginBase implements AiAgentInterface, Conta
    */
   public function setTask(TaskInterface $task) {
     $this->task = $task;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getChatInput(): ChatInput {
+    return $this->chatInput;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function setChatInput(ChatInput $chatInput) {
+    $this->chatInput = $chatInput;
   }
 
   /**
@@ -802,10 +848,7 @@ abstract class AiAgentBase extends PluginBase implements AiAgentInterface, Conta
   }
 
   /**
-   * Helper function to set the runner id.
-   *
-   * @param string $runnerId
-   *   The runner id.
+   * {@inheritDoc}
    */
   public function setRunnerId($runnerId) {
     $this->runnerId = $runnerId;

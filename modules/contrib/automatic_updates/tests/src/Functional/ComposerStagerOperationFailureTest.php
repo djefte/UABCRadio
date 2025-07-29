@@ -34,7 +34,7 @@ class ComposerStagerOperationFailureTest extends UpdaterFormTestBase {
     $assert_session = $this->assertSession();
     $this->mockActiveCoreVersion('9.8.0');
     $this->checkForUpdates();
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->hasButton('Update to 9.8.1');
 
     // Make the specified Composer Stager operation class throw an exception.

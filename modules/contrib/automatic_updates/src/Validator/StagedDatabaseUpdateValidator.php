@@ -6,7 +6,7 @@ namespace Drupal\automatic_updates\Validator;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\package_manager\Event\PreApplyEvent;
-use Drupal\package_manager\Validator\StagedDBUpdateValidator;
+use Drupal\package_manager\Validator\SandboxDatabaseUpdatesValidator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -21,8 +21,9 @@ final class StagedDatabaseUpdateValidator implements EventSubscriberInterface {
 
   use StringTranslationTrait;
 
-  public function __construct(private readonly StagedDBUpdateValidator $stagedDBUpdateValidator) {
-  }
+  public function __construct(
+    private readonly SandboxDatabaseUpdatesValidator $stagedDBUpdateValidator,
+  ) {}
 
   /**
    * Checks that the staged update does not have changes to its install files.
@@ -31,12 +32,12 @@ final class StagedDatabaseUpdateValidator implements EventSubscriberInterface {
    *   The event object.
    */
   public function checkUpdateHooks(PreApplyEvent $event): void {
-    $stage = $event->stage;
-    if ($stage->getType() !== 'automatic_updates:unattended') {
+    $sandbox_manager = $event->sandboxManager;
+    if ($sandbox_manager->getType() !== 'automatic_updates:unattended') {
       return;
     }
 
-    $invalid_extensions = $this->stagedDBUpdateValidator->getExtensionsWithDatabaseUpdates($stage->getStageDirectory());
+    $invalid_extensions = $this->stagedDBUpdateValidator->getExtensionsWithDatabaseUpdates($sandbox_manager->getSandboxDirectory());
     if ($invalid_extensions) {
       $invalid_extensions = array_map($this->t(...), $invalid_extensions);
       $event->addError($invalid_extensions, $this->t('The update cannot proceed because database updates have been detected in the following extensions.'));

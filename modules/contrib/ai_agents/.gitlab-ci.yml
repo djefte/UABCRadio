@@ -7,16 +7,15 @@ include:
       - '/includes/include.drupalci.workflows.yml'
 
 variables:
-  _TARGET_DRUPAL: 11.0
   _TARGET_PHP: 8.3
   _PHPUNIT_EXTRA: --verbose
-  OPT_IN_TEST_PREVIOUS_MAJOR: 1
-  OPT_IN_TEST_PREVIOUS_MINOR: 0
-  OPT_IN_TEST_NEXT_MINOR: 1
-  OPT_IN_TEST_NEXT_MAJOR: 1
-  OPT_IN_TEST_MAX_PHP: 1
+  CORE_STABLE: '11.x-dev'
+  OPT_IN_TEST_PREVIOUS_MAJOR: 0
+  OPT_IN_TEST_CURRENT: 1
+  OPT_IN_TEST_NEXT_MINOR: 0
+  OPT_IN_TEST_NEXT_MAJOR: 0
   _PHPUNIT_CONCURRENT: 1
-  _CSPELL_IGNORE_PATHS: "'.cspell-project-words.txt'"
+  _CSPELL_IGNORE_PATHS: "'.cspell-project-words.txt', 'tests/assets'"
 pages:
   stage: .post
 

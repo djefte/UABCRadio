@@ -34,19 +34,19 @@ class Editoria11ySettings extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $config = $this->config('editoria11y.settings');
     $permissions = Url::fromRoute('user.admin_permissions');
-    $linkToPermissions = Link::fromTextAndUrl(t("user roles that edit content"), $permissions)->toString();
+    $linkToPermissions = Link::fromTextAndUrl($this->t("user roles that edit content"), $permissions)->toString();
     $dashboard = Url::fromRoute('editoria11y.reports_dashboard');
-    $linkToDashboard = Link::fromTextAndUrl(t("To view the dashboard"), $dashboard)->toString();
+    $linkToDashboard = Link::fromTextAndUrl($this->t("To view the dashboard"), $dashboard)->toString();
 
     $form['getting_started'] = [
       '#markup' => '<h2>' .
-      $this->t("Getting started") .
+      $this->t('Getting started') .
       '</h2><ol></ol>',
     ];
 
     $form['setup'] = [
       '#type' => 'fieldset',
-      '#title' => t('Basic Configuration'),
+      '#title' => $this->t('Basic Configuration'),
       '#markup' => '<p>' . $this->t("Make sure") . ' ' .
       $linkToPermissions . ' ' .
       $this->t('have the "View Editoria11y checker" permission. Assign "mark OK" as appropriate.') . ' ' .
@@ -93,7 +93,7 @@ class Editoria11ySettings extends ConfigFormBase {
 
     $form['troubleshooting'] = [
       '#type' => 'details',
-      '#title' => t('Troubleshooting'),
+      '#title' => $this->t('Troubleshooting'),
       '#markup' => '<ul><li>' .
       $this->t("Review each setting under Basic Configuration. Many sites need to adjust what parts of the page are scanned") .
       '</li><li>' . $this->t("Remember that results only sync to the dashboard when viewing nodes. Results shown while editing or viewing previews or revisions will not sync.") .
@@ -101,22 +101,22 @@ class Editoria11ySettings extends ConfigFormBase {
       $this->t('If the checker <strong>toggle</strong> does not appear: make sure a z-indexed or overflow-hidden element in your front-end theme is not hiding or covering the <code><em>ed11y-element-panel</em></code> container, make sure that any custom selectors in the "Disable the scanner if these elements are detected" field are not present, and make sure that no JavaScript errors are appearing in your <a href="https://developer.mozilla.org/en-US/docs/Tools/Browser_Console"> browser console</a>') .
         '.</li><li>' . // phpcs:ignore
       $this->t("If the checker toggle is present but <strong>not detecting</strong> errors, or missing errors that should be flagged: check that your inclusions & exclusion settings below are not missing or ignoring the elements. It is not uncommon for homepages or views to insert editable content outside the <code><em>main</em></code> element.") .
-      '</li>' . '<li>' . $this->t('Check the <a href="https://www.drupal.org/project/editoria11y">Module Overview</a> | <a href="https://editoria11y.princeton.edu/demo/">Working Demo</a> | <a href="https://www.drupal.org/project/issues/editoria11y?categories=All">Issue Queue</a> | <a href="https://editoria11y.princeton.edu/configuration/">Library Configuration Guide') . '</a></li>' .
+      '</li><li>' . $this->t('Check the <a href="https://www.drupal.org/project/editoria11y">Module Overview</a> | <a href="https://editoria11y.princeton.edu/demo/">Working Demo</a> | <a href="https://www.drupal.org/project/issues/editoria11y?categories=All">Issue Queue</a> | <a href="https://editoria11y.princeton.edu/configuration/">Library Configuration Guide') . '</a></li>' .
       '</ol>',
     ];
 
     $form['adv'] = [
       '#type' => 'fieldset',
-      '#title' => t('Advanced configuration'),
+      '#title' => $this->t('Advanced configuration'),
     ];
 
     $form['adv']['tests'] = [
       '#type' => 'details',
-      '#title' => t('Modify tests'),
+      '#title' => $this->t('Modify tests'),
     ];
 
     $form['adv']['tests']['ignore_tests'] = [
-      '#title' => $this->t("Checks"),
+      '#title' => $this->t("Turn off specific tests"),
       '#type' => 'checkboxes',
       '#options' => [
         'altMeaningless' => $this->t('Alt text is meaningless'),
@@ -171,8 +171,8 @@ class Editoria11ySettings extends ConfigFormBase {
 
     $form['adv']['tests']['links'] = [
       '#type' => 'fieldset',
-      '#title' => t('Link checks'),
-      '#markup' => t('Default settings should work with both <a href="https://www.drupal.org/project/linkpurpose" target="_blank">Link Purpose Icons</a> and <a target="_blank" href="https://www.drupal.org/project/extlink">External Links</a>.'),
+      '#title' => $this->t('Link checks'),
+      '#markup' => $this->t('Default settings should work with both <a href="https://www.drupal.org/project/linkpurpose" target="_blank">Link Purpose Icons</a> and <a target="_blank" href="https://www.drupal.org/project/extlink">External Links</a>.'),
     ];
     $form['adv']['tests']['links']['link_ignore_selector'] = [
       '#title' => $this->t("Remove elements that match these selectors before testing link text"),
@@ -204,7 +204,7 @@ class Editoria11ySettings extends ConfigFormBase {
 
     $form['adv']['results'] = [
       '#type' => 'details',
-      '#title' => t('Displaying results'),
+      '#title' => $this->t('Displaying results'),
     ];
 
     $form['adv']['results']['watch_for_changes'] = [
@@ -241,6 +241,16 @@ class Editoria11ySettings extends ConfigFormBase {
       '#default_value' => $config->get('ignore_all_if_absent'),
     ];
 
+    $form['adv']['results']['panel_pin'] = [
+      '#title' => $this->t("Pin panel to..."),
+      '#type' => 'select',
+      '#options' => [
+        'right' => 'Right',
+        'left' => 'Left',
+      ],
+      '#default_value' => $config->get('panel_pin'),
+    ];
+
     $form['adv']['results']['panel_no_cover'] = [
       '#title' => $this->t("Don't cover these other widgets"),
       '#type' => 'textarea',
@@ -267,7 +277,20 @@ class Editoria11ySettings extends ConfigFormBase {
 
     $form['adv']['editing'] = [
       '#type' => 'details',
-      '#title' => $this->t('Content positioning: edit links & in-editor heading levels'),
+      '#title' => $this->t('Editor UI tweaks: edit links, table headers, heading levels'),
+    ];
+
+    $form['adv']['editing']['ck5_table_headers'] = [
+      '#title' => $this->t("Assign headers to CKEditor tables on insert"),
+      '#type' => 'select',
+      '#options' => [
+        'none' => $this->t('None'),
+        'row' => $this->t('First row'),
+        'column' => $this->t('First column'),
+        'both' => $this->t('Both'),
+      ],
+      '#default_value' => $config->get('ck5_table_headers'),
+      '#description' => $this->t('You will need to clear cache for changes to this setting to appear in CKEditor.'),
     ];
 
     $form['adv']['editing']['hide_edit_links'] = [
@@ -316,7 +339,7 @@ class Editoria11ySettings extends ConfigFormBase {
 
     $form['adv']['theme'] = [
       '#type' => 'details',
-      '#title' => t('Web components & custom tests'),
+      '#title' => $this->t('Web components & custom tests'),
     ];
 
     $form['adv']['theme']['shadow_components'] = [
@@ -343,7 +366,7 @@ class Editoria11ySettings extends ConfigFormBase {
     ];
     $form['adv']['sync'] = [
       '#type' => 'details',
-      '#title' => t('Syncing results to reports'),
+      '#title' => $this->t('Syncing results to reports'),
       '#markup' => '<p>' . $this->t("Remember that results only sync to the dashboard when viewing nodes. Results shown while editing or viewing previews or revisions will not sync.") . '</p>',
     ];
     $form['adv']['sync']['redundant_prefix'] = [
@@ -379,6 +402,7 @@ class Editoria11ySettings extends ConfigFormBase {
     $this->config('editoria11y.settings')
       ->set('ignore_elements', $form_state->getValue('ignore_elements'))
       ->set('panel_no_cover', $form_state->getValue('panel_no_cover'))
+      ->set('panel_pin', $form_state->getValue('panel_pin'))
       ->set('hide_edit_links', $form_state->getValue('hide_edit_links'))
       ->set('assertiveness', $form_state->getValue('assertiveness'))
       ->set('no_load', $form_state->getValue('no_load'))
@@ -394,6 +418,7 @@ class Editoria11ySettings extends ConfigFormBase {
       ->set('embedded_content_warning', $form_state->getValue('embedded_content_warning'))
       ->set('hidden_handlers', $form_state->getValue('hidden_handlers'))
       ->set('element_hides_overflow', $form_state->getValue('element_hides_overflow'))
+      ->set('ck5_table_headers', $form_state->getValue('ck5_table_headers'))
       ->set('live_h_inherit', $form_state->getValue('live_h_inherit'))
       ->set('live_h2', $form_state->getValue('live_h2'))
       ->set('live_h3', $form_state->getValue('live_h3'))

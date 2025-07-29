@@ -33,13 +33,8 @@ class HelpPageTest extends AutomaticUpdatesFunctionalTestBase {
   public function testHelpPage(): void {
     $permissions = [
       'access administration pages',
-      // CORE_MR_ONLY:'access help pages',
+      'access help pages',
     ];
-    // BEGIN: DELETE FROM CORE MERGE REQUEST
-    if (array_key_exists('access help pages', $this->container->get('user.permissions')->getPermissions())) {
-      $permissions[] = 'access help pages';
-    }
-    // END: DELETE FROM CORE MERGE REQUEST
     $user = $this->createUser($permissions);
     $this->drupalLogin($user);
     $this->drupalGet('/admin/help/automatic_updates');

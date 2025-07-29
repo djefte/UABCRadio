@@ -25,7 +25,6 @@ use Drupal\Core\Render\Element;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
-use Drupal\menu_link_content\MenuLinkContentInterface;
 use Drupal\trash\EntityHandler\TrashNodeAccessControlHandler;
 use Drupal\trash\Form\EntityPurgeForm;
 use Drupal\trash\Form\EntityRestoreForm;
@@ -98,7 +97,7 @@ function trash_entity_access(EntityInterface $entity, $operation, AccountInterfa
 
   if (trash_entity_is_deleted($entity)) {
     // Check if users can view, restore or purge deleted entities.
-    if ($operation === 'view' && $account->hasPermission('view deleted entities')) {
+    if (in_array($operation, ['view', 'view label']) && $account->hasPermission('view deleted entities')) {
       return AccessResult::allowed()->addCacheableDependency($cacheability);
     }
     elseif ($operation === 'restore' && $account->hasPermission('restore ' . $entity->getEntityTypeId() . ' entities')) {
@@ -491,6 +490,16 @@ function trash_menu_links_discovered_alter(&$links): void {
     'menu_name' => 'content',
     'provider' => 'navigation',
     'weight' => 1000,
+    'options' => [
+      'icon' => [
+        'pack_id' => 'trash',
+        'icon_id' => 'trash',
+        'settings' => [
+          'class' => 'toolbar-button__icon',
+          'size' => 25,
+        ],
+      ],
+    ],
   ];
 }
 

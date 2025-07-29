@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\Functional;
 
 use Drupal\Tests\BrowserTestBase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Project Browser Menu tabs placement.
  *
  * @group project_browser
  */
+#[Group('project_browser')]
 final class ProjectBrowserMenuTabsTest extends BrowserTestBase {
 
   /**

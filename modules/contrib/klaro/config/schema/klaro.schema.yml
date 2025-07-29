@@ -206,6 +206,9 @@ klaro.settings:
         additional_class:
           type: string
           label: 'Additional css classes'
+        disable_powered_by:
+          type: boolean
+          label: 'Hide "powered by Klaro!"'
         html_texts:
           type: boolean
           label: 'Allow HTML in texts. (Does not work for button texts)'

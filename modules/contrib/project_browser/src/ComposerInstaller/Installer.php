@@ -2,7 +2,8 @@
 
 namespace Drupal\project_browser\ComposerInstaller;
 
-use Drupal\package_manager\StageBase;
+use Drupal\package_manager\Attribute\AllowDirectWrite;
+use Drupal\package_manager\SandboxManagerBase;
 
 /**
  * Defines a service to perform installs.
@@ -11,7 +12,8 @@ use Drupal\package_manager\StageBase;
  *   This is an internal part of Project Browser and may be changed or removed
  *   at any time. It should not be used by external code.
  */
-final class Installer extends StageBase {
+#[AllowDirectWrite]
+final class Installer extends SandboxManagerBase {
 
   /**
    * {@inheritdoc}

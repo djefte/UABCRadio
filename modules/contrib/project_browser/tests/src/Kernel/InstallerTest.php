@@ -11,20 +11,25 @@ use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\fixture_manipulator\ActiveFixtureManipulator;
 use Drupal\package_manager\Event\PreApplyEvent;
 use Drupal\package_manager\Exception\ApplyFailedException;
-use Drupal\package_manager\Exception\StageEventException;
-use Drupal\package_manager\Exception\StageException;
+use Drupal\package_manager\Exception\SandboxEventException;
+use Drupal\package_manager\Exception\SandboxException;
 use Drupal\package_manager\ValidationResult;
 use Drupal\package_manager_bypass\LoggingCommitter;
 use Drupal\package_manager_test_validation\EventSubscriber\TestSubscriber;
 use Drupal\project_browser\ComposerInstaller\Installer;
 use PhpTuf\ComposerStager\API\Exception\ExceptionInterface;
 use PhpTuf\ComposerStager\API\Exception\InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\project_browser\ComposerInstaller\Installer
+ * Tests the Installer class.
  *
  * @group project_browser
  */
+#[CoversClass(Installer::class)]
+#[Group('project_browser')]
 final class InstallerTest extends PackageManagerKernelTestBase {
 
   use UserCreationTrait;
@@ -68,7 +73,7 @@ final class InstallerTest extends PackageManagerKernelTestBase {
       ],
       'InvalidArgumentException' => [
         InvalidArgumentException::class,
-        StageException::class,
+        SandboxException::class,
       ],
       'Exception' => [
         'Exception',
@@ -84,9 +89,8 @@ final class InstallerTest extends PackageManagerKernelTestBase {
    *   The throwable class that should be thrown by Composer Stager.
    * @param class-string<\Throwable> $expected_class
    *   The expected exception class.
-   *
-   * @dataProvider providerCommitException
    */
+  #[DataProvider('providerCommitException')]
   public function testCommitException(string $thrown_class, string $expected_class): void {
     /** @var \Drupal\project_browser\ComposerInstaller\Installer $installer */
     $installer = $this->container->get(Installer::class);
@@ -113,7 +117,7 @@ final class InstallerTest extends PackageManagerKernelTestBase {
   /**
    * Tests that validation errors are thrown as install exceptions.
    *
-   * @covers ::dispatch
+   * @legacy-covers ::dispatch
    */
   public function testInstallException(): void {
     /** @var \Drupal\project_browser\ComposerInstaller\Installer $installer */
@@ -124,7 +128,7 @@ final class InstallerTest extends PackageManagerKernelTestBase {
       ValidationResult::createError([new TranslatableMarkup('These are not the projects you are looking for.')]),
     ];
     TestSubscriber::setTestResult($results, PreApplyEvent::class);
-    $this->expectException(StageEventException::class);
+    $this->expectException(SandboxEventException::class);
     $this->expectExceptionMessage('These are not the projects you are looking for.');
     $installer->apply();
   }

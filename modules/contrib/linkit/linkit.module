@@ -21,7 +21,10 @@ function linkit_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Managing Linkit profiles') . '</dt>';
-      $output .= '<dd>' . t('You can create and edit Linkit profiles on the <a href=":profiles">Linkit profile page</a>. You can create a Linkit profile by clicking "<a href=":add_profile">Add profile</a>".', [':profiles' => Url::fromRoute('entity.linkit_profile.collection')->toString(), ':add_profile' => Url::fromRoute('entity.linkit_profile.add_form')->toString()]) . '</dd>';
+      $output .= '<dd>' . t('You can create and edit Linkit profiles on the <a href=":profiles">Linkit profile page</a>. You can create a Linkit profile by clicking "<a href=":add_profile">Add profile</a>".', [
+        ':profiles' => Url::fromRoute('entity.linkit_profile.collection')->toString(),
+        ':add_profile' => Url::fromRoute('entity.linkit_profile.add_form')->toString(),
+      ]) . '</dd>';
       $output .= '</dl>';
       return $output;
 

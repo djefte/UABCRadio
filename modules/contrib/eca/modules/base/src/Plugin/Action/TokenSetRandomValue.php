@@ -90,7 +90,7 @@ class TokenSetRandomValue extends ConfigurableActionBase {
         $parts = explode(',', $length);
         $min = PHP_INT_MIN;
         $max = PHP_INT_MAX;
-        if (isset($parts[0]) && intval($parts[0])) {
+        if (intval($parts[0])) {
           $min = (int) $parts[0];
         }
         if (isset($parts[1]) && intval($parts[1])) {

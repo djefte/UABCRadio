@@ -6,7 +6,7 @@ namespace Drupal\Tests\automatic_updates\Kernel;
 
 use ColinODell\PsrTestLogger\TestLogger;
 use Drupal\automatic_updates\CronUpdateRunner;
-use Drupal\automatic_updates\ConsoleUpdateStage;
+use Drupal\automatic_updates\ConsoleUpdateSandboxManager;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\package_manager\Validator\SymlinkValidator;
@@ -65,7 +65,9 @@ abstract class AutomaticUpdatesKernelTestBase extends PackageManagerKernelTestBa
     // By default, pretend we're running Drupal core 9.8.0 and a non-security
     // update to 9.8.1 is available.
     $this->setCoreVersion('9.8.0');
-    $this->setReleaseMetadata(['drupal' => __DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml']);
+    $this->setReleaseMetadata([
+      'drupal' => static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/drupal.9.8.1-security.xml',
+    ]);
 
     // Set a last cron run time so that the cron frequency validator will run
     // from a sane state.
@@ -83,13 +85,13 @@ abstract class AutomaticUpdatesKernelTestBase extends PackageManagerKernelTestBa
   /**
    * {@inheritdoc}
    */
-  public function register(ContainerBuilder $container) {
+  public function register(ContainerBuilder $container): void {
     parent::register($container);
 
     // Use the test-only implementations of the regular and cron update runner.
     $overrides = [
       CronUpdateRunner::class => TestCronUpdateRunner::class,
-      ConsoleUpdateStage::class => TestConsoleUpdateStage::class,
+      ConsoleUpdateSandboxManager::class => TestConsoleUpdateStage::class,
     ];
     foreach ($overrides as $service_id => $class) {
       if ($container->hasDefinition($service_id)) {
@@ -102,7 +104,7 @@ abstract class AutomaticUpdatesKernelTestBase extends PackageManagerKernelTestBa
    * Performs an update using the console update stage directly.
    */
   protected function runConsoleUpdateStage(): void {
-    $this->container->get(ConsoleUpdateStage::class)->performUpdate();
+    $this->container->get(ConsoleUpdateSandboxManager::class)->performUpdate();
   }
 
   /**
@@ -140,7 +142,7 @@ class TestCronUpdateRunner extends CronUpdateRunner {
 /**
  * A test version of the console update stage to override and expose internals.
  */
-class TestConsoleUpdateStage extends ConsoleUpdateStage {
+class TestConsoleUpdateStage extends ConsoleUpdateSandboxManager {
 
   /**
    * {@inheritdoc}

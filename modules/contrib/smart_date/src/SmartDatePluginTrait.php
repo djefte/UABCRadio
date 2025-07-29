@@ -32,8 +32,12 @@ trait SmartDatePluginTrait {
    */
   public function viewElements(FieldItemListInterface $items, $langcode, $format = '') {
     $field_type = 'smartdate';
+    $storage_type = '';
     if (property_exists($this, 'fieldDefinition') && $this->fieldDefinition) {
       $field_type = $this->fieldDefinition->getType();
+      if (in_array($field_type, ['daterange', 'datetime'])) {
+        $storage_type = $this->fieldDefinition->getSetting('datetime_type');
+      }
     }
     $elements = [];
     // @todo intelligent switching between retrieval methods.
@@ -96,46 +100,69 @@ trait SmartDatePluginTrait {
     }
 
     foreach ($items as $delta => $item) {
-      if ($field_type == 'smartdate') {
-        if (empty($item->value) || empty($item->end_value)) {
-          continue;
-        }
-        $start_ts = $item->value;
-        $end_ts = $item->end_value;
+      switch ($field_type) {
+        case 'smartdate':
+          if (empty($item->value) || empty($item->end_value)) {
+            continue 2;
+          }
+          $start_ts = $item->value;
+          $end_ts = $item->end_value;
+          break;
+
+        case 'datetime':
+        case 'daterange':
+          if ($field_type == 'datetime') {
+            if (empty($item->date)) {
+              continue 2;
+            }
+            $start = $end = $item->date;
+          }
+          else {
+            // Can only be daterange.
+            // Start and end dates are optional, but one of them is required
+            // to display anything regardless of what the field thinks.
+            if ($item->isEmpty() || (empty($item->start_date) && empty($item->end_date))) {
+              continue 2;
+            }
+            elseif (empty($item->start_date)) {
+              $start = $end = $item->end_date;
+            }
+            elseif (empty($item->end_date)) {
+              $start = $end = $item->start_date;
+            }
+            else {
+              $start = $item->start_date;
+              $end = $item->end_date;
+            }
+          }
+          if ($storage_type == 'datetime') {
+            $start_ts = $start->getTimestamp();
+            $end_ts = $end->getTimestamp();
+          }
+          else {
+            // Date only storage. Make Smart Date recognize it as all day.
+            $start_conv = new DrupalDateTime($start->format('Y-m-d'));
+            $start_ts = $start_conv->getTimestamp();
+            $end_conv = new DrupalDateTime($end->format('Y-m-d'));
+            $end_ts = $end_conv->getTimestamp() + 24 * 60 * 60 - 60;
+          }
+          break;
+
+        case 'timestamp':
+        case 'published_at':
+          if (empty($item->value)) {
+            continue 2;
+          }
+          $start_ts = $end_ts = $item->value;
+          break;
+
+        default:
+          // Not sure how to handle anything else, so return an empty set.
+          return $elements;
       }
-      elseif ($field_type == 'daterange') {
-        // Start and end dates are optional, but one of them is required
-        // to display anything regardless of what the field thinks.
-        if ($item->isEmpty() || (empty($item->start_date) && empty($item->end_date))) {
-          continue;
-        }
-        elseif (empty($item->start_date)) {
-          $start_ts = $end_ts = $item->end_date->getTimestamp();
-        }
-        elseif (empty($item->end_date)) {
-          $start_ts = $end_ts = $item->start_date->getTimestamp();
-        }
-        else {
-          $start_ts = $item->start_date->getTimestamp();
-          $end_ts = $item->end_date->getTimestamp();
-        }
-      }
-      elseif ($field_type == 'datetime') {
-        if (empty($item->date)) {
-          continue;
-        }
-        $start_ts = $end_ts = $item->date->getTimestamp();
-      }
-      elseif ($field_type == 'timestamp' || $field_type == 'published_at') {
-        if (empty($item->value)) {
-          continue;
-        }
-        $start_ts = $end_ts = $item->value;
-      }
-      else {
-        // Not sure how to handle anything else, so return an empty set.
-        return $elements;
-      }
+      $stored_start_ts = $start_ts;
+      $stored_end_ts = $end_ts;
+
       $timezone = $item->timezone ? $item->timezone : $timezone_override;
       // Do an all day check before manipulating the range.
       if (static::isAllDay($start_ts, $end_ts)) {
@@ -214,9 +241,7 @@ trait SmartDatePluginTrait {
       }
 
       if (!empty($augmenters['instances'])) {
-        // @todo examine why we aren't using the $start_ts and $end_ts that are
-        // already normalized above.
-        $this->augmentOutput($elements[$delta], $augmenters['instances'], $item->value, $item->end_value, $timezone, $delta);
+        $this->augmentOutput($elements[$delta], $augmenters['instances'], $stored_start_ts, $stored_end_ts, $timezone, $delta);
       }
     }
 
@@ -303,17 +328,9 @@ trait SmartDatePluginTrait {
    * @param string $ends
    *   An optional timestamp to specify the end of the last instance.
    */
-  protected function augmentOutput(array &$output, array $augmenters, $start_ts, $end_ts, $timezone, $delta, $type = 'instances', $repeats = '', $ends = '') {
+  protected function augmentOutput(array &$output, array $augmenters, int $start_ts, int $end_ts, $timezone, $delta, $type = 'instances', $repeats = '', $ends = '') {
     if (!$augmenters) {
       return;
-    }
-
-    if (!is_numeric($start_ts)) {
-      $start_ts = strtotime($start_ts);
-    }
-
-    if (!is_numeric($end_ts)) {
-      $end_ts = ($end_ts !== NULL) ? strtotime($end_ts) : $start_ts;
     }
 
     foreach ($augmenters as $augmenter_id => $augmenter) {

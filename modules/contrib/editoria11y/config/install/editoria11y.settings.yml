@@ -18,6 +18,7 @@ detect_shadow: false
 disable_sync: false
 preserve_params: 'search,keys,page,language,language_content_entity'
 custom_tests: 0
+panel_pin: 'right'
 watch_for_changes: 'checkRoots'
 redundant_prefix: ''
 disable_live: false
@@ -26,3 +27,4 @@ live_h2: 'form[id^="node-"] #edit-body-wrapper .ck-content'
 live_h3: ''
 live_h4: ''
 hide_edit_links: ''
+ck5_table_headers: 'row'

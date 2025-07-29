@@ -225,7 +225,7 @@ class ProviderPluginManager extends GeocoderPluginManagerBase {
 
       return array_merge($provider, [
         'checked' => $checked,
-        'weight' => $checked ? $weight : 0,
+        'weight' => $checked ? array_search($provider_entity->getOriginalId(), $enabled_provider_ids) - 100 : 0,
         'arguments' => $provider_entity->isConfigurable() ? Yaml::encode($provider_entity->get('configuration')) : (string) $this->t("This plugin doesn't accept arguments."),
       ]);
     }, $providers, range(0, count($providers) - 1));

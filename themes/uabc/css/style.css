@@ -4061,6 +4061,8 @@ textarea.form-control-lg {
 }
 
 .nav-tabs .nav-link, .media-library-view--widget .view-header .nav-link, .media-library-view--widget .view-header a {
+  font-weight: 300;
+  font-size: 1rem;
   margin-bottom: calc(-1 * var(--bs-nav-tabs-border-width));
   border: var(--bs-nav-tabs-border-width) solid transparent;
   border-top-left-radius: var(--bs-nav-tabs-border-radius);

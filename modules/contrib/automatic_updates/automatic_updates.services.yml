@@ -13,7 +13,7 @@ services:
     tags:
       - { name: event_subscriber }
   Drupal\automatic_updates\StatusCheckMailer: ~
-  Drupal\automatic_updates\UpdateStage:
+  Drupal\automatic_updates\UpdateSandboxManager:
     calls:
       - ['setLogger', ['@logger.channel.automatic_updates']]
   Drupal\automatic_updates\CronUpdateRunner:
@@ -44,7 +44,7 @@ services:
   logger.channel.automatic_updates:
     parent: logger.channel_base
     arguments: ['automatic_updates']
-  Drupal\automatic_updates\ConsoleUpdateStage:
+  Drupal\automatic_updates\ConsoleUpdateSandboxManager:
     arguments:
       $lock: '@lock'
       $committer: '@Drupal\automatic_updates\MaintenanceModeAwareCommitter'

@@ -14,13 +14,16 @@ use Drupal\project_browser\Activator\RecipeActivator;
 use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\ProjectBrowser\Project;
 use Drupal\project_browser\ProjectType;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests the recipe activator. Obviously.
  *
  * @group project_browser
- * @covers \Drupal\project_browser\Activator\RecipeActivator
  */
+#[CoversClass(RecipeActivator::class)]
+#[Group('project_browser')]
 final class RecipeActivatorTest extends KernelTestBase {
 
   /**

@@ -25,15 +25,16 @@ trait TestSetUpTrait {
     ]);
     $this->container = $container->get('kernel')->getContainer();
 
+    $package_manager_dir = static::getDrupalRoot() . '/core/modules/package_manager';
     // To prevent tests from using the real codebase for Composer we must set
     // the fixture path as early as possible. Automatic Updates will run
     // readiness checks when the module is installed so this must be done before
     // the parent class installs the modules needed for the test.
-    $this->useFixtureDirectoryAsActive(__DIR__ . '/../../../package_manager/tests/fixtures/fake_site');
+    $this->useFixtureDirectoryAsActive("$package_manager_dir/tests/fixtures/fake_site");
 
     // To prevent tests from making real requests to the Internet, use fake
     // release metadata that exposes a pretend Drupal 9.8.2 release.
-    $this->setReleaseMetadata(__DIR__ . '/../../../package_manager/tests/fixtures/release-history/drupal.9.8.2.xml');
+    $this->setReleaseMetadata("$package_manager_dir/tests/fixtures/release-history/drupal.9.8.2.xml");
 
     parent::installModulesFromClassProperty($container);
   }

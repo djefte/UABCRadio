@@ -53,7 +53,7 @@ class UpdateLockTest extends AutomaticUpdatesFunctionalTestBase {
 
     // We should be able to get partway through an update without issue.
     $this->drupalLogin($user_1);
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $page->pressButton('Update');
     $this->checkForMetaRefresh();
     $this->assertUpdateReady('9.8.2');
@@ -63,7 +63,7 @@ class UpdateLockTest extends AutomaticUpdatesFunctionalTestBase {
     // Another user cannot show up and try to start an update, since the other
     // user already started one.
     $this->drupalLogin($user_2);
-    $this->drupalGet('/admin/modules/update');
+    $this->drupalGet('/admin/reports/updates/update');
     $assert_session->buttonNotExists('Update');
     $assert_session->pageTextContains('Cannot begin an update because another Composer operation is currently in progress.');
 

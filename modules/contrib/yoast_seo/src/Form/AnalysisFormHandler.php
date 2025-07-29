@@ -55,7 +55,7 @@ class AnalysisFormHandler implements EntityHandlerInterface {
   public function __construct(
     EntityAnalyser $entity_analyser,
     MessengerInterface $messenger,
-    ConfigFactoryInterface $config_factory
+    ConfigFactoryInterface $config_factory,
   ) {
     $this->entityAnalyser = $entity_analyser;
     $this->messenger = $messenger;

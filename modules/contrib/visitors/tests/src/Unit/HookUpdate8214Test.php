@@ -48,7 +48,7 @@ class HookUpdate8214Test extends UnitTestCase {
   /**
    * Tests visitors_update_8214.
    */
-  public function testUpdate8210(): void {
+  public function testUpdate8214(): void {
     $schema = $this->createMock('Drupal\Core\Database\Schema');
     $this->database->expects($this->once())
       ->method('schema')

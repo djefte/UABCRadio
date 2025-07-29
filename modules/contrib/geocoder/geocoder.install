@@ -66,3 +66,14 @@ function geocoder_update_8301() {
   }
   return 'Installed the new config entity type geocoder_provider.';
 }
+
+/**
+ * Adds queue configuration and schema.
+ */
+function geocoder_update_8302() {
+  // Update geocoder configuration.
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('geocoder.settings');
+  $config->set('queue', FALSE);
+  $config->save(TRUE);
+}

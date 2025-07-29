@@ -1,0 +1,33 @@
+{
+    "name": "Media Library Importer",
+    "description": "A module to import media files in a directory into media library.",
+    "type": "drupal-module",
+    "homepage": "https://www.drupal.org/project/media_library_importer",
+    "authors": [
+        {
+            "name": "Salih Cenap Baydar (salihcenap)",
+            "homepage": "https://www.drupal.org/u/salihcenap",
+            "role": "Maintainer"
+        },
+        {
+            "name": "Italo Mairo (itamair)",
+            "homepage": "https://www.drupal.org/u/itamair",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/media_library_importer",
+        "source": "https://git.drupalcode.org/project/media_library_importer"
+    },
+    "license": "GPL-2.0+",
+    "minimum-stability": "dev",
+    "repositories": {
+        "drupal": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
+    "require": {
+        "drupal/queue_ui": "^3.1"
+    }
+}

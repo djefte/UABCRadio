@@ -5,6 +5,7 @@ namespace Drupal\ai_agents_explorer\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Render\Element;
 use Drupal\ai\AiProviderPluginManager;
 use Drupal\ai\Enum\AiModelCapability;
 use Drupal\ai_agents\PluginManager\AiAgentManager;
@@ -110,13 +111,14 @@ class AiAgentExplorerForm extends FormBase {
 
     $form['wrapper']['image'] = [
       '#type' => 'managed_file',
-      '#accept' => '.jpg, .jpeg, .png',
-      '#title' => $this->t('Images'),
+      '#title' => $this->t('Files'),
       '#multiple' => TRUE,
-      '#description' => $this->t('If you want to feed the agent with images, upload them here. Requires a vision model.'),
+      '#description' => $this->t('If you want to feed the agent with images or files, upload them here. Images requires a vision model other files just forwards the fid.'),
     ];
 
-    $default = $this->providerManager->getDefaultProviderForOperationType('chat_with_complex_json');
+    $default = $this->providerManager->getDefaultProviderForOperationType('chat_with_tools');
+    $provider_id = is_array($default) && isset($default['provider_id']) ? $default['provider_id'] : '';
+    $model_id = is_array($default) && isset($default['model_id']) ? $default['model_id'] : '';
 
     $form['wrapper']['model'] = [
       '#type' => 'select',
@@ -124,7 +126,23 @@ class AiAgentExplorerForm extends FormBase {
       '#description' => $this->t('Choose the model to use.'),
       '#required' => TRUE,
       '#options' => $this->providerManager->getSimpleProviderModelOptions('chat', TRUE, TRUE, [AiModelCapability::ChatJsonOutput]),
-      '#default_value' => $default['provider_id'] . '__' . $default['model_id'],
+      '#default_value' => $provider_id && $model_id ? $provider_id . '__' . $model_id : '',
+    ];
+
+    $form['wrapper']['tokens'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Tokens'),
+      '#tree' => TRUE,
+      '#process' => [
+        [$this, 'processTokenDetails'],
+      ],
+    ];
+
+    $form['wrapper']['markdown'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Markdown to HTML'),
+      '#description' => $this->t('Convert markdown to HTML (requires league/html-to-markdown package.'),
+      '#default_value' => TRUE,
     ];
 
     $form['wrapper']['submit'] = [
@@ -157,6 +175,24 @@ class AiAgentExplorerForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
+  }
+
+  /**
+   * Pre render to hide the token details if there are no tokens.
+   *
+   * @param array $element
+   *   The token details element.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param array $complete_form
+   *   The complete form.
+   *
+   * @return array
+   *   The modified token details element.
+   */
+  public function processTokenDetails(array $element, FormStateInterface $form_state, array &$complete_form): array {
+    $element['#access'] ??= count(Element::children($element)) > 0;
+    return $element;
   }
 
 }

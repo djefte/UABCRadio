@@ -118,8 +118,10 @@ function klaro_page_attachments_alter(array &$attachments) {
       continue;
     }
 
+    if (!isset($item['#attributes']['data-type'])) {
+      $item['#attributes']['data-type'] = $item['#attributes']['type'] ?? 'text/javascript';
+    }
     $item['#attributes']['type'] = 'text/plain';
-    $item['#attributes']['data-type'] = 'application/javascript';
     $item['#attributes']['data-name'] = $attachment_apps[$identifier];
     if (isset($item['#attributes']['src'])) {
       $item['#attributes']['data-src'] = $item['#attributes']['src'];
@@ -259,13 +261,4 @@ function klaro_preprocess_leaflet_map(&$variables) {
   $variables['attributes']['data-name'] = 'leaflet';
   $variables['attributes']['data-id'] = $variables['map_id'];
   $variables['map_id'] .= '-protected';
-}
-
-/**
- * Implements hook_update_status_alter().
- */
-function klaro_update_status_alter(&$projects) {
-  if (isset($projects['klaro']['title'])) {
-    $projects['klaro']['title'] = 'Klaro Cookie & Consent Management';
-  }
 }

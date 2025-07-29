@@ -42,7 +42,7 @@ module.exports = {
         .click('[name="modules[help][enable]"]')
         .submitForm('input[type="submit"]')
         .waitForElementVisible(
-          '.system-modules-confirm-form input[value="Continue"]',
+          '.system-modules-non-stable-confirm-form input[value="Continue"]',
         )
         .submitForm('input[value="Continue"]')
         .waitForElementVisible('.system-modules', 10000);

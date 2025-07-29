@@ -221,7 +221,7 @@ class LinkFieldTest extends WebDriverTestBase {
     $url_input = $assert_session->elementExists('css', 'input[name="field_test_link[0][uri]"]', $widget_wrapper);
     $this->assertEquals($entity2->toUrl()->toString() . '#with-anchor?search=1', $url_input->getValue());
 
-    // Test issue when linking to content with ampersands
+    // Test issue when linking to content with ampersands.
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity3 = EntityTestMul::create(['name' => 'Zip & Zap']);
     $entity3->save();

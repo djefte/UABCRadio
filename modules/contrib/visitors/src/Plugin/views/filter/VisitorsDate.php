@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\filter\Date;
 use Drupal\visitors\VisitorsDateRangeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Cache\Cache;
 
 /**
  * Filter to handle dates stored as a timestamp.
@@ -131,6 +132,17 @@ class VisitorsDate extends Date {
     /** @var \Drupal\views\Plugin\views\query\Sql $query */
     $query = $this->query;
     $query->addWhereExpression($this->options['group'], "$field $operator $a AND $b");
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheContexts() {
+    $contexts = [];
+    if ($this->value['type'] == 'global') {
+      $contexts[] = 'visitors_date_range';
+    }
+    return Cache::mergeContexts(parent::getCacheContexts(), $contexts);
   }
 
 }

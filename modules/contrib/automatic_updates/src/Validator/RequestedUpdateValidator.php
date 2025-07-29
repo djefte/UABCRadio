@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Drupal\automatic_updates\Validator;
 
 use Composer\Semver\Semver;
-use Drupal\automatic_updates\UpdateStage;
+use Drupal\automatic_updates\UpdateSandboxManager;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\package_manager\ComposerInspector;
 use Drupal\package_manager\Event\PreApplyEvent;
@@ -37,13 +37,13 @@ final class RequestedUpdateValidator implements EventSubscriberInterface {
    *   The pre-apply event.
    */
   public function checkRequestedStagedVersion(PreApplyEvent|StatusCheckEvent $event): void {
-    $stage = $event->stage;
-    if (!($stage instanceof UpdateStage) || !$stage->stageDirectoryExists()) {
+    $sandbox_manager = $event->sandboxManager;
+    if (!($sandbox_manager instanceof UpdateSandboxManager) || !$sandbox_manager->sandboxDirectoryExists()) {
       return;
     }
-    $requested_package_versions = $stage->getPackageVersions();
+    $requested_package_versions = $sandbox_manager->getPackageVersions();
     $active = $this->composerInspector->getInstalledPackagesList($this->pathLocator->getProjectRoot());
-    $staged = $this->composerInspector->getInstalledPackagesList($event->stage->getStageDirectory());
+    $staged = $this->composerInspector->getInstalledPackagesList($sandbox_manager->getSandboxDirectory());
     $changed_stage_packages = $staged->getPackagesWithDifferentVersionsIn($active)->getArrayCopy();
 
     if (empty($changed_stage_packages)) {

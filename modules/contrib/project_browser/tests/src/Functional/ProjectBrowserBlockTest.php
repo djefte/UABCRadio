@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\Functional;
 
 use Drupal\block\Entity\Block;
+use Drupal\project_browser\Plugin\Block\ProjectBrowserBlock;
 use Drupal\Tests\BrowserTestBase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests the project browser block.
  *
- * @covers \Drupal\project_browser\Plugin\Block\ProjectBrowserBlock
  * @group project_browser
  */
+#[CoversClass(ProjectBrowserBlock::class)]
+#[Group('project_browser')]
 final class ProjectBrowserBlockTest extends BrowserTestBase {
 
   /**

@@ -533,15 +533,23 @@ class WebformActions {
       $data .= "$fieldType[label]\nid: $fieldType[id]\ndescription: $fieldType[description]\n\n";
     }
 
+    $task = $fieldData['prompt'] . "\n";
+    $task .= "Take the following in to account:\n";
+    $task .= "Description: " . $fieldData['description'] . "\n";
+    $task .= "Title: " . $fieldData['title'] . "\n";
+    if (isset($fieldData['options'])) {
+      $task .= "Options: " . $fieldData['options'] . "\n";
+    }
+
     if (empty($fieldData['options'])) {
       $data = $this->agentHelper->runSubAgent('fieldType', [
         'Data' => $data,
-      ]);
+      ], $fieldData['prompt']);
     }
     else {
       $data = $this->agentHelper->runSubAgent('fieldTypeOptions', [
         'Data' => $data,
-      ]);
+      ], $fieldData['prompt']);
     }
 
     return $data[0]['field_type'] ?? "";

@@ -7,7 +7,7 @@ configure: friendlycaptcha.admin_settings_form
 dependencies:
   - captcha:captcha
 
-# Information added by Drupal.org packaging script on 2024-12-03
-version: '1.1.3'
+# Information added by Drupal.org packaging script on 2025-04-22
+version: '1.1.4'
 project: 'friendlycaptcha'
-datestamp: 1733222898
+datestamp: 1745330352

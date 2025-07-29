@@ -1,0 +1,15 @@
+media_library_importer.configuration:
+  path: '/admin/config/media/media-library-importer'
+  defaults:
+    _form: '\Drupal\media_library_importer\Form\ConfigurationForm'
+    _title: 'Configure Media Library Importer'
+  requirements:
+    _permission: 'Configure media library importer'
+
+media_library_importer.import:
+  path: '/admin/config/media/media-library-importer/import'
+  defaults:
+    _form: '\Drupal\media_library_importer\Form\ImportForm'
+    _title: 'Import files into Media Library'
+  requirements:
+    _permission: 'Import files into media library'

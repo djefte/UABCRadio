@@ -5,6 +5,7 @@ namespace Drupal\ai_agents\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\ai_agents\PluginBase\AiAgentEntityWrapper;
 use Drupal\ai_agents\PluginManager\AiAgentManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -52,6 +53,7 @@ class AiAgentsSettingsForm extends FormBase {
     $header = [
       'id' => $this->t('ID'),
       'label' => $this->t('Agent'),
+      'type' => $this->t('Type'),
       'description' => $this->t('Description'),
       'edit' => $this->t('Edit'),
     ];
@@ -59,17 +61,26 @@ class AiAgentsSettingsForm extends FormBase {
     $rows = [];
     foreach ($this->agentsManager->getDefinitions() as $id => $value) {
       $instance = $this->agentsManager->createInstance($id);
+      $url = Url::fromRoute('ai_agents.setting_form', [
+        'agent_id' => $id,
+      ]);
+      $type = 'plugin';
+      if ($instance instanceof AiAgentEntityWrapper) {
+        $url = Url::fromRoute('entity.ai_agent.edit_form', [
+          'ai_agent' => $id,
+        ]);
+        $type = 'config';
+      }
       $rows[] = [
         'id' => $id,
         'label' => $instance->agentsCapabilities()[$id]['name'],
+        'type' => $type,
         'description' => $instance->agentsCapabilities()[$id]['description'],
         'edit' => [
           'data' => [
             '#type' => 'link',
             '#title' => $this->t('Edit'),
-            '#url' => Url::fromRoute('ai_agents.setting_form', [
-              'agent_id' => $id,
-            ]),
+            '#url' => $url,
           ],
         ],
       ];

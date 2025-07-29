@@ -6,8 +6,11 @@ namespace Drupal\Tests\project_browser\Kernel;
 
 use Drupal\Component\FileSystem\FileSystem;
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\project_browser\Plugin\ProjectBrowserSource\Recipes;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Drupal\project_browser\ProjectType;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -15,8 +18,9 @@ use Symfony\Component\Finder\Finder;
  * Tests the source plugin that exposes locally installed recipes.
  *
  * @group project_browser
- * @covers \Drupal\project_browser\Plugin\ProjectBrowserSource\Recipes
  */
+#[CoversClass(Recipes::class)]
+#[Group('project_browser')]
 final class RecipesSourceTest extends KernelTestBase {
 
   /**

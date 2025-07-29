@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * The module file.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function media_library_importer_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.media_library_importer':
+      return t("
+        <h2>Media Library Importer</h2>
+        <p>A module to import media files from public directory into media library.</p>
+        <h3>Instructions</h3>
+        <ul>
+          <li>Require the module with <code>composer</code>, or unpack the code base in the *modules* folder, currently in the root of your Drupal installation.</li>
+          <li>Enable the module in '/admin/modules', or using the following drush command: <code>drush en media-library</code>;</li>
+          <li>Then, visit '/admin/config/media/media-library-importer-configuration' to configure the module;</li>
+          <li>Last, visit '/admin/config/media/media-library-importer/import' for the actual import operation;</li>
+          <li>It is possible to import Media (according to Media Library Import settings) using the following drush command  <code>drush media-library:import</code> or <code>drush mli</code> (alias);</li>
+          <li>It is possible to implement a hook_cron job and run automatic Media Library Imports (incrementally uploading new files in the same source folders locations). More info on this in the Readme.md file;</li>
+        </ul>
+        <h3>Note</h3>
+        <p>You can run import as many times as you like without occurring into duplications. Once created, Media entities will not be re-created if already existing with the same source file.</p>
+      ");
+  }
+}

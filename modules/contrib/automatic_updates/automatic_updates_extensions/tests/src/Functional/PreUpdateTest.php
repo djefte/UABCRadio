@@ -17,7 +17,7 @@ final class PreUpdateTest extends UpdaterFormTestBase {
    * Tests the form when modules requiring an update not installed via composer.
    */
   public function testNonComposerProjects(): void {
-    $this->setReleaseMetadata(__DIR__ . '/../../../../package_manager/tests/fixtures/release-history/aaa_update_test.1.1.xml');
+    $this->setReleaseMetadata(static::getDrupalRoot() . '/core/modules/package_manager/tests/fixtures/release-history/aaa_update_test.1.1.xml');
     $this->setReleaseMetadata(__DIR__ . '/../../fixtures/release-history/semver_test.1.1.xml');
     $this->config('update.settings')
       ->set('fetch.url', $this->baseUrl . '/test-release-history')

@@ -20,7 +20,7 @@ config_devel:
   - field.field.paragraph.text.field_text
   - field.storage.paragraph.field_text
 
-# Information added by Drupal.org packaging script on 2025-04-09
-version: '2.1.7'
+# Information added by Drupal.org packaging script on 2025-07-26
+version: '2.1.11'
 project: 'eca'
-datestamp: 1744191675
+datestamp: 1753534707
