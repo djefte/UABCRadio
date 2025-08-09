@@ -14,5 +14,4 @@ body::before {
   padding: 1em;
   margin-bottom: 1em;
   border-bottom: 2px solid black;
-  content: "Error: Can't find stylesheet to import.\a    \2577 \a 12 \2502  @import '../../../themes/contrib/bootstrap5/scss/style';\d\a    \2502          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\a    \2575 \a   scss\\style.scss 12:9     @import\a   scss\\ck5style.scss 2:11  root stylesheet";
 }
