@@ -28,6 +28,7 @@ final class SortHelperTest extends KernelTestBase {
     parent::setUp();
     $this->container->get(ModuleInstallerInterface::class)->install([
       'project_browser_test',
+      'user',
     ]);
   }
 

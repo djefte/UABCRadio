@@ -15,18 +15,11 @@ use Drupal\Core\Ajax\CommandInterface;
  */
 final class RefreshProjectsCommand implements CommandInterface {
 
-  public function __construct(
-    private readonly array $projects,
-  ) {}
-
   /**
    * {@inheritdoc}
    */
   public function render(): array {
-    return [
-      'command' => 'refresh_projects',
-      'projects' => $this->projects,
-    ];
+    return ['command' => 'refresh_projects'];
   }
 
 }

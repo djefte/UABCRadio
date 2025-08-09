@@ -6,9 +6,10 @@ namespace Drupal\project_browser\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -20,19 +21,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 final class LocalTaskDeriver extends DeriverBase implements ContainerDeriverInterface {
 
+  use AutowireTrait {
+    create as traitCreate;
+  }
   use StringTranslationTrait;
 
   public function __construct(
-    private readonly EnabledSourceHandler $enabledSources,
+    private readonly ProjectBrowserSourceManager $sourceManager,
   ) {}
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, $base_plugin_id): static {
-    return new static(
-      $container->get(EnabledSourceHandler::class),
-    );
+  public static function create(ContainerInterface $container, $base_plugin_id): self {
+    return self::traitCreate($container);
   }
 
   /**
@@ -40,7 +42,7 @@ final class LocalTaskDeriver extends DeriverBase implements ContainerDeriverInte
    */
   public function getDerivativeDefinitions($base_plugin_definition) {
     $i = 5;
-    foreach ($this->enabledSources->getCurrentSources() as $source) {
+    foreach ($this->sourceManager->getAllEnabledSources() as $source) {
       $source_definition = $source->getPluginDefinition();
 
       if (isset($source_definition['local_task'])) {

@@ -23,6 +23,7 @@ final class DatabaseTablesTest extends KernelTestBase {
   protected static $modules = [
     'project_browser',
     'project_browser_test',
+    'user',
   ];
 
   /**

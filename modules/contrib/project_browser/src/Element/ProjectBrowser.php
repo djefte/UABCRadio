@@ -192,8 +192,8 @@ final class ProjectBrowser extends RenderElementBase implements ContainerFactory
       'module_path' => $this->moduleHandler->getModule('project_browser')->getPath(),
       'default_plugin_id' => $source->getPluginId(),
       'package_manager' => $global_settings->get('allow_ui_install') && $this->moduleHandler->moduleExists('package_manager'),
-      'max_selections' => $global_settings->get('max_selections') ?? NULL,
-      'current_path' => '/' . $this->currentPath->getPath(),
+      'maxSelections' => $global_settings->get('max_selections') ?? NULL,
+      'currentPath' => '/' . $this->currentPath->getPath(),
       'instances' => [
         $element['#id'] => [
           'source' => $source->getPluginId(),

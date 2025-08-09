@@ -2,6 +2,7 @@
 
 namespace Drupal\project_browser\Plugin;
 
+use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\project_browser\ProjectBrowser\ProjectsResultsPage;
 
@@ -16,7 +17,7 @@ use Drupal\project_browser\ProjectBrowser\ProjectsResultsPage;
  *   This interface is covered by our backwards compatibility promise and can
  *   be safely relied upon.
  */
-interface ProjectBrowserSourceInterface extends PluginInspectionInterface {
+interface ProjectBrowserSourceInterface extends PluginInspectionInterface, ConfigurableInterface {
 
   /**
    * Gets all the projects available from this source.

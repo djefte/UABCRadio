@@ -8,7 +8,9 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Extension\ModuleInstallerInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+use Drupal\project_browser\Activator\ActivationStatus;
 use Drupal\project_browser\Controller\InstallerController;
+use Drupal\project_browser\ProjectBrowser\Project;
 use Drupal\Tests\ApiRequestTrait;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\project_browser\Traits\PackageManagerFixtureUtilityTrait;
@@ -21,14 +23,12 @@ use Drupal\package_manager\Event\PreRequireEvent;
 use Drupal\package_manager\ValidationResult;
 use Drupal\package_manager_test_validation\EventSubscriber\TestSubscriber;
 use Drupal\project_browser\ComposerInstaller\Installer;
-use Drupal\project_browser\EnabledSourceHandler;
-use Drupal\project_browser\InstallState;
+use Drupal\project_browser\QueryManager;
+use Drupal\project_browser\InstallProgress;
 use GuzzleHttp\RequestOptions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Http\Message\ResponseInterface;
-
-// cspell:ignore crashmore
 
 /**
  * Tests the installer controller.
@@ -43,11 +43,9 @@ final class InstallerControllerTest extends BrowserTestBase {
   use ApiRequestTrait;
 
   /**
-   * A stage id.
-   *
-   * @var string
+   * A sandbox ID.
    */
-  protected $stageId;
+  protected string $sandboxId;
 
   /**
    * The installer.
@@ -151,12 +149,15 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->installer = $installer;
     $this->drupalLogin($this->drupalCreateUser(['administer modules']));
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['project_browser_test_mock', 'drupal_core'])
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+        'drupal_core' => [],
+      ])
       ->set('allow_ui_install', TRUE)
       ->save();
 
     // Prime the non-volatile cache.
-    $this->container->get(EnabledSourceHandler::class)->getProjects('project_browser_test_mock');
+    $this->container->get(QueryManager::class)->getProjects('project_browser_test_mock');
   }
 
   /**
@@ -177,15 +178,13 @@ final class InstallerControllerTest extends BrowserTestBase {
    * @legacy-covers ::require
    */
   public function testInstallAlreadyPresentPackage(): void {
-    $install_state = $this->container->get(InstallState::class)->toArray();
-    $this->assertSame([], $install_state);
     // Though core is not available as a choice in project browser, it works
     // well for the purposes of this test as it's definitely already added
     // via composer.
     $contents = $this->drupalGet('admin/modules/project_browser/install-begin');
-    $this->stageId = Json::decode($contents)['stage_id'];
+    $this->sandboxId = Json::decode($contents)['sandboxId'];
     $response = $this->getPostResponse(
-      Url::fromRoute('project_browser.stage.require', ['stage_id' => $this->stageId]),
+      Url::fromRoute('project_browser.stage.require', ['sandbox_id' => $this->sandboxId]),
       ['project_browser_test_mock/core'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
@@ -198,13 +197,10 @@ final class InstallerControllerTest extends BrowserTestBase {
    * @legacy-covers ::begin
    */
   private function doStart(): void {
-    $install_state = $this->container->get(InstallState::class)->toArray();
-    $this->assertSame([], $install_state);
-    $contents = $this->drupalGet('admin/modules/project_browser/install-begin');
-    $this->stageId = Json::decode($contents)['stage_id'];
+    $contents = Json::decode($this->drupalGet('admin/modules/project_browser/install-begin'));
     $this->assertSession()->statusCodeEquals(200);
-    $expected_output = sprintf('{"phase":"create","status":0,"stage_id":"%s"}', $this->stageId);
-    $this->assertSame($expected_output, $this->getSession()->getPage()->getContent());
+    $this->sandboxId = $contents['sandboxId'];
+    $this->assertNotEmpty($contents['progress']);
   }
 
   /**
@@ -214,12 +210,13 @@ final class InstallerControllerTest extends BrowserTestBase {
    */
   private function doRequire(): void {
     $response = $this->getPostResponse(
-      Url::fromRoute('project_browser.stage.require', ['stage_id' => $this->stageId]),
+      Url::fromRoute('project_browser.stage.require', ['sandbox_id' => $this->sandboxId]),
       ['project_browser_test_mock/awesome_module'],
     );
-    $expected_output = sprintf('{"phase":"require","status":0,"stage_id":"%s"}', $this->stageId);
-    $this->assertSame($expected_output, (string) $response->getBody());
-    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', 'requiring');
+    $contents = Json::decode((string) $response->getBody());
+    $this->assertSame($this->sandboxId, $contents['sandboxId']);
+    $this->assertNotEmpty($contents['progress']);
+    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', ActivationStatus::Absent);
   }
 
   /**
@@ -228,10 +225,10 @@ final class InstallerControllerTest extends BrowserTestBase {
    * @legacy-covers ::apply
    */
   private function doApply(): void {
-    $this->drupalGet("/admin/modules/project_browser/install-apply/$this->stageId");
-    $expected_output = sprintf('{"phase":"apply","status":0,"stage_id":"%s"}', $this->stageId);
-    $this->assertSame($expected_output, $this->getSession()->getPage()->getContent());
-    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', 'applying');
+    $contents = Json::decode($this->drupalGet("/admin/modules/project_browser/install-apply/$this->sandboxId"));
+    $this->assertSame($this->sandboxId, $contents['sandboxId']);
+    $this->assertNotEmpty($contents['progress']);
+    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', ActivationStatus::Present);
   }
 
   /**
@@ -240,10 +237,10 @@ final class InstallerControllerTest extends BrowserTestBase {
    * @legacy-covers ::postApply
    */
   private function doPostApply(): void {
-    $this->drupalGet("/admin/modules/project_browser/install-post_apply/$this->stageId");
-    $expected_output = sprintf('{"phase":"post apply","status":0,"stage_id":"%s"}', $this->stageId);
-    $this->assertSame($expected_output, $this->getSession()->getPage()->getContent());
-    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', 'applying');
+    $contents = Json::decode($this->drupalGet("/admin/modules/project_browser/install-post_apply/$this->sandboxId"));
+    $this->assertSame($this->sandboxId, $contents['sandboxId']);
+    $this->assertNotEmpty($contents['progress']);
+    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', ActivationStatus::Present);
   }
 
   /**
@@ -252,10 +249,10 @@ final class InstallerControllerTest extends BrowserTestBase {
    * @legacy-covers ::destroy
    */
   private function doDestroy(): void {
-    $this->drupalGet("/admin/modules/project_browser/install-destroy/$this->stageId");
-    $expected_output = sprintf('{"phase":"destroy","status":0,"stage_id":"%s"}', $this->stageId);
-    $this->assertSame($expected_output, $this->getSession()->getPage()->getContent());
-    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', 'applying');
+    $contents = Json::decode($this->drupalGet("/admin/modules/project_browser/install-destroy/$this->sandboxId"));
+    $this->assertSame($this->sandboxId, $contents['sandboxId']);
+    $this->assertNotEmpty($contents['progress']);
+    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', ActivationStatus::Present);
   }
 
   /**
@@ -320,7 +317,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->doStart();
     TestSubscriber::setTestResult([$result], PreRequireEvent::class);
     $response = $this->getPostResponse(
-      Url::fromRoute('project_browser.stage.require', ['stage_id' => $this->stageId]),
+      Url::fromRoute('project_browser.stage.require', ['sandbox_id' => $this->sandboxId]),
       ['project_browser_test_mock/awesome_module'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
@@ -337,7 +334,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     TestSubscriber::setException($error, PreRequireEvent::class);
     $this->doStart();
     $response = $this->getPostResponse(
-      Url::fromRoute('project_browser.stage.require', ['stage_id' => $this->stageId]),
+      Url::fromRoute('project_browser.stage.require', ['sandbox_id' => $this->sandboxId]),
       ['project_browser_test_mock/awesome_module'],
     );
     $this->assertSame(500, (int) $response->getStatusCode());
@@ -354,10 +351,10 @@ final class InstallerControllerTest extends BrowserTestBase {
     TestSubscriber::setException($error, PostRequireEvent::class);
     $this->doStart();
     $response = $this->getPostResponse(
-      Url::fromRoute('project_browser.stage.require', ['stage_id' => $this->stageId]),
+      Url::fromRoute('project_browser.stage.require', ['sandbox_id' => $this->sandboxId]),
       ['project_browser_test_mock/awesome_module'],
     );
-    $this->assertSame(500, (int) $response->getStatusCode());
+    $this->assertSame(500, $response->getStatusCode());
     $this->assertSame('{"message":"SandboxEventException: PostRequire did not go well.","phase":"require"}', (string) $response->getBody());
   }
 
@@ -372,7 +369,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     TestSubscriber::setTestResult([$result], PreApplyEvent::class);
     $this->doStart();
     $this->doRequire();
-    $contents = $this->drupalGet("/admin/modules/project_browser/install-apply/$this->stageId");
+    $contents = $this->drupalGet("/admin/modules/project_browser/install-apply/$this->sandboxId");
     $this->assertSession()->statusCodeEquals(500);
     $this->assertSame('{"message":"SandboxEventException: This is a PreApply error.\n","phase":"apply"}', $contents);
   }
@@ -387,7 +384,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     TestSubscriber::setException($error, PreApplyEvent::class);
     $this->doStart();
     $this->doRequire();
-    $contents = $this->drupalGet("/admin/modules/project_browser/install-apply/$this->stageId");
+    $contents = $this->drupalGet("/admin/modules/project_browser/install-apply/$this->sandboxId");
     $this->assertSession()->statusCodeEquals(500);
     $this->assertSame('{"message":"SandboxEventException: PreApply did not go well.","phase":"apply"}', $contents);
   }
@@ -403,7 +400,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->doStart();
     $this->doRequire();
     $this->doApply();
-    $contents = $this->drupalGet("/admin/modules/project_browser/install-post_apply/$this->stageId");
+    $contents = $this->drupalGet("/admin/modules/project_browser/install-post_apply/$this->sandboxId");
     $this->assertSession()->statusCodeEquals(500);
     $this->assertSame('{"message":"SandboxEventException: PostApply did not go well.","phase":"post apply"}', $contents);
   }
@@ -447,7 +444,7 @@ final class InstallerControllerTest extends BrowserTestBase {
     $response = $this->drupalGet('admin/modules/project_browser/install-begin', $request_options);
     $this->assertSession()->statusCodeEquals(418);
     $assert_unlock_response($response, "The process for adding the project that was locked less than a minute ago might still be in progress. Consider waiting a few more minutes before using [+unlock link].");
-    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', 'requiring');
+    $this->assertInstallInProgress('project_browser_test_mock/awesome_module', ActivationStatus::Absent);
     $this->assertFalse($this->installer->isAvailable());
     $this->assertFalse($this->installer->isApplying());
 
@@ -492,7 +489,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   /**
    * Confirms the break lock link is available and works.
    *
-   * The break lock link is not available once the stage is applying.
+   * The break lock link is not available once the sandbox is applying.
    *
    * @legacy-covers ::unlock
    */
@@ -523,13 +520,13 @@ final class InstallerControllerTest extends BrowserTestBase {
   }
 
   /**
-   * Confirms stage can be unlocked despite a missing Project Browser lock.
+   * Confirms sandbox can be unlocked despite a missing Project Browser lock.
    *
    * @legacy-covers ::unlock
    */
-  public function testCanBreakStageWithMissingProjectBrowserLock(): void {
+  public function testCanUnlockSandboxWithMissingProjectBrowserLock(): void {
     $this->doStart();
-    $this->container->get(InstallState::class)->deleteAll();
+    $this->container->get(InstallProgress::class)->clear();
     $content = $this->drupalGet('admin/modules/project_browser/install-begin', [
       'query' => [
         'redirect' => Url::fromRoute('project_browser.browse')
@@ -560,7 +557,7 @@ final class InstallerControllerTest extends BrowserTestBase {
   public function testActivate(): void {
     // Data for another source is cached in setUp, so we explicitly pass the
     // query parameter in getProjects() to ensure it uses the correct source.
-    $this->container->get(EnabledSourceHandler::class)->getProjects('drupal_core', ['source' => 'drupal_core']);
+    $this->container->get(QueryManager::class)->getProjects('drupal_core', ['source' => 'drupal_core']);
     $assert_session = $this->assertSession();
 
     $this->drupalGet('admin/modules');
@@ -588,14 +585,16 @@ final class InstallerControllerTest extends BrowserTestBase {
    *
    * @param string $project_id
    *   The ID of the project being enabled.
-   * @param string|null $expected_status
+   * @param \Drupal\project_browser\Activator\ActivationStatus $expected_status
    *   The install state.
    */
-  protected function assertInstallInProgress(string $project_id, ?string $expected_status = NULL): void {
-    $this->assertSame(
-      $expected_status,
-      $this->container->get(InstallState::class)->getStatus($project_id),
-    );
+  protected function assertInstallInProgress(string $project_id, ActivationStatus $expected_status): void {
+    $status = $this->container->get('keyvalue')
+      ->get('project_browser.install_progress')
+      ->get(Project::normalizeId($project_id));
+
+    $this->assertIsArray($status);
+    $this->assertSame($expected_status->value, $status[1]);
   }
 
   /**
@@ -657,34 +656,6 @@ final class InstallerControllerTest extends BrowserTestBase {
     $this->drupalGet('/project-browser/uninstall/field');
     $assert_session->statusCodeEquals(200);
     $assert_session->statusMessageContains('Field cannot be uninstalled because the following module(s) depend on it and must be uninstalled first: Field UI, Text', 'error');
-  }
-
-  /**
-   * Tests activating multiple core modules in a single request.
-   */
-  public function testActivateMultipleModules(): void {
-    $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['drupal_core'])
-      ->save();
-
-    // Prime the project cache.
-    $this->container->get(EnabledSourceHandler::class)
-      ->getProjects('drupal_core');
-
-    $response = $this->drupalGet(
-      Url::fromRoute('project_browser.activate'),
-      [
-        'query' => [
-          'projects' => implode(',', [
-            'drupal_core/language',
-            'drupal_core/content_translation',
-            'drupal_core/locale',
-          ]),
-        ],
-      ],
-    );
-    $this->assertSession()->statusCodeEquals(200);
-    $this->assertSame(3, substr_count($response, '"status":"active"'));
   }
 
 }

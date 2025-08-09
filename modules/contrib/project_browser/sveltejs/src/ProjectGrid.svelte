@@ -7,10 +7,10 @@
 
 <script>
   import { getContext } from 'svelte';
-  import { PACKAGE_MANAGER, MAX_SELECTIONS } from './constants';
+  import { PACKAGE_MANAGER } from './constants';
+  import InstallationManager from './InstallListProcessor';
 
   const { Drupal } = window;
-  const processMultipleProjects = MAX_SELECTIONS === null || MAX_SELECTIONS > 1;
   const pageSize = getContext('pageSize');
   const mediaQueryValues = getContext('mediaQueryValues');
 
@@ -49,7 +49,7 @@
       >
         <slot rows={visibleRows} />
       </ul>
-      {#if PACKAGE_MANAGER && processMultipleProjects}
+      {#if PACKAGE_MANAGER && InstallationManager.multiple}
         <ProcessInstallListButton />
       {/if}
     {/if}

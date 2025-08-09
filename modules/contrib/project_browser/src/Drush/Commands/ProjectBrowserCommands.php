@@ -2,7 +2,7 @@
 
 namespace Drupal\project_browser\Drush\Commands;
 
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\ProjectRepository;
 use Drush\Attributes\Command;
 use Drush\Attributes\Usage;
 use Drush\Commands\AutowireTrait;
@@ -20,7 +20,7 @@ final class ProjectBrowserCommands extends DrushCommands {
   use AutowireTrait;
 
   public function __construct(
-    private readonly EnabledSourceHandler $enabledSourceHandler,
+    private readonly ProjectRepository $projectRepository,
   ) {
     parent::__construct();
   }
@@ -31,7 +31,7 @@ final class ProjectBrowserCommands extends DrushCommands {
   #[Command(name: 'project-browser:storage-clear', aliases: ['pb-sc'])]
   #[Usage(name: 'project-browser:storage-clear', description: 'Clear stored Project Browser data')]
   public function storageClear(): void {
-    $this->enabledSourceHandler->clearStorage();
+    $this->projectRepository->clearAll();
     $this->logger()?->success(dt('Stored data from Project Browser sources have been cleared.'));
   }
 

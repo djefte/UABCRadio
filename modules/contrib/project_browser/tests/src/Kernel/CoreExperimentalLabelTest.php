@@ -25,6 +25,7 @@ final class CoreExperimentalLabelTest extends KernelTestBase {
    */
   protected static $modules = [
     'project_browser',
+    'user',
   ];
 
   /**

@@ -40,7 +40,10 @@ final class ProjectBrowserPluginTest extends WebDriverTestBase {
       'administer site configuration',
     ]));
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['drupal_core', 'project_browser_test_mock'])
+      ->set('enabled_sources', [
+        'drupal_core' => [],
+        'project_browser_test_mock' => [],
+      ])
       ->save();
   }
 

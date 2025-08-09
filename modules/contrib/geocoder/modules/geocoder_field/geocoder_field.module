@@ -163,6 +163,12 @@ function geocoder_field_entity_presave(EntityInterface $entity) {
   if (!$entity instanceof ContentEntityInterface) {
     return;
   }
+  // Check if the $entity is being saved by the geocoder queue, and skip every
+  // further processing in that case.
+  $cache = &drupal_static('geocoder_queued_entity:' . $entity->getEntityTypeId() . ':' . $entity->uuid(), FALSE);
+  if ($cache) {
+    return;
+  }
 
   // Skip any action if requested.
   $geocoder_config = \Drupal::configFactory()->get('geocoder.settings');
@@ -269,7 +275,7 @@ function _geocoder_field_process(EntityInterface $entity, array $fields): bool {
 
     // Skip Geocode/Reverse Geocode op if so requested for not empty value.
     if (isset($geocoder['skip_not_empty_value']) && $geocoder['skip_not_empty_value'] && !$default_values->isEmpty()) {
-      return FALSE;
+      continue;
     }
 
     foreach ($remote_field->getValue() as $delta => $value) {

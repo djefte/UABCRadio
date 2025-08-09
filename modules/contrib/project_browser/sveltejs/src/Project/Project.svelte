@@ -4,13 +4,12 @@
   export let toggleView;
   import { getContext } from 'svelte';
   import ProjectButtonBase from './ProjectButtonBase.svelte';
-  import { openPopup } from '../popup';
   import DetailModal from '../DetailModal.svelte';
   import ActionButton from './ActionButton.svelte';
   import Image from './Image.svelte';
   import Categories from './Categories.svelte';
   import ProjectIcon from './ProjectIcon.svelte';
-  import { numberFormatter } from '../util';
+  import { numberFormatter, openPopup } from '../util';
 
   const { Drupal } = window;
   const focusedElement = getContext('focusedElement');
@@ -27,7 +26,11 @@
 <!-- The data-project-id attribute allows tests to target this project precisely. -->
 <li class="pb-project pb-project--{displayMode}" data-project-id={project.id}>
   <div class="pb-project__logo pb-project__logo--{displayMode}">
-    <Image sources={project.logo} class="pb-project__logo-image" />
+    <Image
+      sources={project.logo}
+      projectSource={project.source}
+      class="pb-project__logo-image"
+    />
   </div>
   <div class="pb-project__main pb-project__main--{displayMode}">
     <h3
@@ -47,7 +50,7 @@
               target: modalDialog,
               props: { project },
             }))();
-          openPopup(modalDialog, project);
+          openPopup(modalDialog, project.title);
         }}
       >
         {project.title}

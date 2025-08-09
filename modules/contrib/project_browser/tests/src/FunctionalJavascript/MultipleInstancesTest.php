@@ -6,6 +6,7 @@ namespace Drupal\Tests\project_browser\FunctionalJavascript;
 
 use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
+use Drupal\Component\Serialization\Yaml;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\project_browser_test\TestActivator;
 use PHPUnit\Framework\Attributes\Group;
@@ -24,6 +25,7 @@ final class MultipleInstancesTest extends WebDriverTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
+    'block',
     'package_manager',
     'project_browser_test',
   ];
@@ -385,6 +387,54 @@ final class MultipleInstancesTest extends WebDriverTestBase {
       $this->getProjectNames($this->instances[1]),
       'Last page project list is different from second page of first instance.'
     );
+  }
+
+  /**
+   * Tests that module installation is reflected across sources.
+   */
+  public function testActivationStatusIsSharedAcrossSources(): void {
+    // Enable two sources, `drupal_core`, and `recommended`, which should read
+    // from a list that contains a single core module that will get installed as
+    // a dependency of one from the other source.
+    $recommended_list = $this->tempFilesDirectory . '/recommended.yml';
+    file_put_contents($recommended_list, Yaml::encode([
+      [
+        'title' => 'Field (recommended)',
+        'type' => 'module',
+        'logo' => NULL,
+        'core' => '*',
+        'machineName' => 'field',
+        'body' => ['summary' => 'The core Field module.'],
+        'packageName' => 'drupal/core',
+      ],
+    ]));
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [
+        'drupal_core' => [
+          'order' => ['field_ui', 'field'],
+        ],
+        'recommended' => [
+          'uri' => realpath($recommended_list),
+        ],
+      ])
+      ->set('max_selections', 1)
+      ->save();
+
+    // Place blocks with both sources.
+    $this->drupalPlaceBlock('project_browser_block:drupal_core');
+    $this->drupalPlaceBlock('project_browser_block:recommended');
+    $this->drupalGet('<front>');
+
+    $field_ui = $this->waitForProject('Field UI');
+    $field_ui->pressButton('Install Field UI');
+    $this->waitForProjectToBeInstalled($field_ui);
+
+    // As a result of this, the Field module should be installed across both
+    // sources that show it.
+    $core_project = $this->assertElementIsVisible('css', '[data-project-id="drupal_core/field"]');
+    $this->waitForProjectToBeInstalled($core_project);
+    $recommended_project = $this->assertElementIsVisible('css', '[data-project-id="recommended/drupal-core-field"]');
+    $this->waitForProjectToBeInstalled($recommended_project);
   }
 
   /**

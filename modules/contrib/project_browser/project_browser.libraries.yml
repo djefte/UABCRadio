@@ -8,11 +8,9 @@ app:
       sveltejs/css/claro.css: {}
   dependencies:
     - core/drupalSettings
-    - core/drupal
-    - core/drupal.ajax
+    - core/drupal.dialog.ajax
     - core/drupal.announce
     - core/drupal.debounce
-    - core/drupal.dialog
     - core/drupal.dropbutton
     - core/drupal.message
     - core/once

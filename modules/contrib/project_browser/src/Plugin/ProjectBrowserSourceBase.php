@@ -2,6 +2,7 @@
 
 namespace Drupal\project_browser\Plugin;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\project_browser\ProjectBrowser\ProjectsResultsPage;
@@ -13,11 +14,44 @@ use Drupal\project_browser\ProjectBrowser\ProjectsResultsPage;
  * @see \Drupal\project_browser\Plugin\ProjectBrowserSourceManager
  * @see plugin_api
  *
+ * @todo Use ConfigurablePluginBase when Drupal 11.3 is the oldest supported
+ *   version of core.
+ *
  * @api
  *   This class is covered by our backwards compatibility promise and can be
  *   safely relied upon.
  */
 abstract class ProjectBrowserSourceBase extends PluginBase implements ProjectBrowserSourceInterface, ContainerFactoryPluginInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->setConfiguration($configuration);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration(): array {
+    return $this->configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConfiguration(array $configuration): static {
+    $this->configuration = NestedArray::mergeDeepArray([$this->defaultConfiguration(), $configuration], TRUE);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    return [];
+  }
 
   /**
    * {@inheritdoc}

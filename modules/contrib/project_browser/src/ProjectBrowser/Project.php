@@ -43,7 +43,7 @@ final class Project {
    *   Value of project_machine_name of the project.
    * @param array $body
    *   Body field of the project in array format.
-   * @param string $title
+   * @param string|\Stringable $title
    *   Title of the project.
    * @param string $packageName
    *   The Composer package name of this project, e.g. `drupal/project_browser`.
@@ -79,7 +79,7 @@ final class Project {
     public bool $isCompatible,
     public string $machineName,
     private array $body,
-    public string $title,
+    public string|\Stringable $title,
     public string $packageName,
     public ?int $projectUsageTotal = NULL,
     public ?bool $isCovered = NULL,

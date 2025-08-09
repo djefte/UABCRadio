@@ -6,7 +6,7 @@ namespace Drupal\project_browser\Routing;
 
 use Drupal\Core\Routing\EnhancerInterface;
 use Drupal\Core\Routing\RouteObjectInterface;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\ProjectRepository;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -37,7 +37,7 @@ use Symfony\Component\HttpFoundation\Request;
 final class ProjectEnhancer implements EnhancerInterface {
 
   public function __construct(
-    private readonly EnabledSourceHandler $enabledSources,
+    private readonly ProjectRepository $projectRepository,
   ) {}
 
   /**
@@ -53,9 +53,9 @@ final class ProjectEnhancer implements EnhancerInterface {
         [$source_id, $local_id] = $parameters[$name]['project_browser.project'];
 
         if (array_key_exists($source_id, $defaults) && array_key_exists($local_id, $defaults)) {
-          // @see \Drupal\project_browser\EnabledSourceHandler::getProjects()
+          // @see \Drupal\project_browser\ProjectRepository::get()
           $id = $defaults[$source_id] . '/' . $defaults[$local_id];
-          $defaults[$name] = $this->enabledSources->getStoredProject($id);
+          $defaults[$name] = $this->projectRepository->get($id);
         }
       }
     }

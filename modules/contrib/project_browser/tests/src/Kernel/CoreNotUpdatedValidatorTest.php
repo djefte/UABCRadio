@@ -27,7 +27,7 @@ final class CoreNotUpdatedValidatorTest extends PackageManagerKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['project_browser'];
+  protected static $modules = ['project_browser', 'user'];
 
   /**
    * {@inheritdoc}

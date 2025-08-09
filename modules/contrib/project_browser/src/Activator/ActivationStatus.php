@@ -11,13 +11,13 @@ namespace Drupal\project_browser\Activator;
  *   This enum is covered by our backwards compatibility promise and can be
  *   safely relied upon.
  */
-enum ActivationStatus {
+enum ActivationStatus: string {
 
   // Not physically present, but can be required and activated.
-  case Absent;
+  case Absent = 'absent';
   // Physically present, but not yet activated.
-  case Present;
+  case Present = 'present';
   // Physically present and activated.
-  case Active;
+  case Active = 'active';
 
 }

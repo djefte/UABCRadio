@@ -70,44 +70,52 @@ Drupal.behaviors.editoria11yAdmin = {
                                 if (data.message === 'error') {
                                     handleErrors(data);
                                 } else {
-                                    hidables?.forEach(el => {
-                                        el.setAttribute('hidden', true);
-                                    })
                                     messages.add('Deleted.', {type: 'status'});
                                 };
                             })
                     }
                 }
 
+                // Responsive tables: drupal.org/project/editoria11y/issues/3536720.
+                const deSaw = (el) => {
+                  const inner = el.querySelector('.tablesaw-cell-content');
+                  return inner ? inner.textContent.trim() : el.textContent.trim();
+                }
+
                 if (!!resetPath) {
                     let purgeThisPage = function (event) {
                         event.preventDefault;
                         let data = {
-                            page_path: event.target.querySelector('.ed11y-api-path')?.textContent.trim(),
+                            page_path: deSaw( event.target.querySelector('.ed11y-api-path') )
                         };
                         hidables = document.querySelectorAll('.view-editoria11y-results td');
-                        postData(data, 'page', hidables);
+                        hidables?.forEach(el => {
+                          el.parentElement.removeChild(el);
+                        })
+                        postData(data, 'page', hidables).then();
                     }
                     resetPath.removeAttribute('hidden');
                     resetPath.querySelector('a')?.addEventListener('click', purgeThisPage);
                 } else if (!!resetDismissal) {
-                    let purgeThisDismissal = function (event) {
+                    let purgeThisDismissal = async function (event) {
                         event.preventDefault;
                         let tr = event.target.closest('tr');
-                        let pagePath = event.target.querySelector('.ed11y-api-path')?.textContent.trim();
-                        let resultName = tr.querySelector('.ed11y-api-result-name').textContent.trim();
-                        let marked = tr.querySelector('.ed11y-api-marked').textContent.trim();
-                        let by = event.target.querySelector('.ed11y-api-by').textContent.trim();
+                        let pagePath = deSaw( event.target.querySelector('.ed11y-api-path') );
+                        let resultName = deSaw( tr.querySelector('.ed11y-api-result-name') );
+                        let marked = deSaw( tr.querySelector('.ed11y-api-marked') );
+                        let by = deSaw ( event.target.querySelector('.ed11y-api-by') );
                         let data = {
                             page_path: pagePath,
                             result_name: resultName,
                             marked: marked,
                             by: by
                         };
-                        hidables = tr.querySelectorAll('td');
-                        postData(data, 'dismissal');
                         let previous = tr.previousElementSibling;
+                        postData(data, 'dismissal', hidables).then();
                         previous?.querySelector('a')?.focus();
+                        window.setTimeout((tr)=> {
+                          tr.parentElement.removeChild( tr );
+                        }, 0, tr);
                     }
                     resetDismissal.forEach(el => { el.addEventListener('click', purgeThisDismissal) });
                 }

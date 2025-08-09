@@ -45,9 +45,9 @@ final class CoreNotUpdatedValidator implements EventSubscriberInterface {
       return;
     }
     $active_dir = $this->pathLocator->getProjectRoot();
-    $stage_dir = $sandbox_manager->getSandboxDirectory();
+    $sandbox_dir = $sandbox_manager->getSandboxDirectory();
     $active_packages = $this->composerInspector->getInstalledPackagesList($active_dir);
-    $staged_packages = $this->composerInspector->getInstalledPackagesList($stage_dir);
+    $staged_packages = $this->composerInspector->getInstalledPackagesList($sandbox_dir);
     $updated_packages = $staged_packages->getPackagesWithDifferentVersionsIn($active_packages);
 
     if (isset($updated_packages['drupal/core'])) {

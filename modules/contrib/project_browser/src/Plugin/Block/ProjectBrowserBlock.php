@@ -12,9 +12,9 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\ElementInfoManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\Plugin\Derivative\BlockDeriver;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceInterface;
+use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Drupal\project_browser\ProjectBrowser\Filter\FilterBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -43,12 +43,12 @@ final class ProjectBrowserBlock extends BlockBase implements ContainerFactoryPlu
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    EnabledSourceHandler $enabledSources,
+    ProjectBrowserSourceManager $sourceManager,
     private readonly ElementInfoManagerInterface $elementInfo,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $source_id = $this->getDerivativeId();
-    $this->source = $enabledSources->getCurrentSources()[$source_id];
+    $this->source = $sourceManager->getAllEnabledSources()[$source_id];
   }
 
   /**
@@ -59,7 +59,7 @@ final class ProjectBrowserBlock extends BlockBase implements ContainerFactoryPlu
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get(EnabledSourceHandler::class),
+      $container->get(ProjectBrowserSourceManager::class),
       $container->get(ElementInfoManagerInterface::class),
     );
   }
@@ -179,12 +179,6 @@ final class ProjectBrowserBlock extends BlockBase implements ContainerFactoryPlu
     $source = $this->getDerivativeId();
     assert(is_string($source));
 
-    $configuration = $this->getConfiguration();
-    // Allow preview mode to be simulated in tests.
-    if (drupal_valid_test_ua() && array_key_exists('simulate_preview', $configuration)) {
-      $this->inPreview = $configuration['simulate_preview'];
-    }
-
     // We don't want to actually load the project browser in preview mode.
     if ($this->inPreview) {
       return [
@@ -196,6 +190,7 @@ final class ProjectBrowserBlock extends BlockBase implements ContainerFactoryPlu
       ];
     }
 
+    $configuration = $this->getConfiguration();
     if (isset($configuration['sort_options'])) {
       // Only show the sort options that are allowed by our configuration.
       $sort_options = array_intersect_key(
@@ -224,7 +219,10 @@ final class ProjectBrowserBlock extends BlockBase implements ContainerFactoryPlu
       '#source' => $this->source,
       '#cache' => [
         'tags' => [
-          $this->getBaseId(),
+          // This cache tag ensures that when query data for a specific source
+          // is invalidated, this block will be too.
+          // @see \Drupal\project_browser\QueryManager::getProjects()
+          'project_browser:' . $this->getDerivativeId(),
         ],
       ],
       '#paginate' => $configuration['paginate'],

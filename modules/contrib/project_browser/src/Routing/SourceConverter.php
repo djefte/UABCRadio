@@ -3,8 +3,8 @@
 namespace Drupal\project_browser\Routing;
 
 use Drupal\Core\ParamConverter\ParamConverterInterface;
-use Drupal\project_browser\EnabledSourceHandler;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceInterface;
+use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -17,14 +17,17 @@ use Symfony\Component\Routing\Route;
 final class SourceConverter implements ParamConverterInterface {
 
   public function __construct(
-    private readonly EnabledSourceHandler $enabledSources,
+    private readonly ProjectBrowserSourceManager $sourceManager,
   ) {}
 
   /**
    * {@inheritdoc}
    */
   public function convert($value, $definition, $name, array $defaults): ?ProjectBrowserSourceInterface {
-    return $this->enabledSources->getCurrentSources()[$value] ?? NULL;
+    if ($value) {
+      return $this->sourceManager->getAllEnabledSources()[$value] ?? NULL;
+    }
+    return NULL;
   }
 
   /**

@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Alters site settings so core's Package Manager can be installed in the UI.
+ * Alters site settings to enable Project Browser testing.
  */
 final class SettingsSubscriber implements EventSubscriberInterface {
 
@@ -18,16 +18,19 @@ final class SettingsSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents(): array {
     return [
-      KernelEvents::REQUEST => 'makePackageManagerInstallable',
+      KernelEvents::REQUEST => 'prepareForTesting',
     ];
   }
 
   /**
-   * Adjusts settings so Package Manager can be installed.
+   * Adjusts settings to facilitate testing.
    */
-  public function makePackageManagerInstallable(): void {
+  public function prepareForTesting(): void {
     $settings = Settings::getAll();
+    // Make Package Manager installable in the UI.
     $settings['testing_package_manager'] = TRUE;
+    // Allow certain source plugins to scan for test recipes and modules.
+    $settings['extension_discovery_scan_tests'] = TRUE;
     new Settings($settings);
   }
 

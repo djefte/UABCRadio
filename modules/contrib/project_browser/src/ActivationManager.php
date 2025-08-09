@@ -7,6 +7,7 @@ namespace Drupal\project_browser;
 use Drupal\project_browser\Activator\ActivationStatus;
 use Drupal\project_browser\Activator\ActivatorInterface;
 use Drupal\project_browser\ProjectBrowser\Project;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
  * A generalized activator that can handle any type of project.
@@ -20,25 +21,9 @@ use Drupal\project_browser\ProjectBrowser\Project;
  */
 final class ActivationManager {
 
-  /**
-   * The registered activators.
-   *
-   * @var \Drupal\project_browser\Activator\ActivatorInterface[]
-   */
-  private array $activators = [];
-
-  /**
-   * Registers an activator.
-   *
-   * @param \Drupal\project_browser\Activator\ActivatorInterface $activator
-   *   The activator to register.
-   */
-  public function addActivator(ActivatorInterface $activator): void {
-    if (in_array($activator, $this->activators, TRUE)) {
-      return;
-    }
-    $this->activators[] = $activator;
-  }
+  public function __construct(
+    #[AutowireIterator('project_browser.activator')] private readonly \Traversable $activators,
+  ) {}
 
   /**
    * Determines if a particular project is activated on the current site.
@@ -75,17 +60,44 @@ final class ActivationManager {
   }
 
   /**
-   * Activates a project on the current site.
+   * Activates projects on the current site.
    *
-   * @param \Drupal\project_browser\ProjectBrowser\Project $project
-   *   The project to activate.
+   * @param \Drupal\project_browser\ProjectBrowser\Project ...$projects
+   *   The projects to activate.
    *
-   * @return \Drupal\Core\Ajax\CommandInterface[]|null
-   *   The AJAX commands, or lack thereof, returned by the first registered
-   *   activator that supports the given project.
+   * @return \Drupal\Core\Ajax\CommandInterface[]
+   *   The AJAX commands returned by the activators for the given projects.
    */
-  public function activate(Project $project): ?array {
-    return $this->getActivatorForProject($project)->activate($project);
+  public function activate(Project ...$projects): array {
+    // Group the projects according to which activator will handle them.
+    $map = new \SplObjectStorage();
+    foreach ($projects as $project) {
+      $activator = $this->getActivatorForProject($project);
+      $list = $map[$activator] ?? [];
+      $list[] = $project;
+      $map[$activator] = $list;
+    }
+
+    $commands = [];
+    foreach ($map as $activator) {
+      assert($activator instanceof ActivatorInterface);
+
+      // If the activate() method's first parameter is variadic, the activator
+      // will handle all its projects at once.
+      $reflector = new \ReflectionMethod($activator, 'activate');
+      $parameters = $reflector->getParameters();
+
+      $list = $map->getInfo();
+      if ($parameters[0]->isVariadic()) {
+        $commands = array_merge($commands, $activator->activate(...$list) ?? []);
+      }
+      else {
+        foreach ($list as $project) {
+          $commands = array_merge($commands, $activator->activate($project) ?? []);
+        }
+      }
+    }
+    return $commands;
   }
 
 }

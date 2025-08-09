@@ -6,12 +6,13 @@ use Drupal\Component\Plugin\Discovery\CachedDiscoveryInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\TypedConfigManagerInterface;
+use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\LocalTaskManagerInterface;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Settings form for Project Browser.
@@ -22,29 +23,17 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 final class SettingsForm extends ConfigFormBase {
 
+  use AutowireTrait;
+
   public function __construct(
     ConfigFactoryInterface $config_factory,
     TypedConfigManagerInterface $typed_config_manager,
     private readonly ProjectBrowserSourceManager $manager,
-    private readonly CacheBackendInterface $cacheBin,
+    #[Autowire(service: 'cache.project_browser')] private readonly CacheBackendInterface $cacheBin,
     private readonly ModuleHandlerInterface $moduleHandler,
-    private readonly LocalTaskManagerInterface&CachedDiscoveryInterface $localTaskManager,
+    #[Autowire(service: LocalTaskManagerInterface::class)] private readonly LocalTaskManagerInterface&CachedDiscoveryInterface $localTaskManager,
   ) {
     parent::__construct($config_factory, $typed_config_manager);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get(ConfigFactoryInterface::class),
-      $container->get(TypedConfigManagerInterface::class),
-      $container->get(ProjectBrowserSourceManager::class),
-      $container->get('cache.project_browser'),
-      $container->get(ModuleHandlerInterface::class),
-      $container->get(LocalTaskManagerInterface::class),
-    );
   }
 
   /**
@@ -80,14 +69,16 @@ final class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('project_browser.admin_settings');
+    $enabled_sources = $this->config('project_browser.admin_settings')
+      ->get('enabled_sources');
+    $enabled_sources = array_keys($enabled_sources);
 
     // Confirm that Package Manager is installed.
     $package_manager_not_ready = !$this->moduleHandler->moduleExists('package_manager');
     $form['allow_ui_install'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Allow installing via UI (experimental)'),
-      '#default_value' => $config->get('allow_ui_install'),
+      '#config_target' => 'project_browser.admin_settings:allow_ui_install',
       '#description' => $this->t('When enabled, modules can be downloaded and enabled via the Project Browser UI.'),
       '#disabled' => $package_manager_not_ready,
     ];
@@ -100,7 +91,6 @@ final class SettingsForm extends ConfigFormBase {
     }
 
     $source_plugins = $this->manager->getDefinitions();
-    $enabled_sources = $config->get('enabled_sources');
     // Sort the source plugins by the order they're stored in config.
     $sorted_arr = array_merge(array_flip($enabled_sources), $source_plugins);
     $source_plugins = array_merge($sorted_arr, $source_plugins);
@@ -221,13 +211,17 @@ final class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $settings = $this->config('project_browser.admin_settings');
-    $all_plugins = $form_state->getValue('enabled_sources');
-    $enabled_plugins = array_filter($all_plugins, fn($source): bool => $source['status'] === 'enabled');
-    $settings
-      ->set('enabled_sources', array_keys($enabled_plugins))
-      ->set('allow_ui_install', $form_state->getValue('allow_ui_install'))
-      ->save();
+    $settings = $this->config('project_browser.admin_settings')
+      ->set('allow_ui_install', $form_state->getValue('allow_ui_install'));
+
+    $enabled_sources = [];
+    // Add the enabled sources in the order they were submitted.
+    foreach ($form_state->getValue('enabled_sources') as $plugin_id => $info) {
+      if ($info['status'] === 'enabled') {
+        $enabled_sources[$plugin_id] = [];
+      }
+    }
+    $settings->set('enabled_sources', $enabled_sources)->save();
     $this->cacheBin->deleteAll();
     $this->localTaskManager->clearCachedDefinitions();
     parent::submitForm($form, $form_state);

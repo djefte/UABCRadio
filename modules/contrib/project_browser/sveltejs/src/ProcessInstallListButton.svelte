@@ -1,31 +1,29 @@
 <script>
-  import {
-    processInstallList,
-    installList,
-    clearInstallList,
-  } from './InstallListProcessor';
+  import InstallationManager from './InstallListProcessor';
   import Loading from './Loading.svelte';
   import LoadingEllipsis from './Project/LoadingEllipsis.svelte';
 
-  let loading = false;
-
   const { Drupal } = window;
 
-  $: currentInstallList = $installList || [];
-  $: installListLength = currentInstallList.length;
-  let projectsToActivate = [];
-  let projectsToDownloadAndActivate = [];
+  let isInstalling = false;
+  let installListLength = 0;
+
+  window.addEventListener('install-selection-changed', ({ detail }) => {
+    installListLength = detail.length;
+  });
+  window.addEventListener('install-start', () => {
+    isInstalling = true;
+  });
+  window.addEventListener('install-end', () => {
+    isInstalling = false;
+  });
 
   const handleClick = async () => {
-    loading = true;
-    await processInstallList();
-    loading = false;
+    await InstallationManager.process();
   };
 
   function clearSelection() {
-    projectsToDownloadAndActivate = [];
-    projectsToActivate = [];
-    clearInstallList();
+    InstallationManager.deselectAll();
   }
 </script>
 
@@ -51,7 +49,7 @@
     class="project__action_button install_button_common install_button button--small button button--primary"
     on:click={handleClick}
   >
-    {#if loading}
+    {#if isInstalling}
       <Loading />
       <LoadingEllipsis
         message={Drupal.formatPlural(
@@ -64,7 +62,7 @@
       {Drupal.t('Install selected projects')}
     {/if}
   </button>
-  {#if installListLength !== 0}
+  {#if installListLength !== 0 && !isInstalling}
     <button class="button clear_button" on:click={clearSelection}>
       {Drupal.t('Clear selection')}
     </button>

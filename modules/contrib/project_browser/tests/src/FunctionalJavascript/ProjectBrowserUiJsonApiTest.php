@@ -39,7 +39,11 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->config('project_browser.admin_settings')->set('enabled_sources', ['drupalorg_jsonapi'])->save(TRUE);
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [
+        'drupalorg_jsonapi' => [],
+      ])
+      ->save(TRUE);
     $this->drupalLogin($this->drupalCreateUser([
       'administer modules',
       'administer site configuration',
@@ -214,6 +218,11 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
    * Tests advanced filtering.
    */
   public function testAdvancedFiltering(): void {
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources.drupalorg_jsonapi', [
+        'show_development_status' => TRUE,
+      ])
+      ->save();
     $assert_session = $this->assertSession();
 
     $this->drupalGet('admin/modules/browse/drupalorg_jsonapi');
@@ -311,7 +320,9 @@ final class ProjectBrowserUiJsonApiTest extends WebDriverTestBase {
   public function testFiltersShownIfDefinedBySource(): void {
     $assert_session = $this->assertSession();
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['project_browser_test_mock'])
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
       ->save();
 
     // Make the mock source show no filters, and ensure that we never see any

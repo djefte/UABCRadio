@@ -13,6 +13,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\project_browser\ProjectBrowser\Project;
 use Drupal\project_browser\ProjectType;
+use Drupal\user\PermissionHandlerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -32,6 +33,7 @@ final class ModuleActivator implements InstructionsInterface, TasksInterface {
     private ModuleHandlerInterface $moduleHandler,
     private readonly FileUrlGeneratorInterface $fileUrlGenerator,
     private readonly RequestStack $requestStack,
+    private readonly PermissionHandlerInterface $permissionHandler,
   ) {}
 
   /**
@@ -57,8 +59,10 @@ final class ModuleActivator implements InstructionsInterface, TasksInterface {
   /**
    * {@inheritdoc}
    */
-  public function activate(Project $project): ?array {
-    $this->moduleInstaller->install([$project->machineName]);
+  public function activate(Project ...$projects): ?array {
+    // Install all of the modules in one shot.
+    $module_names = array_column($projects, 'machineName');
+    $this->moduleInstaller->install($module_names);
 
     // The container has changed, so we need to reload the module handler and
     // module list from the global service wrapper.
@@ -151,6 +155,14 @@ final class ModuleActivator implements InstructionsInterface, TasksInterface {
       $uninstall_url->setOption('query', ['return_to' => $return_to_url]);
     }
     $tasks[] = Link::fromTextAndUrl($this->t('Uninstall'), $uninstall_url);
+
+    if ($this->permissionHandler->moduleProvidesPermissions($project->machineName)) {
+      $tasks[] = Link::createFromRoute(
+        $this->t('Permissions'),
+        'user.admin_permissions.module',
+        ['modules' => $project->machineName],
+      );
+    }
 
     return $tasks;
   }

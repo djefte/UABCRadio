@@ -6,9 +6,9 @@
   import Pagination from './Pagination.svelte';
   import Project from './Project/Project.svelte';
   import { numberFormatter } from './util';
-  import { installList } from './InstallListProcessor';
+  import InstallationManager from './InstallListProcessor';
   import MediaQuery from './MediaQuery.svelte';
-  import { FULL_MODULE_PATH, MAX_SELECTIONS } from './constants';
+  import { FULL_MODULE_PATH } from './constants';
   import QueryManager from './QueryManager';
   import Loading from './Loading.svelte';
 
@@ -101,8 +101,8 @@
    * Load remote data when the Svelte component is mounted.
    */
   onMount(async () => {
-    if (MAX_SELECTIONS === 1) {
-      $installList = [];
+    if (InstallationManager.maxSelections === 1) {
+      InstallationManager.deselectAll();
     }
 
     await load();

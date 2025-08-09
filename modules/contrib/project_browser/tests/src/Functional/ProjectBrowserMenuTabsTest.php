@@ -34,7 +34,11 @@ final class ProjectBrowserMenuTabsTest extends BrowserTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->config('project_browser.admin_settings')->set('enabled_sources', ['project_browser_test_mock'])->save(TRUE);
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
+      ->save(TRUE);
     $this->drupalLogin($this->drupalCreateUser([
       'administer modules',
     ]));

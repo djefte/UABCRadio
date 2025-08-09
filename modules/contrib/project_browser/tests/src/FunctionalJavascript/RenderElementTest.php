@@ -47,7 +47,9 @@ final class RenderElementTest extends WebDriverTestBase {
     parent::setUp();
 
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['project_browser_test_mock'])
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
       ->save();
 
     $this->block = $this->drupalPlaceBlock('project_browser_block:project_browser_test_mock');

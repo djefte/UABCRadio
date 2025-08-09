@@ -10,7 +10,9 @@ use Drupal\Core\Link;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\project_browser\Activator\ActivationStatus;
 use Drupal\project_browser\Activator\ModuleActivator;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\QueryManager;
+use Drupal\project_browser\ProjectRepository;
+use Drupal\user\PermissionHandlerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -64,10 +66,12 @@ final class ModuleActivatorTest extends KernelTestBase {
     parent::setUp();
 
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['drupal_core'])
+      ->set('enabled_sources', [
+        'drupal_core' => [],
+      ])
       ->save();
     // Prime the project cache.
-    $this->container->get(EnabledSourceHandler::class)
+    $this->container->get(QueryManager::class)
       ->getProjects('drupal_core');
 
     $this->activator = $this->container->get(ModuleActivator::class);
@@ -87,17 +91,17 @@ final class ModuleActivatorTest extends KernelTestBase {
    * Tests that the module activator returns a "Configure" task if available.
    */
   public function testConfigureLinksAreExposedIfDefined(): void {
-    /** @var \Drupal\project_browser\EnabledSourceHandler $sources_handler */
-    $sources_handler = $this->container->get(EnabledSourceHandler::class);
+    /** @var \Drupal\project_browser\ProjectRepository $repository */
+    $repository = $this->container->get(ProjectRepository::class);
 
     // The Breakpoint module has no configuration options, so it should not have
     // any tasks.
-    $project = $sources_handler->getStoredProject('drupal_core/breakpoint');
+    $project = $repository->get('drupal_core/breakpoint');
     $this->assertSame(ActivationStatus::Active, $this->activator->getStatus($project));
     $this->assertNotContains('Configure', static::getTaskTitles($this->activator->getTasks($project)));
 
     // Block has a configure link, so that should be exposed as a task.
-    $project = $sources_handler->getStoredProject('drupal_core/block');
+    $project = $repository->get('drupal_core/block');
     $this->assertSame(ActivationStatus::Active, $this->activator->getStatus($project));
     $tasks = $this->activator->getTasks($project);
     $this->assertNotEmpty($tasks);
@@ -107,9 +111,35 @@ final class ModuleActivatorTest extends KernelTestBase {
     $this->assertStringStartsWith('block.', $tasks[0]->getUrl()->getRouteName());
 
     // We should not get any tasks for a module which isn't installed.
-    $project = $sources_handler->getStoredProject('drupal_core/content_moderation');
+    $project = $repository->get('drupal_core/content_moderation');
     $this->assertSame(ActivationStatus::Present, $this->activator->getStatus($project));
     $this->assertEmpty($this->activator->getTasks($project));
+  }
+
+  /**
+   * Tests that a `Permissions` task is exposed for modules that provide them.
+   *
+   * @testWith ["breakpoint", false]
+   *   ["user", true]
+   */
+  public function testPermissionsTask(string $module_name, bool $task_expected): void {
+    $project = $this->container->get(ProjectRepository::class)
+      ->get('drupal_core/' . $module_name);
+    $this->assertSame(ActivationStatus::Active, $this->activator->getStatus($project));
+    $tasks = static::getTaskTitles($this->activator->getTasks($project));
+
+    $has_permissions = $this->container->get(PermissionHandlerInterface::class)
+      ->moduleProvidesPermissions($module_name);
+    // Sanity check: ensure that the module actually does, or does not, provide
+    // permissions as expected.
+    $this->assertSame($task_expected, $has_permissions);
+
+    if ($task_expected) {
+      $this->assertContains('Permissions', $tasks);
+    }
+    else {
+      $this->assertNotContains('Permissions', $tasks);
+    }
   }
 
   /**
@@ -124,9 +154,8 @@ final class ModuleActivatorTest extends KernelTestBase {
       ->with('help', 'breakpoint')
       ->willReturn($implements_hook_help);
 
-    /** @var \Drupal\project_browser\EnabledSourceHandler $sources_handler */
-    $sources_handler = $this->container->get(EnabledSourceHandler::class);
-    $project = $sources_handler->getStoredProject('drupal_core/breakpoint');
+    $project = $this->container->get(ProjectRepository::class)
+      ->get('drupal_core/breakpoint');
     $this->assertSame(ActivationStatus::Active, $this->activator->getStatus($project));
     $tasks = $this->activator->getTasks($project);
 

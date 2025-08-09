@@ -6,7 +6,7 @@ namespace Drupal\Tests\project_browser\Kernel;
 
 use Drupal\Core\Extension\ModuleInstallerInterface;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Drupal\project_browser\Plugin\ProjectBrowserSource\LocalModules;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceInterface;
 use Drupal\project_browser\ProjectBrowser\ProjectsResultsPage;
@@ -25,7 +25,7 @@ final class LocalModulesTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['project_browser'];
+  protected static $modules = ['project_browser', 'user'];
 
   /**
    * Tests that the plugin sets the machine_name query filter if needed.
@@ -92,18 +92,20 @@ final class LocalModulesTest extends KernelTestBase {
       'project_browser_test',
     ]);
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['local_modules', 'project_browser_test_mock'])
+      ->set('enabled_sources', [
+        'local_modules' => [],
+        'project_browser_test_mock' => [],
+      ])
       ->save();
-    /** @var \Drupal\project_browser\EnabledSourceHandler $source_handler */
-    $source_handler = $this->container->get(EnabledSourceHandler::class);
-    $source_handler->getProjects('local_modules');
+
+    $result = $this->container->get(ProjectBrowserSourceManager::class)
+      ->createInstance('local_modules')
+      ->getProjects();
     // Ensure that the decorator "took ownership" of the projects returned by
-    // the decorated plugin.
-    $source_handler->getStoredProject('local_modules/cream_cheese');
-    // Even though the mock plugin (which is being decorated by local_modules)
-    // did the actual work, the non-volatile storage shouldn't be aware of that.
-    $this->expectExceptionMessage("Project 'project_browser_test_mock/cream_cheese' was not found in non-volatile storage.");
-    $source_handler->getStoredProject('project_browser_test_mock/cream_cheese');
+    // the decorated plugin, even though the mock plugin (which is being
+    // decorated) did the actual work.
+    $this->assertSame('local_modules', $result->pluginId);
+    $this->assertContains('cream_cheese', array_column($result->list, 'machineName'));
   }
 
 }

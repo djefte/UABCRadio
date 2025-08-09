@@ -1,50 +1,92 @@
 <script>
-  import { PACKAGE_MANAGER, MAX_SELECTIONS } from '../constants';
-  import { openPopup, getCommandsPopupMessage } from '../popup';
+  import { PACKAGE_MANAGER } from '../constants';
+  import { openPopup } from '../util';
   import ProjectStatusIndicator from './ProjectStatusIndicator.svelte';
   import LoadingEllipsis from './LoadingEllipsis.svelte';
   import DropButton from './DropButton.svelte';
   import ProjectButtonBase from './ProjectButtonBase.svelte';
-  import {
-    processInstallList,
-    addToInstallList,
-    installList,
-    removeFromInstallList,
-  } from '../InstallListProcessor';
+  import InstallationManager from '../InstallListProcessor';
   import ProjectIcon from './ProjectIcon.svelte';
 
   // eslint-disable-next-line import/no-mutable-exports,import/prefer-default-export
   export let project;
-  let InstallListFull;
+  let installListFull;
+  let isInInstallList = false;
+  let isInstalling = false;
 
-  const { Drupal } = window;
-  const processMultipleProjects = MAX_SELECTIONS === null || MAX_SELECTIONS > 1;
+  window.addEventListener('install-selection-changed', ({ detail }) => {
+    isInInstallList = detail.includes(project);
+    installListFull = InstallationManager.isFull();
+  });
+  window.addEventListener('install-start', () => {
+    isInstalling = true;
+  });
+  window.addEventListener('install-end', () => {
+    isInstalling = false;
+  });
 
-  $: isInInstallList = $installList.some((item) => item.id === project.id);
-
-  // If MAX_SELECTIONS is null (no limit), then the install list is never full.
-  $: InstallListFull = $installList.length === MAX_SELECTIONS;
-
-  function handleAddToInstallListClick(singleProject) {
-    addToInstallList(singleProject);
-  }
-
-  function handleRemoveFromInstallList(projectId) {
-    removeFromInstallList(projectId);
-  }
+  const { once, Drupal } = window;
 
   const onClick = async () => {
-    if (processMultipleProjects) {
+    if (InstallationManager.multiple) {
       if (isInInstallList) {
-        handleRemoveFromInstallList(project.id);
+        InstallationManager.remove(project);
       } else {
-        handleAddToInstallListClick(project);
+        InstallationManager.add(project);
       }
     } else {
-      handleAddToInstallListClick(project);
-      await processInstallList();
+      InstallationManager.add(project);
+      await InstallationManager.process();
     }
   };
+
+  /**
+   * Finds [data-copy-command] buttons and adds copy functionality to them.
+   */
+  function enableCopyButtons() {
+    setTimeout(() => {
+      once('copyButton', '[data-copy-command]').forEach((copyButton) => {
+        // If clipboard is not supported (likely due to non-https), then hide the
+        // button and do not bother with event listeners
+        if (!navigator.clipboard) {
+          // copyButton.hidden = true;
+          // return;
+        }
+        copyButton.addEventListener('click', (e) => {
+          // The copy button must be contained in a div
+          const container = e.target.closest('div');
+          // The only <textarea> within the parent div should have its value set
+          // to the command that should be copied.
+          const input = container.querySelector('textarea');
+
+          // Make the input value the selected text
+          input.select();
+          input.setSelectionRange(0, 99999);
+          navigator.clipboard.writeText(input.value);
+          Drupal.announce(Drupal.t('Copied text to clipboard'));
+
+          // Create a "receipt" that will visually show the text has been copied.
+          const receipt = document.createElement('div');
+          receipt.textContent = Drupal.t('Copied');
+          receipt.classList.add('copied-action');
+          receipt.style.opacity = '1';
+          input.insertAdjacentElement('afterend', receipt);
+          // eslint-disable-next-line max-nested-callbacks
+          setTimeout(() => {
+            // Remove the receipt after 1 second.
+            receipt.remove();
+          }, 1000);
+        });
+      });
+    });
+  }
+
+  function getCommandsPopupMessage() {
+    const div = document.createElement('div');
+    div.innerHTML = `${project.commands}<style>.action-link { margin: 0 2px; padding: 0.25rem 0.25rem; border: 1px solid; }</style>`;
+    enableCopyButtons();
+    return div;
+  }
 </script>
 
 <div class="pb-actions">
@@ -60,45 +102,31 @@
   {:else}
     <span>
       {#if PACKAGE_MANAGER}
-        {#if isInInstallList && !processMultipleProjects}
-          <ProjectButtonBase>
+        <ProjectButtonBase
+          disabled={isInstalling || (!isInInstallList && installListFull)}
+          click={onClick}
+        >
+          {#if isInstalling && isInInstallList}
             <LoadingEllipsis />
-          </ProjectButtonBase>
-        {:else if InstallListFull && !isInInstallList && processMultipleProjects}
-          <ProjectButtonBase disabled>
-            {@html Drupal.t(
-              'Select <span class="visually-hidden">@title</span>',
-              {
-                '@title': project.title,
-              },
-            )}
-          </ProjectButtonBase>
-        {:else}
-          <ProjectButtonBase click={onClick}>
+          {:else if InstallationManager.multiple}
             {#if isInInstallList}
               {@html Drupal.t(
                 'Deselect <span class="visually-hidden">@title</span>',
-                {
-                  '@title': project.title,
-                },
-              )}
-            {:else if processMultipleProjects}
-              {@html Drupal.t(
-                'Select <span class="visually-hidden">@title</span>',
-                {
-                  '@title': project.title,
-                },
+                { '@title': project.title },
               )}
             {:else}
               {@html Drupal.t(
-                'Install <span class="visually-hidden">@title</span>',
-                {
-                  '@title': project.title,
-                },
+                'Select <span class="visually-hidden">@title</span>',
+                { '@title': project.title },
               )}
             {/if}
-          </ProjectButtonBase>
-        {/if}
+          {:else}
+            {@html Drupal.t(
+              'Install <span class="visually-hidden">@title</span>',
+              { '@title': project.title },
+            )}
+          {/if}
+        </ProjectButtonBase>
       {:else if project.commands}
         {#if project.commands.match(/^https?:\/\//)}
           <a href={project.commands} target="_blank" rel="noreferrer"
@@ -107,13 +135,11 @@
         {:else}
           <ProjectButtonBase
             aria-haspopup="dialog"
-            click={() => openPopup(getCommandsPopupMessage(project), project)}
+            click={() => openPopup(getCommandsPopupMessage(), project.title)}
           >
             {@html Drupal.t(
               'View Commands <span class="visually-hidden">for @title</span>',
-              {
-                '@title': project.title,
-              },
+              { '@title': project.title },
             )}
           </ProjectButtonBase>
         {/if}

@@ -1,19 +1,13 @@
-includes:
-  - phpstan-drupal-core-bc-layer.neon.php
 parameters:
   level: 8
   universalObjectCratesClasses:
     - Drupal\Core\Extension\Extension
   reportUnmatchedIgnoredErrors: true
   excludePaths:
-    - phpstan-drupal-core-bc-layer.neon.php
     # The scripts directory does not contain runtime code.
     - scripts
     # The node_modules contains some PHP to ignore.
     - sveltejs
-    # The recipe form contains a couple of errors that cannot be ignored.
-    # @todo Remove this exclusion when support for Drupal 10 is dropped in https://www.drupal.org/i/3494848.
-    - src/Form/RecipeForm.php
   # Every ignore should be documented.
   ignoreErrors:
     # Ignore errors when using `array` as a return type.
@@ -50,6 +44,15 @@ parameters:
       paths:
         - tests/src/Functional
         - tests/src/FunctionalJavascript
+      reportUnmatched: false
+    # Caused by PHPStan misinterpreting internal properties of RenderElementBase as being applicable to the class as a whole.
+    # @see https://git.drupalcode.org/project/drupal/-/blob/11.x/core/lib/Drupal/Core/Render/Element/RenderElementBase.php?ref_type=heads
+    -
+      message: '#^Class Drupal\\project_browser\\Element\\ProjectBrowser extends @internal class Drupal\\Core\\Render\\Element\\RenderElementBase\.$#'
+      identifier: classExtendsInternalClass.classExtendsInternalClass
+      paths:
+        - src/Element/ProjectBrowser.php
+      # This error is not found in all versions of core.
       reportUnmatched: false
 
     ### Package Manager

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Drupal\project_browser\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
+use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,24 +19,26 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 final class BlockDeriver extends DeriverBase implements ContainerDeriverInterface {
 
+  use AutowireTrait {
+    create as traitCreate;
+  }
+
   public function __construct(
-    private readonly EnabledSourceHandler $enabledSources,
+    private readonly ProjectBrowserSourceManager $sourceManager,
   ) {}
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, $base_plugin_id): static {
-    return new static(
-      $container->get(EnabledSourceHandler::class),
-    );
+  public static function create(ContainerInterface $container, $base_plugin_id): self {
+    return self::traitCreate($container);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDerivativeDefinitions($base_plugin_definition): array {
-    foreach ($this->enabledSources->getCurrentSources() as $id => $source) {
+    foreach ($this->sourceManager->getAllEnabledSources() as $id => $source) {
       ['label' => $label] = $source->getPluginDefinition();
       $this->derivatives[$id] = ['admin_label' => $label] + $base_plugin_definition;
     }

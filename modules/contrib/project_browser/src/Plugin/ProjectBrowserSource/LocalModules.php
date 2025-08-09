@@ -41,9 +41,9 @@ final class LocalModules extends ProjectBrowserSourceBase implements ContainerFa
     /** @var \Drupal\Component\Plugin\PluginManagerInterface $manager */
     $manager = $container->get(ProjectBrowserSourceManager::class);
 
-    // If we're in a test environment and the mock source is available, query
-    // its projects only.
-    if (drupal_valid_test_ua() && $manager->hasDefinition('project_browser_test_mock')) {
+    // If the mock source is available, only query its projects.
+    // @todo Make the decorated plugin ID a configuration option.
+    if ($manager->hasDefinition('project_browser_test_mock')) {
       $decorated = $manager->createInstance('project_browser_test_mock');
       // Ensure we only query against packages which the mock is aware of.
       $configuration['package_names'] = [];
@@ -66,12 +66,9 @@ final class LocalModules extends ProjectBrowserSourceBase implements ContainerFa
    * {@inheritdoc}
    */
   public function getProjects(array $query = []): ProjectsResultsPage {
-    // If we're in a test environment, we can use a specific list of package
-    // names provided in our configuration.
-    if (drupal_valid_test_ua()) {
-      $package_names = $this->configuration['package_names'] ?? NULL;
-    }
-    $package_names ??= InstalledVersions::getInstalledPackagesByType('drupal-module');
+    // We can use a specific list of package names provided in configuration.
+    $configuration = $this->getConfiguration();
+    $package_names = $configuration['package_names'] ?? InstalledVersions::getInstalledPackagesByType('drupal-module');
 
     if ($package_names) {
       $module_names = array_map('basename', $package_names);

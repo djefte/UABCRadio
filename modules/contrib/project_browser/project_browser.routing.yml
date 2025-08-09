@@ -13,12 +13,13 @@ project_browser.browse:
   defaults:
     _controller: '\Drupal\project_browser\Controller\BrowserController::browse'
     _title: 'Browse projects'
+    source: null
   requirements:
     _permission: 'administer modules'
   options:
     parameters:
       source:
-        project_browser.source: TRUE
+        project_browser.source: true
 project_browser.settings:
   path: '/admin/config/development/project_browser'
   defaults:

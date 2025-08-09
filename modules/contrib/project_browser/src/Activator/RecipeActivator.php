@@ -5,21 +5,23 @@ declare(strict_types=1);
 namespace Drupal\project_browser\Activator;
 
 use Composer\InstalledVersions;
-use Drupal\Core\Ajax\RedirectCommand;
+use Drupal\Core\Ajax\OpenModalDialogWithUrl;
+use Drupal\Core\Config\Checkpoint\CheckpointStorageInterface;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Recipe\Recipe;
 use Drupal\Core\Recipe\RecipeAppliedEvent;
-use Drupal\Core\Recipe\RecipeInputFormTrait;
 use Drupal\Core\Recipe\RecipeRunner;
 use Drupal\Core\State\StateInterface;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Url;
 use Drupal\project_browser\Plugin\ProjectBrowserSource\Recipes;
 use Drupal\project_browser\ProjectBrowser\Project;
 use Drupal\project_browser\ProjectType;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
  * Applies locally installed recipes.
@@ -45,6 +47,8 @@ final class RecipeActivator implements InstructionsInterface, EventSubscriberInt
     private readonly FileSystemInterface $fileSystem,
     private readonly ModuleExtensionList $moduleList,
     private readonly FileUrlGeneratorInterface $fileUrlGenerator,
+    private readonly CheckpointStorageInterface $checkpointStorage,
+    private readonly PrivateTempStoreFactory $tempStoreFactory,
   ) {}
 
   /**
@@ -99,33 +103,42 @@ final class RecipeActivator implements InstructionsInterface, EventSubscriberInt
   /**
    * {@inheritdoc}
    */
-  public function activate(Project $project): ?array {
-    $path = $this->getPath($project);
-    if (!$path) {
-      return NULL;
-    }
+  public function activate(Project ...$projects): ?array {
+    // Skip any recipes whose path we cannot determine.
+    $recipes = array_map($this->getPath(...), $projects);
+    $recipes = array_filter($recipes);
+    $recipes = array_map(Recipe::createFromDirectory(...), $recipes);
 
-    $recipe = Recipe::createFromDirectory($path);
+    // If any of the recipes have inputs, redirect to the form.
+    $has_input = fn (Recipe $recipe): bool => (bool) $recipe->input->getDataDefinitions();
+    if (array_any($recipes, $has_input)) {
+      $this->tempStoreFactory->get('project_browser')
+        ->set('recipe_paths', array_column($recipes, 'path'));
 
-    // If the recipe has input, return a response that will instruct the Svelte
-    // app to redirect.
-    $route_name = 'project_browser.recipe_input';
-    // We need to check for `Recipe::$input` and the trait because these didn't
-    // exist before core 10.4 and 11.1, respectively.
-    // @todo Remove property_exists() and trait_exists() checks in
-    //   https://www.drupal.org/i/3494848.
-    if (property_exists(Recipe::class, 'input') && trait_exists(RecipeInputFormTrait::class) && $recipe->input->getDataDefinitions()) {
-      $url = Url::fromRoute($route_name, options: [
-        'query' => [
-          'recipe' => $path,
-        ],
-      ]);
+      $url = Url::fromRoute('project_browser.recipe_input')
+        ->setAbsolute()
+        ->toString();
+
       return [
-        new RedirectCommand($url->setAbsolute()->toString()),
+        new OpenModalDialogWithUrl($url, [
+          'width' => '90%',
+          'title' => (string) $this->formatPlural(
+            count($recipes),
+            $recipes[0]->name,
+            'Applying recipes',
+          ),
+        ]),
       ];
     }
-
-    RecipeRunner::processRecipe($recipe);
+    // Otherwise, create a checkpoint and apply the recipes immediately.
+    $checkpoint_name = (string) $this->formatPlural(
+      count($recipes),
+      'Project Browser checkpoint for @name',
+      'Project Browser checkpoint for @count recipes',
+      ['@name' => $recipes[0]->name],
+    );
+    $this->checkpointStorage->checkpoint($checkpoint_name);
+    array_walk($recipes, RecipeRunner::processRecipe(...));
     return NULL;
   }
 
@@ -133,12 +146,25 @@ final class RecipeActivator implements InstructionsInterface, EventSubscriberInt
    * {@inheritdoc}
    */
   public function getTasks(Project $project, ?string $source_id = NULL): array {
-    $tasks = [];
-
     // Only expose tasks if the recipe has been applied.
     if ($this->getStatus($project) !== ActivationStatus::Active) {
-      return $tasks;
+      return [];
     }
+
+    // We know the path is a string because, if it wasn't, the getStatus()
+    // call above would have returned ActivationStatus::Absent.
+    $path = $this->getPath($project);
+    assert(is_string($path));
+    $extra = Recipe::createFromDirectory($path)->getExtra('project_browser');
+
+    $link_from_array = function (array $link): Link {
+      $url = array_key_exists('uri', $link)
+        ? Url::fromUri($link['uri'])
+        : Url::fromRoute($link['route_name'], $link['route_parameters'] ?? []);
+      $url->setOptions($link['options'] ?? []);
+      return Link::fromTextAndUrl($link['text'], $url);
+    };
+    $tasks = array_map($link_from_array, $extra['tasks'] ?? []);
 
     // If the source is known, we can expose a task to re-apply the recipe.
     if ($source_id) {
@@ -148,29 +174,12 @@ final class RecipeActivator implements InstructionsInterface, EventSubscriberInt
           'projects' => $source_id . '/' . $project->id,
         ])
         // @see \Drupal\project_browser\ProjectBrowser\Normalizer::getActivationInfo()
-        ->setOption('project_browser_ajax', TRUE)
+        ->setOption('project_browser', [
+          'ajax' => TRUE,
+          'set_destination' => TRUE,
+        ])
         ->setAbsolute();
       $tasks[] = Link::fromTextAndUrl($this->t('Reapply'), $url);
-    }
-
-    // Recipes can only define follow-up tasks in Drupal 11.1.4 and later.
-    // @todo Remove this check when Drupal 11.1.4 or later is the minimum
-    //   supported version of core.
-    if (method_exists(Recipe::class, 'getExtra')) {
-      // We know the path is a string because, if it wasn't, the getStatus()
-      // call above would have returned ActivationStatus::Absent.
-      $path = $this->getPath($project);
-      assert(is_string($path));
-      $extra = Recipe::createFromDirectory($path)->getExtra('project_browser');
-
-      $link_from_array = function (array $link): Link {
-        $url = array_key_exists('uri', $link)
-          ? Url::fromUri($link['uri'])
-          : Url::fromRoute($link['route_name'], $link['route_parameters'] ?? []);
-        $url->setOptions($link['options'] ?? []);
-        return Link::fromTextAndUrl($link['text'], $url);
-      };
-      $tasks = array_merge($tasks, array_map($link_from_array, $extra['tasks'] ?? []));
     }
     return $tasks;
   }
@@ -182,10 +191,9 @@ final class RecipeActivator implements InstructionsInterface, EventSubscriberInt
     $instructions = '<p>' . $this->t('To apply this recipe, run the following command at the command line:') . '</p>';
 
     $command = sprintf(
-      "cd %s\n%s/php %s/core/scripts/drupal recipe %s",
+      "cd %s\n%s %s/core/scripts/drupal recipe %s",
       $this->appRoot,
-      // cspell:ignore BINDIR
-      PHP_BINDIR,
+      (new PhpExecutableFinder())->find(),
       $this->appRoot,
       $this->getPath($project),
     );

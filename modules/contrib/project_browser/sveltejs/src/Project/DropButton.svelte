@@ -52,6 +52,15 @@
   afterUpdate(() => {
     Drupal.attachBehaviors(thisElement);
   });
+
+  // Add the `destination` query parameter to tasks which have opted into it.
+  tasks
+    .filter((task) => task.set_destination)
+    .forEach((task) => {
+      const url = new URL(task.url);
+      url.searchParams.set('destination', window.location.pathname);
+      task.url = url.toString();
+    });
 </script>
 
 <div

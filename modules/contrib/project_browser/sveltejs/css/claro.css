@@ -1,12 +1,12 @@
 .messages__item a {
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .project-browser-popup textarea {
   width: 90%;
+  resize: none;
   color: #fff;
   border: none;
   background-color: #292b32;
-  resize: none;
 }
 .project-browser-popup .command-box img {
   display: block;
@@ -29,7 +29,7 @@
   padding-bottom: 1rem;
   border-radius: 6px;
   background-color: #282c34;
-  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   padding-inline: 1rem 0.25rem;
 }
 .project-browser-popup .copied-action {
@@ -63,9 +63,9 @@
   cursor: not-allowed;
 }
 .project__action_button--fixed {
-  margin-inline-start: auto;
   position: fixed;
+  z-index: 502;
   bottom: 1px;
   left: 120px;
-  z-index: 502;
+  margin-inline-start: auto;
 }

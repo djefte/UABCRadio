@@ -2,12 +2,11 @@
 
 namespace Drupal\project_browser\Routing;
 
+use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Recipe\RecipeInputFormTrait;
 use Drupal\project_browser\Controller\InstallerController;
 use Drupal\project_browser\Form\RecipeForm;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -19,24 +18,11 @@ use Symfony\Component\Routing\Route;
  */
 final class ProjectBrowserRoutes implements ContainerInjectionInterface {
 
-  /**
-   * Constructor for project browser routes.
-   *
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
-   *   The module handler.
-   */
+  use AutowireTrait;
+
   public function __construct(
     private readonly ModuleHandlerInterface $moduleHandler,
   ) {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get(ModuleHandlerInterface::class),
-    );
-  }
 
   /**
    * Returns an array of route objects.
@@ -61,7 +47,7 @@ final class ProjectBrowserRoutes implements ContainerInjectionInterface {
       ]
     );
     $routes['project_browser.stage.require'] = new Route(
-      '/admin/modules/project_browser/install-require/{stage_id}',
+      '/admin/modules/project_browser/install-require/{sandbox_id}',
       [
         '_controller' => InstallerController::class . '::require',
         '_title' => 'Require phase',
@@ -73,13 +59,13 @@ final class ProjectBrowserRoutes implements ContainerInjectionInterface {
       [
         'requirements' => [
           '_format' => 'json',
-          'stage_id' => '\w+',
+          'sandbox_id' => '\w+',
         ],
         'methods' => ['POST'],
       ]
     );
     $routes['project_browser.stage.apply'] = new Route(
-      '/admin/modules/project_browser/install-apply/{stage_id}',
+      '/admin/modules/project_browser/install-apply/{sandbox_id}',
       [
         '_controller' => InstallerController::class . '::apply',
         '_title' => 'Apply phase',
@@ -90,12 +76,12 @@ final class ProjectBrowserRoutes implements ContainerInjectionInterface {
       ],
       [
         'requirements' => [
-          'stage_id' => '\w+',
+          'sandbox_id' => '\w+',
         ],
       ]
     );
     $routes['project_browser.stage.post_apply'] = new Route(
-      '/admin/modules/project_browser/install-post_apply/{stage_id}',
+      '/admin/modules/project_browser/install-post_apply/{sandbox_id}',
       [
         '_controller' => InstallerController::class . '::postApply',
         '_title' => 'Post apply phase',
@@ -106,12 +92,12 @@ final class ProjectBrowserRoutes implements ContainerInjectionInterface {
       ],
       [
         'requirements' => [
-          'stage_id' => '\w+',
+          'sandbox_id' => '\w+',
         ],
       ]
     );
     $routes['project_browser.stage.destroy'] = new Route(
-      '/admin/modules/project_browser/install-destroy/{stage_id}',
+      '/admin/modules/project_browser/install-destroy/{sandbox_id}',
       [
         '_controller' => InstallerController::class . '::destroy',
         '_title' => 'Destroy phase',
@@ -122,7 +108,7 @@ final class ProjectBrowserRoutes implements ContainerInjectionInterface {
       ],
       [
         'requirements' => [
-          'stage_id' => '\w+',
+          'sandbox_id' => '\w+',
         ],
       ]
     );
@@ -138,21 +124,15 @@ final class ProjectBrowserRoutes implements ContainerInjectionInterface {
         '_custom_access' => InstallerController::class . '::access',
       ],
     );
-
-    // @todo Drop this `trait_exists` check when Drupal 11.1 is the minimum
-    //   required version of core in https://www.drupal.org/i/3494848.
-    // @see https://www.drupal.org/node/3489030
-    if (trait_exists(RecipeInputFormTrait::class)) {
-      $routes['project_browser.recipe_input'] = new Route(
-        '/admin/modules/browse/recipe-input',
-        [
-          '_form' => RecipeForm::class,
-        ],
-        [
-          '_permission' => 'administer modules',
-        ],
-      );
-    }
+    $routes['project_browser.recipe_input'] = new Route(
+      '/admin/modules/browse/recipe-input',
+      [
+        '_form' => RecipeForm::class,
+      ],
+      [
+        '_permission' => 'administer modules',
+      ],
+    );
 
     return $routes;
   }

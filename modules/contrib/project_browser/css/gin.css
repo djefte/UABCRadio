@@ -525,11 +525,11 @@
 }
 
 [data-gin-accent="blue"] .pb-layout__main .views-bulk-actions {
-  background: rgba(var(--gin-color-sticky-rgb), 0.9);
+  background: rgb(var(--gin-color-sticky-rgb), 0.9);
 }
 
 .gin--dark-mode [data-gin-accent="blue"] .pb-layout__main .views-bulk-actions {
-  background: rgba(27, 27, 29, 0.8);
+  background: rgb(27, 27, 29, 0.8);
 }
 
 [data-gin-accent="blue"] .views-bulk-actions__item {
@@ -542,4 +542,24 @@
   background: none;
   font-size: 16px;
   font-weight: 700;
+}
+
+.gin--dark-mode .pb-actions .select_button {
+  background: transparent;
+}
+
+.pb-actions .select_button:hover,
+.pb-actions .select_button:focus,
+.gin--dark-mode .pb-actions .select_button:hover,
+.gin--dark-mode .pb-actions .select_button:focus {
+  color: var(--gin-color-button-text);
+  border-color: var(--gin-color-primary);
+  background: var(--gin-color-primary);
+}
+
+.pb-actions .select_button:focus,
+.gin--dark-mode .pb-actions .select_button:focus {
+  box-shadow:
+    0 0 0 1px var(--gin-color-focus-border),
+    0 0 0 4px var(--gin-color-focus);
 }

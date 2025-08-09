@@ -26,7 +26,11 @@ final class RecipesSourceTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['project_browser', 'project_browser_test'];
+  protected static $modules = [
+    'project_browser',
+    'project_browser_test',
+    'user',
+  ];
 
   /**
    * {@inheritdoc}
@@ -46,13 +50,8 @@ final class RecipesSourceTest extends KernelTestBase {
    * Tests that recipes are discovered by the plugin.
    */
   public function testRecipesAreDiscovered(): void {
-    $this->setSetting('extension_discovery_scan_tests', TRUE);
-
-    /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
-    $source = $this->container->get(ProjectBrowserSourceManager::class)->createInstance('recipes');
-
     // Generate a fake recipe in the temporary directory.
-    $generated_recipe_name = uniqid();
+    $generated_recipe_name = uniqid('recipe-');
     $generated_recipe_dir = FileSystem::getOsTemporaryDirectory() . '/' . $generated_recipe_name;
     mkdir($generated_recipe_dir);
     file_put_contents($generated_recipe_dir . '/composer.json', '{"name": "drupal/bogus_recipe"}');
@@ -64,7 +63,14 @@ final class RecipesSourceTest extends KernelTestBase {
     // Symlink the fake recipe into the place where the source plugin will
     // search, to prove that the plugin follows symlinks.
     $file_system->symlink($generated_recipe_dir, $installed_recipes_dir . '/' . $generated_recipe_name);
-    $this->setSetting('project_browser_recipe_directories', [$installed_recipes_dir]);
+
+    /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
+    $source = $this->container->get(ProjectBrowserSourceManager::class)->createInstance('recipes', [
+      'additional_directories' => [
+        __DIR__ . '/../../fixtures',
+        $installed_recipes_dir,
+      ],
+    ]);
 
     $expected_recipe_names = [
       $generated_recipe_name,
@@ -148,12 +154,6 @@ final class RecipesSourceTest extends KernelTestBase {
    * Tests sorting of discovered recipes by case-insensitive name.
    */
   public function testRecipeSortingByRecipeName(): void {
-    $this->setSetting('extension_discovery_scan_tests', TRUE);
-
-    /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
-    $source = $this->container->get(ProjectBrowserSourceManager::class)
-      ->createInstance('recipes');
-
     // Generate fake recipes with varying case names.
     $generated_recipes = [
       'deltaRecipe' => '{"name": "drupal/delta_recipe"}',
@@ -166,6 +166,15 @@ final class RecipesSourceTest extends KernelTestBase {
     $file_system = new SymfonyFilesystem();
     $file_system->mkdir($installed_recipes_dir);
 
+    /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
+    $source = $this->container->get(ProjectBrowserSourceManager::class)
+      ->createInstance('recipes', [
+        'additional_directories' => [
+          __DIR__ . '/../../fixtures',
+          $installed_recipes_dir,
+        ],
+      ]);
+
     foreach ($generated_recipes as $recipe_name => $composer_json_content) {
       $recipe_dir = $installed_recipes_dir . '/' . $recipe_name;
       $file_system->mkdir($recipe_dir);
@@ -173,11 +182,9 @@ final class RecipesSourceTest extends KernelTestBase {
       file_put_contents($recipe_dir . '/recipe.yml', "name: $recipe_name");
     }
 
-    $this->setSetting('project_browser_recipe_directories', [$installed_recipes_dir]);
-
     // Fetch discovered recipes.
     $projects = $source->getProjects();
-    $found_recipes = array_column($projects->list, 'title');
+    $found_recipes = array_map('strval', array_column($projects->list, 'title'));
 
     $generated_recipe_titles = array_keys($generated_recipes);
     // Filter the discovered recipe titles to include only those that

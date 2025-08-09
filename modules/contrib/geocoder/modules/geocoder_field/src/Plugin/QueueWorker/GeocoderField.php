@@ -63,7 +63,12 @@ class GeocoderField extends QueueWorkerBase implements ContainerFactoryPluginInt
     $fields = $this->preprocessorManager->getOrderedGeocodeFields($entity);
     $result = _geocoder_field_process($entity, $fields);
 
-    if ($result) {
+    // Set drupal static cache so to mark the entity as being saved by the
+    // geocoder queue. This is going to stop any further processing in the
+    // geocoder_field_entity_presave.
+    $cache = &drupal_static('geocoder_queued_entity:' . $entityTypeId . ':' . $entityUuid, FALSE);
+    if ($result && !$cache) {
+      $cache = TRUE;
       $entity->save();
     }
   }

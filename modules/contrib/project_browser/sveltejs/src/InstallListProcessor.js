@@ -1,32 +1,28 @@
-import { get, writable } from 'svelte/store';
-import { openPopup } from './popup';
-import { BASE_URL, CURRENT_PATH } from './constants';
+import { openPopup } from './util';
+import { BASE_URL } from './constants';
 
-const { Drupal } = window;
+const {
+  Drupal,
+  drupalSettings: {
+    project_browser: { currentPath, maxSelections },
+  }
+} = window;
 
-// Store for the install list.
-export const installList = writable([]);
+const selections = new Set();
 
-export function addToInstallList(project) {
-  installList.update((currentList) => {
-    if (!currentList.includes(project)) {
-      currentList.push(project);
-    }
-    return currentList;
+function onSelectionChanged () {
+  const event = new CustomEvent('install-selection-changed', {
+    detail: Array.from(selections),
   });
+  window.dispatchEvent(event);
 }
 
-export function removeFromInstallList(projectId) {
-  installList.update((currentList) => currentList.filter(
-      (item) => item.id !== projectId,
-    ));
+function deselectAll() {
+  selections.clear();
+  onSelectionChanged();
 }
 
-export function clearInstallList() {
-  installList.set([]);
-}
-
-export const handleError = async (errorResponse) => {
+async function handleError (errorResponse) {
   // The error can take on many shapes, so it should be normalized.
   let err = '';
   if (typeof errorResponse === 'string') {
@@ -72,8 +68,8 @@ export const handleError = async (errorResponse) => {
     div.innerHTML += `<p>${errorMessage}</p>`;
   }
 
-  openPopup(div, { title: 'Error while installing package(s)' });
-};
+  openPopup(div, Drupal.t('Error while installing package(s)'));
+}
 
 /**
  * Actives already-downloaded projects.
@@ -84,24 +80,22 @@ export const handleError = async (errorResponse) => {
  * @return {Promise<void>}
  *   A promise that resolves when the project is activated.
  */
-export const activateProject = async (projectIds) => {
+async function activateProject (projectIds) {
   // Remove any existing errors for each project individually.
   const messenger = new Drupal.Message();
-  projectIds.forEach((projectId) => {
-    const messageId = `activation_error:${projectId}`;
-    if (messenger.select(messageId)) {
-      messenger.remove(messageId);
-    }
-  });
+  const messageId = 'activation_error';
+  if (messenger.select(messageId)) {
+    messenger.remove(messageId);
+  }
 
   await new Drupal.Ajax(
     null,
     document.createElement('div'),
     {
-      url: `${BASE_URL}admin/modules/project_browser/activate?projects=${projectIds.join(',')}`,
+      url: `${BASE_URL}admin/modules/project_browser/activate?projects=${projectIds.join(',')}&destination=${window.location.pathname}`,
     },
   ).execute();
-};
+}
 
 /**
  * Performs the requests necessary to download and activate project via Package Manager.
@@ -112,35 +106,32 @@ export const activateProject = async (projectIds) => {
  * @return {Promise<void>}
  *   Returns a promise that resolves once the download and activation process is complete.
  */
-export const doRequests = async (projectIds) => {
-  const beginInstallUrl = `${BASE_URL}admin/modules/project_browser/install-begin?redirect=${
-    CURRENT_PATH
-  }`;
+async function doRequests (projectIds) {
+  const beginInstallUrl = `${BASE_URL}admin/modules/project_browser/install-begin?redirect=${currentPath}`;
   const beginInstallResponse = await fetch(beginInstallUrl);
   if (!beginInstallResponse.ok) {
     await handleError(beginInstallResponse);
   } else {
-    const beginInstallData = await beginInstallResponse.json();
-    const stageId = beginInstallData.stage_id;
+    const { sandboxId } = await beginInstallResponse.json();
 
     // The process of adding a module is separated into four stages, each
     // with their own endpoint. When one stage completes, the next one is
     // requested.
     const installSteps = [
       {
-        url: `${BASE_URL}admin/modules/project_browser/install-require/${stageId}`,
+        url: `${BASE_URL}admin/modules/project_browser/install-require/${sandboxId}`,
         method: 'POST',
       },
       {
-        url: `${BASE_URL}admin/modules/project_browser/install-apply/${stageId}`,
+        url: `${BASE_URL}admin/modules/project_browser/install-apply/${sandboxId}`,
         method: 'GET',
       },
       {
-        url: `${BASE_URL}admin/modules/project_browser/install-post_apply/${stageId}`,
+        url: `${BASE_URL}admin/modules/project_browser/install-post_apply/${sandboxId}`,
         method: 'GET',
       },
       {
-        url: `${BASE_URL}admin/modules/project_browser/install-destroy/${stageId}`,
+        url: `${BASE_URL}admin/modules/project_browser/install-destroy/${sandboxId}`,
         method: 'GET',
       },
     ];
@@ -178,13 +169,12 @@ export const doRequests = async (projectIds) => {
     }
     await activateProject(projectIds);
   }
-};
+}
 
-export const processInstallList = async () => {
-  const currentInstallList = get(installList) || [];
+async function processInstallList () {
   const projectsToActivate = [];
   const projectsToDownloadAndActivate = [];
-  if (currentInstallList.length === 0) {
+  if (selections.size === 0) {
     const messageElement = document.querySelector('[data-drupal-message-id="install_message"]');
 
     if (!messageElement) {
@@ -200,24 +190,53 @@ export const processInstallList = async () => {
     return;
   }
 
-  for (const proj of currentInstallList) {
-    if (proj.status === 'absent') {
-      projectsToDownloadAndActivate.push(proj.id);
-    } else if (proj.status === 'present') {
-      projectsToActivate.push(proj.id);
+  Array.from(selections).forEach(({ status, id }) => {
+    if (status === 'absent') {
+      projectsToDownloadAndActivate.push(id);
+    } else if (status === 'present') {
+      projectsToActivate.push(id);
     }
-  }
+  });
 
-  document.body.style.pointerEvents = 'none';
-
+  window.dispatchEvent(new CustomEvent('install-start'));
   if (projectsToActivate.length > 0) {
     await activateProject(projectsToActivate);
   }
   if (projectsToDownloadAndActivate.length > 0) {
     await doRequests(projectsToDownloadAndActivate);
   }
+  window.dispatchEvent(new CustomEvent('install-end'));
+  deselectAll();
+}
 
-  document.body.style.pointerEvents = 'auto';
+export default Object.freeze({
 
-  clearInstallList();
-};
+  maxSelections,
+
+  multiple: maxSelections === null || maxSelections > 1,
+
+  add (project) {
+    if (!selections.has(project)) {
+      selections.add(project);
+      onSelectionChanged();
+    }
+  },
+
+  deselectAll,
+
+  isFull () {
+    return selections.size === this.maxSelections;
+  },
+
+  remove (project) {
+    if (selections.has(project)) {
+      selections.delete(project);
+      onSelectionChanged();
+    }
+  },
+
+  async process () {
+    await processInstallList();
+  },
+
+});

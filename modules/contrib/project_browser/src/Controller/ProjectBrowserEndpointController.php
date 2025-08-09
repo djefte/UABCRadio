@@ -13,18 +13,19 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\Error;
 use Drupal\project_browser\ActivationManager;
-use Drupal\project_browser\EnabledSourceHandler;
-use Drupal\project_browser\InstallState;
 use Drupal\project_browser\ProjectBrowser\Normalizer;
+use Drupal\project_browser\QueryManager;
+use Drupal\project_browser\InstallProgress;
+use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
+use Drupal\project_browser\ProjectRepository;
 use Drupal\project_browser\RefreshProjectsCommand;
 use Drupal\system\Form\ModulesUninstallForm;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * Controller for the proxy layer.
@@ -36,29 +37,16 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 final class ProjectBrowserEndpointController extends ControllerBase {
 
   public function __construct(
-    private readonly EnabledSourceHandler $enabledSource,
-    private readonly NormalizerInterface $normalizer,
+    private readonly QueryManager $queryManager,
+    private readonly ProjectBrowserSourceManager $sourceManager,
+    private readonly ProjectRepository $projectRepository,
+    private readonly Normalizer $normalizer,
     private readonly ModuleInstallerInterface $moduleInstaller,
     private readonly ModuleExtensionList $moduleList,
     private readonly ActivationManager $activationManager,
-    private readonly InstallState $installState,
-    private readonly LoggerInterface $logger,
+    private readonly InstallProgress $installProgress,
+    #[Autowire(service: 'logger.channel.project_browser')] private readonly LoggerInterface $logger,
   ) {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get(EnabledSourceHandler::class),
-      $container->get(Normalizer::class),
-      $container->get(ModuleInstallerInterface::class),
-      $container->get(ModuleExtensionList::class),
-      $container->get(ActivationManager::class),
-      $container->get(InstallState::class),
-      $container->get('logger.channel.project_browser'),
-    );
-  }
 
   /**
    * Returns a list of projects that match a query.
@@ -72,13 +60,13 @@ final class ProjectBrowserEndpointController extends ControllerBase {
    * @see \Drupal\project_browser\ProjectBrowser\ProjectsResultsPage
    */
   public function getAllProjects(Request $request): JsonResponse {
-    $current_sources = $this->enabledSource->getCurrentSources();
+    $current_sources = $this->sourceManager->getAllEnabledSources();
     $query = $this->buildQuery($request);
     if (!$current_sources || empty($query['source'])) {
       return new JsonResponse([], Response::HTTP_ACCEPTED);
     }
 
-    $results = $this->enabledSource->getProjects($query['source'], $query);
+    $results = $this->queryManager->getProjects($query['source'], $query);
     return new JsonResponse($this->normalizer->normalize($results));
   }
 
@@ -142,7 +130,7 @@ final class ProjectBrowserEndpointController extends ControllerBase {
    *   The request.
    *
    * @return array
-   *   See \Drupal\project_browser\EnabledSourceHandler::getProjects().
+   *   See \Drupal\project_browser\QueryManager::getProjects().
    */
   private function buildQuery(Request $request): array {
     // Validate and build query.
@@ -204,45 +192,39 @@ final class ProjectBrowserEndpointController extends ControllerBase {
    *   A response that can be used by the client-side AJAX system.
    */
   public function activate(Request $request): AjaxResponse {
-    $response = new AjaxResponse();
-    $activated_projects = [];
-
     $projects = $request->query->get('projects') ?? [];
     if ($projects) {
       assert(is_string($projects));
       $projects = explode(',', $projects);
     }
     assert(is_array($projects));
-    foreach ($projects as $project_id) {
-      $this->installState->setState($project_id, 'activating');
-      // $project_id is fully qualified and has the form `SOURCE_ID/LOCAL_ID`.
-      [$source_id] = explode('/', $project_id, 2);
 
-      try {
-        $project = $this->enabledSource->getStoredProject($project_id);
+    // Load all the projects from permanent storage and key them by their
+    // fully qualified project IDs.
+    $projects = array_combine(
+      $projects,
+      array_map($this->projectRepository->get(...), $projects),
+    );
 
-        $commands = $this->activationManager->activate($project);
-        foreach ($commands ?? [] as $command) {
-          $response->addCommand($command);
-        }
-        $this->installState->setState($project_id, 'installed');
-        $activated_projects[] = $this->normalizer->normalize($project, context: ['source' => $source_id]);
-      }
-      catch (\Throwable $e) {
-        $message = $e->getMessage();
-        $response->addCommand(new MessageCommand(
-          $message,
-          options: [
-            'type' => MessengerInterface::TYPE_ERROR,
-            'id' => 'activation_error:' . $project_id,
-          ],
-        ));
-        $response->addCommand(new ScrollTopCommand('[data-drupal-messages]'));
-        Error::logException($this->logger, $e);
+    $response = new AjaxResponse();
+    try {
+      foreach ($this->activationManager->activate(...$projects) as $command) {
+        $response->addCommand($command);
       }
     }
-    $this->installState->deleteAll();
-    return $response->addCommand(new RefreshProjectsCommand($activated_projects));
+    catch (\Throwable $e) {
+      $response->addCommand(new MessageCommand(
+        $e->getMessage(),
+        options: [
+          'type' => MessengerInterface::TYPE_ERROR,
+          'id' => 'activation_error',
+        ],
+      ));
+      $response->addCommand(new ScrollTopCommand('[data-drupal-messages]'));
+      Error::logException($this->logger, $e);
+    }
+    $this->installProgress->clear();
+    return $response->addCommand(new RefreshProjectsCommand());
   }
 
 }

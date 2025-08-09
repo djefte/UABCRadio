@@ -210,8 +210,8 @@ const ed11yInitializer = function () {
   options.showDismissed = urlParams.has('ed1ref');
   // todo postpone: ignoreAllIfPresent
   options.preventCheckingIfPresent = !!drupalSettings.editoria11y.no_load ?
-    drupalSettings.editoria11y.no_load + ', .layout-builder-form' :
-    '.layout-builder-form';
+    drupalSettings.editoria11y.no_load + ', .layout-builder-form, #experience-builder, ' :
+    '.layout-builder-form, #experience-builder';
   // todo postpone: preventCheckingIfAbsent
   options.linkStringsNewWindows = !!drupalSettings.editoria11y.link_strings_new_windows ?
     new RegExp (drupalSettings.editoria11y.link_strings_new_windows, 'gi')

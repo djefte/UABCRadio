@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Drupal\project_browser\Form;
 
-use Drupal\Core\Batch\BatchBuilder;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\CloseModalDialogCommand;
+use Drupal\Core\Config\Checkpoint\CheckpointStorageInterface;
+use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Recipe\Recipe;
 use Drupal\Core\Recipe\RecipeConfigurator;
 use Drupal\Core\Recipe\RecipeInputFormTrait;
 use Drupal\Core\Recipe\RecipeRunner;
+use Drupal\Core\Render\Element;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
+use Drupal\project_browser\RefreshProjectsCommand;
 
 /**
  * Collects input for a recipe, then applies it.
@@ -21,41 +27,67 @@ use Drupal\Core\Recipe\RecipeRunner;
  */
 final class RecipeForm extends FormBase {
 
+  use AutowireTrait;
   use RecipeInputFormTrait;
 
+  public function __construct(
+    private readonly PrivateTempStoreFactory $tempStoreFactory,
+    private readonly CheckpointStorageInterface $checkpointStorage,
+  ) {}
+
   /**
-   * Returns the recipe path stored in the current request.
+   * Returns the recipes being handled by this form.
    *
-   * This expects that the query string will contain a `recipe` key, which has
-   * the path to a locally installed recipe.
-   *
-   * @return \Drupal\Core\Recipe\Recipe
-   *   The recipe stored in the current request.
+   * @return \Drupal\Core\Recipe\Recipe[]
+   *   The recipes being applied by this form.
    */
-  private function getRecipe(): Recipe {
+  private function getRecipes(): array {
     // Clear the static recipe cache to prevent a bug.
     // @todo Remove this when https://drupal.org/i/3495305 is fixed.
     $reflector = new \ReflectionProperty(RecipeConfigurator::class, 'cache');
     $reflector->setValue(NULL, []);
 
-    $path = $this->getRequest()->get('recipe');
-    assert(is_dir($path));
-    return Recipe::createFromDirectory($path);
+    // @see \Drupal\project_browser\Activator\RecipeActivator::activate()
+    $paths = $this->tempStoreFactory->get('project_browser')
+      ->get('recipe_paths');
+    return array_map(Recipe::createFromDirectory(...), $paths ?? []);
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $recipe = $this->getRecipe();
-    $form += $this->buildRecipeInputForm($recipe);
+    // Only consider recipes which take input.
+    $recipes = array_values(array_filter(
+      $this->getRecipes(),
+      fn (Recipe $recipe): bool => (bool) $recipe->input->getDataDefinitions(),
+    ));
 
-    $form['#title'] = $this->t('Applying %recipe', [
-      '%recipe' => $recipe->name,
-    ]);
-    $form['apply'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Continue'),
+    foreach ($recipes as $recipe) {
+      $form += $this->buildRecipeInputForm($recipe);
+    }
+    // If we're dealing with more than one recipe, group the input fields.
+    if (count($recipes) > 1) {
+      foreach (Element::children($form) as $i => $key) {
+        $form[$key] += [
+          '#type' => 'details',
+          '#title' => $recipes[$i]->name,
+          '#open' => TRUE,
+        ];
+      }
+    }
+
+    $form['actions'] = [
+      'apply' => [
+        '#type' => 'submit',
+        '#value' => $this->t('Continue'),
+        '#ajax' => [
+          'callback' => '::ajaxSubmit',
+          'wrapper' => 'drupal-modal',
+          'message' => $this->t('Applying recipe...'),
+        ],
+      ],
+      '#type' => 'actions',
     ];
     return $form;
   }
@@ -65,28 +97,41 @@ final class RecipeForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     parent::validateForm($form, $form_state);
-    $this->validateRecipeInput($this->getRecipe(), $form, $form_state);
+
+    foreach ($this->getRecipes() as $recipe) {
+      $this->validateRecipeInput($recipe, $form, $form_state);
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $recipe = $this->getRecipe();
-    $this->setRecipeInput($recipe, $form_state);
+    $recipes = $this->getRecipes();
 
-    $batch = (new BatchBuilder())
-      ->setTitle(
-        $this->t('Applying %recipe', ['%recipe' => $recipe->name]),
-      );
-    foreach (RecipeRunner::toBatchOperations($recipe) as [$callback, $arguments]) {
-      $batch->addOperation($callback, $arguments);
+    // Create a checkpoint before applying the recipe(s).
+    $checkpoint_name = (string) $this->formatPlural(
+      count($recipes),
+      'Project Browser checkpoint for @name',
+      'Project Browser checkpoint for @count recipes',
+      ['@name' => $recipes[0]->name],
+    );
+    $this->checkpointStorage->checkpoint($checkpoint_name);
+
+    foreach ($recipes as $recipe) {
+      $this->setRecipeInput($recipe, $form_state);
+      RecipeRunner::processRecipe($recipe);
     }
-    // Redirect back to Project Browser when the batch job is done.
-    $form_state->setRedirect('project_browser.browse', [
-      'source' => 'recipes',
-    ]);
-    batch_set($batch->toArray());
+    $this->tempStoreFactory->get('project_browser')->delete('recipe_paths');
+  }
+
+  /**
+   * Closes the modal dialog after submitting the form via AJAX.
+   */
+  public function ajaxSubmit(): AjaxResponse {
+    return (new AjaxResponse())
+      ->addCommand(new RefreshProjectsCommand())
+      ->addCommand(new CloseModalDialogCommand());
   }
 
   /**

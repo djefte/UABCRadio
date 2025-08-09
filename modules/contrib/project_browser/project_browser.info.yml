@@ -4,7 +4,7 @@ description: Provides a user interface for browsing available Drupal projects.
 core_version_requirement: ^11.2
 configure: project_browser.settings
 
-# Information added by Drupal.org packaging script on 2025-06-04
-version: '2.1.0-beta2'
+# Information added by Drupal.org packaging script on 2025-08-05
+version: '2.1.0-beta3'
 project: 'project_browser'
-datestamp: 1749047520
+datestamp: 1754412741

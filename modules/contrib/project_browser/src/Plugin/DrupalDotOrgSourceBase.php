@@ -238,11 +238,23 @@ abstract class DrupalDotOrgSourceBase extends ProjectBrowserSourceBase implement
       TRUE,
       $this->t('Only show actively maintained projects'),
     );
-    $filters['development_status'] = new BooleanFilter(
-      FALSE,
-      $this->t('Only show projects under active development'),
-    );
+
+    if ($this->getConfiguration()['show_development_status']) {
+      $filters['development_status'] = new BooleanFilter(
+        FALSE,
+        $this->t('Only show projects under active development'),
+      );
+    }
     return $filters;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    return [
+      'show_development_status' => FALSE,
+    ] + parent::defaultConfiguration();
   }
 
   /**

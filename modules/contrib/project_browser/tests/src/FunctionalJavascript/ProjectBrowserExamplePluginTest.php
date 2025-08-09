@@ -40,7 +40,11 @@ final class ProjectBrowserExamplePluginTest extends WebDriverTestBase {
       'administer site configuration',
     ]));
     // Update configuration, enable only example source.
-    $this->config('project_browser.admin_settings')->set('enabled_sources', ['project_browser_source_example'])->save(TRUE);
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [
+        'project_browser_source_example' => [],
+      ])
+      ->save(TRUE);
   }
 
   /**

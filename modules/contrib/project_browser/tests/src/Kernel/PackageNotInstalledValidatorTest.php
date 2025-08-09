@@ -29,6 +29,7 @@ final class PackageNotInstalledValidatorTest extends PackageManagerKernelTestBas
    */
   protected static $modules = [
     'project_browser',
+    'user',
   ];
 
   /**

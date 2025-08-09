@@ -179,9 +179,8 @@ function project_browser_test_install(): void {
   $category_query->execute();
 
   // Enable the test mock source.
-  $config = \Drupal::configFactory()
-    ->getEditable('project_browser.admin_settings');
-  $enabled_sources = $config->get('enabled_sources');
-  $enabled_sources[] = 'project_browser_test_mock';
-  $config->set('enabled_sources', $enabled_sources)->save();
+  \Drupal::configFactory()
+    ->getEditable('project_browser.admin_settings')
+    ->set('enabled_sources.project_browser_test_mock', [])
+    ->save();
 }

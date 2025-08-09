@@ -11,8 +11,9 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Recipe\Recipe;
-use Drupal\Core\Site\Settings;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\project_browser\Attribute\ProjectBrowserSource;
@@ -41,12 +42,15 @@ use Symfony\Component\Finder\Finder;
 )]
 final class Recipes extends ProjectBrowserSourceBase {
 
+  use StringTranslationTrait;
+
   public function __construct(
     private readonly FileSystemInterface $fileSystem,
     private readonly CacheBackendInterface $cacheBin,
     private readonly ModuleExtensionList $moduleList,
     private readonly ConfigFactoryInterface $configFactory,
     private readonly string $appRoot,
+    private readonly FileUrlGeneratorInterface $fileUrlGenerator,
     mixed ...$arguments,
   ) {
     parent::__construct(...$arguments);
@@ -63,6 +67,7 @@ final class Recipes extends ProjectBrowserSourceBase {
       $container->get(ModuleExtensionList::class),
       $container->get(ConfigFactoryInterface::class),
       $container->getParameter('app.root'),
+      $container->get('file_url_generator'),
       ...array_slice(func_get_args(), 1),
     );
   }
@@ -87,17 +92,13 @@ final class Recipes extends ProjectBrowserSourceBase {
     else {
       $projects = [];
 
-      $logo_uri = 'base:/' . $this->moduleList->getPath('project_browser') . '/images/recipe-logo.png';
+      $logo_url = $this->moduleList->getPath('project_browser') . '/images/recipe-logo.svg';
+      $logo_url = 'base:' . $this->fileUrlGenerator->generateString($logo_url);
 
-      $finder = $this->getFinder();
-      // If we're in a test environment, scan for our test recipes too, along
-      // with any arbitrary places that might be specified in a setting.
-      if (Settings::get('extension_discovery_scan_tests', FALSE) || drupal_valid_test_ua()) {
-        $finder->in([
-          ...Settings::get('project_browser_recipe_directories', []),
-          __DIR__ . '/../../../tests/fixtures',
-        ]);
-      }
+      // Scan any additional directories specified in configuration.
+      $finder = $this->getFinder()
+        ->in($this->getConfiguration()['additional_directories']);
+
       /** @var \Symfony\Component\Finder\SplFileInfo $file */
       foreach ($finder as $file) {
         $path = $file->getPath();
@@ -123,19 +124,22 @@ final class Recipes extends ProjectBrowserSourceBase {
         $description = $recipe['description'] ?? NULL;
 
         $projects[] = new Project(
-          logo: Url::fromUri($logo_uri),
+          logo: Url::fromUri($logo_url),
           isCompatible: TRUE,
           machineName: basename($path),
-          body: $description ? ['summary' => $description] : [],
-          title: $recipe['name'],
+          // Allow the recipe body and title to be translated.
+          // @phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
+          body: $description ? ['summary' => $this->t($description)] : [],
+          // @phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
+          title: $this->t($recipe['name']),
           packageName: $package_name,
-          type: ProjectType::Recipe,
           url: $url ?? NULL,
+          type: ProjectType::Recipe,
         );
       }
       // Sort the $projects array by the 'title' property in ascending order.
       usort($projects, function (Project $a, Project $b) {
-        return strcasecmp($a->title, $b->title);
+        return strcasecmp((string) $a->title, (string) $b->title);
       });
       $this->cacheBin->set($this->getPluginId(), $projects);
     }
@@ -157,7 +161,7 @@ final class Recipes extends ProjectBrowserSourceBase {
 
     // Filter by search text.
     if (!empty($query['search'])) {
-      $projects = array_filter($projects, fn(Project $project): bool => stripos($project->title, $query['search']) !== FALSE);
+      $projects = array_filter($projects, fn (Project $project): bool => stripos((string) $project->title, $query['search']) !== FALSE);
     }
 
     $total = count($projects);
@@ -180,10 +184,19 @@ final class Recipes extends ProjectBrowserSourceBase {
       $projects = array_chunk($projects, $query['limit'])[$query['page']] ?? [];
     }
 
-    if (array_key_exists('order', $this->configuration)) {
-      SortHelper::sortInDefinedOrder($projects, $this->configuration['order']);
-    }
+    ['order' => $order] = $this->getConfiguration();
+    SortHelper::sortInDefinedOrder($projects, $order);
     return $this->createResultsPage($projects, $total);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    return [
+      'order' => [],
+      'additional_directories' => [],
+    ] + parent::defaultConfiguration();
   }
 
   /**

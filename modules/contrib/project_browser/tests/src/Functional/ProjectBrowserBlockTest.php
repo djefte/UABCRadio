@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\Functional;
 
 use Drupal\block\Entity\Block;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\project_browser\Plugin\Block\ProjectBrowserBlock;
 use Drupal\Tests\BrowserTestBase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -39,7 +40,9 @@ final class ProjectBrowserBlockTest extends BrowserTestBase {
     parent::setUp();
 
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['project_browser_test_mock'])
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
       ->save();
     $this->drupalLogin($this->drupalCreateUser([
       'administer blocks',
@@ -48,7 +51,6 @@ final class ProjectBrowserBlockTest extends BrowserTestBase {
     $this->drupalPlaceBlock('project_browser_block:project_browser_test_mock', [
       'id' => 'project_browser_test_block',
       'label' => 'Project browser block',
-      'simulate_preview' => FALSE,
     ]);
   }
 
@@ -100,12 +102,14 @@ final class ProjectBrowserBlockTest extends BrowserTestBase {
    * Tests that the block doesn't render the project browser in preview mode.
    */
   public function testPreviewMode(): void {
-    $block = Block::load('project_browser_test_block');
-    $block?->set('settings', ['simulate_preview' => TRUE])->save();
+    $block = Block::load('project_browser_test_block')?->getPlugin();
+    $this->assertInstanceOf(ProjectBrowserBlock::class, $block);
 
-    $this->drupalGet('<front>');
-    $this->assertSession()
-      ->pageTextContains('Project Browser is being rendered in preview mode, so not loading projects. This block uses the Project Browser Mock Plugin source.');
+    $block->setInPreview(TRUE);
+    $build = $block->build();
+    $rendered = (string) $this->container->get(RendererInterface::class)
+      ->renderRoot($build);
+    $this->assertStringContainsString('Project Browser is being rendered in preview mode, so not loading projects. This block uses the <em class="placeholder">Project Browser Mock Plugin</em> source.', $rendered);
   }
 
   /**

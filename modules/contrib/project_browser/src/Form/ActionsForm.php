@@ -2,10 +2,10 @@
 
 namespace Drupal\project_browser\Form;
 
+use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\project_browser\EnabledSourceHandler;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\project_browser\ProjectRepository;
 
 /**
  * Clear caches for this site.
@@ -16,18 +16,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 final class ActionsForm extends FormBase {
 
-  public function __construct(
-    private readonly EnabledSourceHandler $enabledSourceHandler,
-  ) {}
+  use AutowireTrait;
 
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get(EnabledSourceHandler::class),
-    );
-  }
+  public function __construct(
+    private readonly ProjectRepository $projectRepository,
+  ) {}
 
   /**
    * {@inheritdoc}
@@ -60,7 +53,7 @@ final class ActionsForm extends FormBase {
    * Clears the caches.
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $this->enabledSourceHandler->clearStorage();
+    $this->projectRepository->clearAll();
     $this->messenger()->addStatus($this->t('Storage cleared.'));
   }
 

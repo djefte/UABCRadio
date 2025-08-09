@@ -47,7 +47,11 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->config('project_browser.admin_settings')->set('enabled_sources', ['project_browser_test_mock'])->save(TRUE);
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
+      ->save(TRUE);
     $this->drupalLogin($this->drupalCreateUser([
       'administer modules',
       'administer site configuration',
@@ -682,7 +686,10 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
     $this->drupalPlaceBlock('local_tasks_block');
 
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['drupalorg_jsonapi', 'drupal_core'])
+      ->set('enabled_sources', [
+        'drupalorg_jsonapi' => [],
+        'drupal_core' => [],
+      ])
       ->save();
 
     $this->drupalGet('admin/modules/browse/drupalorg_jsonapi');
@@ -722,7 +729,11 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
     $this->drupalGet('admin/modules/browse/drupal_core');
     $this->assertElementIsVisible('css', '.pb-project');
 
-    $this->config('project_browser.admin_settings')->set('enabled_sources', ['project_browser_test_mock'])->save(TRUE);
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
+      ->save(TRUE);
     $this->drupalGet('admin/config/development/project_browser');
     $this->assertTrue($assert_session->optionExists('edit-enabled-sources-project-browser-test-mock-status', 'enabled')->isSelected());
     $this->assertTrue($assert_session->optionExists('edit-enabled-sources-drupal-core-status', 'disabled')->isSelected());
@@ -796,7 +807,9 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
     $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['drupal_core'])
+      ->set('enabled_sources', [
+        'drupal_core' => [],
+      ])
       ->save(TRUE);
     $this->drupalGet('admin/modules/browse/drupal_core');
     $this->svelteInitHelper('css', '.pb-project.pb-project--list');
@@ -887,7 +900,9 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
    */
   public function testRecipeInstructions(): void {
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['recipes'])
+      ->set('enabled_sources', [
+        'recipes' => [],
+      ])
       ->save();
 
     $this->drupalGet('admin/modules/browse/recipes');

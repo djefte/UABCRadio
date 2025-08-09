@@ -1,7 +1,7 @@
 <script>
   import { FULL_MODULE_PATH, DARK_COLOR_SCHEME } from '../constants';
 
-  const { Drupal, drupalSettings } = window;
+  const { Drupal } = window;
 
   export let type = '';
   export let variant = false;

@@ -9,11 +9,12 @@ use Drupal\Core\Extension\Requirement\RequirementSeverity;
 use Drupal\Core\Url;
 use Drupal\package_manager\Exception\SandboxException;
 use Drupal\package_manager\StatusCheckTrait;
+use Drupal\project_browser\Activator\ActivationStatus;
 use Drupal\project_browser\ComposerInstaller\Installer;
-use Drupal\project_browser\EnabledSourceHandler;
-use Drupal\project_browser\InstallState;
+use Drupal\project_browser\InstallProgress;
+use Drupal\project_browser\ProjectRepository;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,38 +31,14 @@ final class InstallerController extends ControllerBase {
 
   use StatusCheckTrait;
 
-  /**
-   * The endpoint successfully returned the expected data.
-   *
-   * @var int
-   */
-  protected const STAGE_STATUS_OK = 0;
-
   public function __construct(
     private readonly Installer $installer,
-    private readonly EnabledSourceHandler $enabledSourceHandler,
+    private readonly ProjectRepository $projectRepository,
     private readonly TimeInterface $time,
-    private readonly LoggerInterface $logger,
-    private readonly InstallState $installState,
+    #[Autowire(service: 'logger.channel.project_browser')] private readonly LoggerInterface $logger,
+    private readonly InstallProgress $installProgress,
     private readonly EventDispatcherInterface $eventDispatcher,
   ) {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    $installer = $container->get(Installer::class);
-    assert($installer instanceof Installer);
-
-    return new static(
-      $installer,
-      $container->get(EnabledSourceHandler::class),
-      $container->get(TimeInterface::class),
-      $container->get('logger.channel.project_browser'),
-      $container->get(InstallState::class),
-      $container->get(EventDispatcherInterface::class),
-    );
-  }
 
   /**
    * Checks if UI install is enabled on the site.
@@ -72,24 +49,24 @@ final class InstallerController extends ControllerBase {
   }
 
   /**
-   * Resets progress and destroys the stage.
+   * Resets progress and destroys the sandbox.
    */
   private function cancelRequire(): void {
-    $this->installState->deleteAll();
-    // Checking the for the presence of a lock in the package manager stage is
+    $this->installProgress->clear();
+    // Checking the for the presence of a lock in the sandbox manager is
     // necessary as this method can be called during create(), which includes
     // both the PreCreate and PostCreate events. If an exception is caught
-    // during PreCreate, there's no stage to destroy and an exception would be
-    // raised. So, we check for the presence of a stage before calling
+    // during PreCreate, there's no sandbox to destroy and an exception would be
+    // raised. So, we check for the presence of a sandbox before calling
     // destroy().
     if (!$this->installer->isAvailable() && $this->installer->lockCameFromProjectBrowserInstaller()) {
       // The risks of forcing a destroy with TRUE are understood, which is why
       // we first check if the lock originated from Project Browser. This
       // function is called if an exception is thrown during an install. This
-      // can occur during a phase where the stage might not be claimable, so we
+      // can occur during a phase where the sandbox might not be claimable, so we
       // force-destroy with the TRUE parameter, knowing that the checks above
-      // will prevent destroying an Automatic Updates stage or a stage that is
-      // in the process of applying.
+      // will prevent destroying an Automatic Updates sandbox or a sandbox that
+      // is in the process of applying.
       $this->installer->destroy(TRUE);
     }
   }
@@ -124,27 +101,21 @@ final class InstallerController extends ControllerBase {
   /**
    * Provides a JSON response for a successful request.
    *
-   * @param string $phase
-   *   The phase the request was made in.
-   * @param string|null $stage_id
-   *   The stage ID of the installer within the request.
+   * @param string $sandbox_id
+   *   The sandbox ID of the installer within the request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   Provides information about the completed operation.
    */
-  private function successResponse(string $phase, ?string $stage_id = NULL): JsonResponse {
-    $response_body = [
-      'phase' => $phase,
-      'status' => self::STAGE_STATUS_OK,
-    ];
-    if (!empty($stage_id)) {
-      $response_body['stage_id'] = $stage_id;
-    }
-    return new JsonResponse($response_body);
+  private function successResponse(string $sandbox_id): JsonResponse {
+    return new JsonResponse([
+      'progress' => $this->installProgress->toArray(),
+      'sandboxId' => $sandbox_id,
+    ]);
   }
 
   /**
-   * Provides a JSON response for require requests while the stage is locked.
+   * Provides a JSON response for require requests while the sandbox is locked.
    *
    * @param string $message
    *   The message content of the response.
@@ -154,7 +125,7 @@ final class InstallerController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   Provides a message regarding the status of the staging lock.
    *
-   *   If the stage is not in a phase where it is unsafe to unlock, a CSRF
+   *   If the sandbox is not in a phase where it is unsafe to unlock, a CSRF
    *   protected unlock URL is also provided.
    */
   private function lockedResponse(string $message, string $unlock_url = ''): JsonResponse {
@@ -165,7 +136,7 @@ final class InstallerController extends ControllerBase {
   }
 
   /**
-   * Unlocks and destroys the stage.
+   * Unlocks and destroys the sandbox.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
    *   Redirects to the main project browser page.
@@ -181,21 +152,21 @@ final class InstallerController extends ControllerBase {
 
       // Adding the TRUE parameter to destroy is dangerous, but we provide it
       // here for a few reasons.
-      // - This endpoint is only available if it's confirmed the stage lock was
-      //   created by  Drupal\project_browser\ComposerInstaller\Installer.
-      // - This endpoint is not available if the stage is applying.
+      // - This endpoint is only available if it's confirmed the sandbox lock
+      //   was created by  Drupal\project_browser\ComposerInstaller\Installer.
+      // - This endpoint is not available if the sandbox is applying.
       // - In the event of a flawed install, we want it to be possible for users
-      //   to unlock the stage via the GUI, even if they're not the user that
+      //   to unlock the sandbox via the GUI, even if they're not the user that
       //   initiated the install.
       // - The unlock link is accompanied by information regarding when the
-      //   stage was locked, and warns the user when the time is recent enough
+      //   sandbox was locked, and warns the user when the time is recent enough
       //   that they risk aborting a legitimate install.
       $this->installer->destroy(TRUE);
     }
     catch (\Exception $e) {
       return $this->errorResponse($e);
     }
-    $this->installState->deleteAll();
+    $this->installProgress->clear();
     $this->messenger()->addStatus($this->t('Operation complete, you can add a new project again.'));
 
     $redirect = Url::fromUserInput($this->getRedirectDestination()->get())
@@ -225,7 +196,7 @@ final class InstallerController extends ControllerBase {
   }
 
   /**
-   * Begins requiring by creating a stage.
+   * Begins requiring by creating a sandbox.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request.
@@ -234,8 +205,8 @@ final class InstallerController extends ControllerBase {
    *   Status message.
    */
   public function begin(Request $request): JsonResponse {
-    $stage_available = $this->installer->isAvailable();
-    if (!$stage_available) {
+    $sandbox_available = $this->installer->isAvailable();
+    if (!$sandbox_available) {
       // The sandbox is being used by something that isn't Project Browser (e.g.
       // Automatic Updates), so there's nothing we can do.
       if (!$this->installer->lockCameFromProjectBrowserInstaller()) {
@@ -251,18 +222,16 @@ final class InstallerController extends ControllerBase {
 
       // We had locked the sandbox, but never actually ended up requiring any
       // projects into it, so allow the user to unlock it right now.
-      $updated_time = $this->installState->getFirstUpdatedTime();
+      $updated_time = $this->installProgress->getFirstUpdatedTime();
       if (empty($updated_time)) {
         $message = $this->t('The process for adding projects is locked, but that lock has expired. Use [+ unlock link] to unlock the process and try to add the project again.');
         return $this->lockedResponse($message, $unlock_url);
       }
 
-      // Figure out how long it's been since we locked the sandbox. In a test
-      // environment, allow the current request time to be nudged around.
-      $request_time = $this->time->getRequestTime();
-      if (drupal_valid_test_ua()) {
-        $request_time += $this->state()->get('InstallerController time offset', 0);
-      }
+      // Figure out how long it's been since we locked the sandbox. In a testing
+      // context, allow the current request time to be nudged around.
+      // @todo Move the offset into a TimeInterface decorator.
+      $request_time = $this->time->getRequestTime() + $this->state()->get('InstallerController time offset', 0);
 
       $seconds_since_updated = $request_time - $updated_time;
       $hours_since_updated = (int) floor($seconds_since_updated / 3600);
@@ -313,37 +282,37 @@ final class InstallerController extends ControllerBase {
     }
 
     try {
-      $stage_id = $this->installer->create();
+      $sandbox_id = $this->installer->create();
     }
     catch (\Exception $e) {
       $this->cancelRequire();
       return $this->errorResponse($e, 'create');
     }
 
-    return $this->successResponse('create', $stage_id);
+    return $this->successResponse($sandbox_id);
   }
 
   /**
-   * Performs require operations on the stage.
+   * Performs require operations on the sandbox.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
-   * @param string $stage_id
-   *   The stage ID of the installer within the request.
+   * @param string $sandbox_id
+   *   The sandbox ID of the installer within the request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   Status message.
    */
-  public function require(Request $request, string $stage_id): JsonResponse {
+  public function require(Request $request, string $sandbox_id): JsonResponse {
     $package_names = [];
     foreach ($request->toArray() as $project_id) {
-      $project = $this->enabledSourceHandler->getStoredProject($project_id);
-      $this->installState->setState($project_id, 'requiring');
+      $project = $this->projectRepository->get($project_id);
+      $this->installProgress->setStatus($project_id, ActivationStatus::Absent);
       $package_names[] = $project->packageName;
     }
     try {
-      $this->installer->claim($stage_id)->require($package_names);
-      return $this->successResponse('require', $stage_id);
+      $this->installer->claim($sandbox_id)->require($package_names);
+      return $this->successResponse($sandbox_id);
     }
     catch (\Exception $e) {
       $this->cancelRequire();
@@ -352,68 +321,64 @@ final class InstallerController extends ControllerBase {
   }
 
   /**
-   * Performs apply operations on the stage.
+   * Performs apply operations on the sandbox.
    *
-   * @param string $stage_id
-   *   The stage ID of the installer within the request.
+   * @param string $sandbox_id
+   *   The sandbox ID of the installer within the request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   Status message.
    */
-  public function apply(string $stage_id): JsonResponse {
-    foreach ($this->installState->toArray() as $project) {
-      $this->installState->setState($project['project_id'], 'applying');
-    }
+  public function apply(string $sandbox_id): JsonResponse {
     try {
-      $this->installer->claim($stage_id)->apply();
+      $this->installer->claim($sandbox_id)->apply();
     }
     catch (\Exception $e) {
       $this->cancelRequire();
       return $this->errorResponse($e, 'apply');
     }
-    return $this->successResponse('apply', $stage_id);
+    foreach ($this->installProgress->toArray()[ActivationStatus::Absent->value] as $project_id) {
+      $this->installProgress->setStatus($project_id, ActivationStatus::Present);
+    }
+    return $this->successResponse($sandbox_id);
   }
 
   /**
-   * Performs post apply operations on the stage.
+   * Performs post apply operations on the sandbox.
    *
-   * @param string $stage_id
-   *   The stage ID of the installer within the request.
+   * @param string $sandbox_id
+   *   The sandbox ID of the installer within the request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   Status message.
    */
-  public function postApply(string $stage_id): JsonResponse {
+  public function postApply(string $sandbox_id): JsonResponse {
     try {
-      $this->installer->claim($stage_id)->postApply();
+      $this->installer->claim($sandbox_id)->postApply();
     }
     catch (\Exception $e) {
       return $this->errorResponse($e, 'post apply');
     }
-    return $this->successResponse('post apply', $stage_id);
+    return $this->successResponse($sandbox_id);
   }
 
   /**
-   * Performs destroy operations on the stage.
+   * Performs destroy operations on the sandbox.
    *
-   * @param string $stage_id
-   *   The stage ID of the installer within the request.
+   * @param string $sandbox_id
+   *   The sandbox ID of the installer within the request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   Status message.
    */
-  public function destroy(string $stage_id): JsonResponse {
+  public function destroy(string $sandbox_id): JsonResponse {
     try {
-      $this->installer->claim($stage_id)->destroy();
+      $this->installer->claim($sandbox_id)->destroy();
+      return $this->successResponse($sandbox_id);
     }
     catch (\Exception $e) {
       return $this->errorResponse($e, 'destroy');
     }
-    return new JsonResponse([
-      'phase' => 'destroy',
-      'status' => self::STAGE_STATUS_OK,
-      'stage_id' => $stage_id,
-    ]);
   }
 
   /**

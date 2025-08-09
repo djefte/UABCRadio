@@ -6,8 +6,9 @@ namespace Drupal\Tests\project_browser\Kernel;
 
 use Drupal\Core\Session\AccountInterface;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\QueryManager;
 use Drupal\project_browser\ProjectBrowser\Normalizer;
+use Drupal\project_browser\ProjectRepository;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -33,14 +34,16 @@ final class NormalizerTest extends KernelTestBase {
    */
   public function testTasksAreFilteredByAccess(): void {
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['drupal_core'])
+      ->set('enabled_sources', [
+        'drupal_core' => [],
+      ])
       ->save();
 
     // Prime the project cache.
-    /** @var \Drupal\project_browser\EnabledSourceHandler $source_handler */
-    $source_handler = $this->container->get(EnabledSourceHandler::class);
-    $source_handler->getProjects('drupal_core');
-    $project = $source_handler->getStoredProject('drupal_core/field');
+    $this->container->get(QueryManager::class)
+      ->getProjects('drupal_core');
+    $project = $this->container->get(ProjectRepository::class)
+      ->get('drupal_core/field');
 
     $this->assertFalse(
       $this->container->get(AccountInterface::class)->hasPermission('administer modules'),

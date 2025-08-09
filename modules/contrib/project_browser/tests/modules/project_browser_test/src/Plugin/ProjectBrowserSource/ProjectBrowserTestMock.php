@@ -335,10 +335,17 @@ final class ProjectBrowserTestMock extends ProjectBrowserSourceBase {
       }
     }
 
-    if (array_key_exists('order', $this->configuration)) {
-      SortHelper::sortInDefinedOrder($returned_list, $this->configuration['order']);
-    }
+    ['order' => $order] = $this->getConfiguration();
+    SortHelper::sortInDefinedOrder($returned_list, $order);
+
     return $this->createResultsPage($returned_list, (int) ($api_response['total_results'] ?? 0), static::$resultsError);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    return parent::defaultConfiguration() + ['order' => []];
   }
 
   /**

@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\FunctionalJavascript;
 
 use Behat\Mink\Element\NodeElement;
+use Drupal\contact\Entity\ContactForm;
 use Drupal\Core\Extension\ModuleInstallerInterface;
 use Drupal\Core\Extension\Requirement\RequirementSeverity;
-use Drupal\Core\Recipe\RecipeInputFormTrait;
 use Drupal\Core\State\StateInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\Core\Url;
 use Drupal\project_browser\Controller\InstallerController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
-use Drupal\project_browser\InstallState;
+use Drupal\project_browser\InstallProgress;
 use Drupal\project_browser_test\TestActivator;
 use Drupal\Tests\project_browser\Traits\PackageManagerFixtureUtilityTrait;
 use PHPUnit\Framework\Attributes\Group;
@@ -31,9 +33,9 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
   /**
    * The install state service.
    *
-   * @var \Drupal\project_browser\InstallState
+   * @var \Drupal\project_browser\InstallProgress
    */
-  private InstallState $installState;
+  private InstallProgress $installState;
 
   /**
    * {@inheritdoc}
@@ -60,12 +62,20 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
 
     $this->initPackageManager();
 
-    /** @var \Drupal\project_browser\InstallState $install_state */
-    $install_state = $this->container->get(InstallState::class);
+    /** @var \Drupal\project_browser\InstallProgress $install_state */
+    $install_state = $this->container->get(InstallProgress::class);
     $this->installState = $install_state;
 
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['project_browser_test_mock', 'drupal_core', 'recipes'])
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+        'drupal_core' => [],
+        'recipes' => [
+          'additional_directories' => [
+            __DIR__ . '/../../fixtures',
+          ],
+        ],
+      ])
       ->set('allow_ui_install', TRUE)
       ->set('max_selections', 1)
       ->save();
@@ -133,14 +143,9 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
   public function testApplyRecipe(): void {
     $page = $this->getSession()->getPage();
 
-    $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['recipes'])
-      ->save();
-
     $this->drupalGet('admin/modules/browse/recipes');
     $this->svelteInitHelper('css', '.pb-projects-list');
-    $this->inputSearchField('image', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
+    $this->searchFor('image');
 
     // Apply a recipe that ships with core.
     $card = $this->waitForProject('Image media type');
@@ -149,49 +154,49 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
 
     // If we reload, the installation status should be remembered.
     $this->getSession()->reload();
-    $this->inputSearchField('image', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
+    $this->searchFor('image');
     $card = $this->waitForProject('Image media type');
     $this->waitForProjectToBeInstalled($card);
 
     // Apply a recipe that requires user input.
-    // @todo Remove this check in https://www.drupal.org/i/3494848.
-    if (!trait_exists(RecipeInputFormTrait::class)) {
-      $this->markTestSkipped('This test cannot continue because this version of Drupal does not support collecting recipe input.');
-    }
-    $this->inputSearchField('test', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
+    $this->searchFor('test');
+    $card = $this->waitForProject('Test Recipe');
     $this->waitForProject('Test Recipe')->pressButton('Install');
-    $this->assertElementIsVisible('named', ['field', 'test_recipe[new_name]'])
-      ->setValue('Y halo thar!');
-    $page->pressButton('Continue');
-    // The refresh meta tag indicates that the batch job has started.
-    $this->checkForMetaRefresh();
-    // Wait to be redirected back to Project Browser, which is how we'll know
-    // the batch job has finished.
-    $session = $this->getSession();
-    $this->assertTrue($session->wait(10000, 'window.location.pathname.endsWith("/admin/modules/browse/recipes")'));
+    $card->pressButton('Install');
+
+    // The input form should appear in a modal dialog.
+    $modal = $this->assertElementIsVisible('css', '#drupal-modal');
+    $modal->fillField('test_recipe[new_name]', 'Y halo thar!');
+    $this->assertSession()
+      ->elementTextContains('css', '.ui-dialog-title', 'Test Recipe');
+    $page->find('css', '.ui-dialog-buttonpane')?->pressButton('Continue');
+    // Wait for the modal to vanish and confirm that the recipe did its job.
+    $this->assertTrue($modal->waitFor(10, fn (NodeElement $modal) => !$modal->isValid()));
     $this->assertSame('Y halo thar!', $this->config('system.site')->get('name'));
+
+    // A checkpoint should have been created. It's not available to the PHPUnit
+    // test runner, but project_browser_test records it for us.
+    $checkpoint_name = $this->container->get(StateInterface::class)
+      ->get('project_browser_test.checkpoint_name');
+    $this->assertSame('Project Browser checkpoint for Test Recipe', $checkpoint_name);
 
     // The recipe should be marked as applied, but we should be able to reapply
     // it.
-    $this->inputSearchField('test', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
-    $card = $this->waitForProject('Test Recipe');
     $this->waitForProjectToBeInstalled($card);
     $card->clickLink('Reapply');
-    $this->assertElementIsVisible('named', ['field', 'test_recipe[new_name]'])
-      ->setValue('Apply, apply again');
-    $page->pressButton('Continue');
-    $this->checkForMetaRefresh();
-    $this->assertTrue($session->wait(10000, 'window.location.pathname.endsWith("/admin/modules/browse/recipes")'));
+
+    // The input form should appear, again, in a modal dialog.
+    $modal = $this->assertElementIsVisible('css', '#drupal-modal');
+    $modal->fillField('test_recipe[new_name]', 'Apply, apply again');
+    $page->find('css', '.ui-dialog-buttonpane')?->pressButton('Continue');
+    // Wait for the modal to vanish and confirm that the recipe did its job...
+    // again.
+    $this->assertTrue($modal->waitFor(10, fn (NodeElement $modal) => !$modal->isValid()));
     // Clear all caches so that our test environment reflects the state of the
     // test site.
     $this->resetAll();
     $this->assertSame('Apply, apply again', $this->config('system.site')->get('name'));
-    $this->inputSearchField('test', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
-    $this->waitForProjectToBeInstalled('Test Recipe');
+    $this->waitForProjectToBeInstalled($card);
   }
 
   /**
@@ -211,21 +216,21 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
   }
 
   /**
-   * Confirms stage can be unlocked despite a missing Project Browser lock.
+   * Confirms sandbox can be unlocked despite a missing Project Browser lock.
    *
    * @legacy-covers ::unlock
    */
-  public function testCanBreakStageWithMissingProjectBrowserLock(): void {
+  public function testCanUnlockSandboxWithMissingProjectBrowserLock(): void {
     TestActivator::handle('drupal/cream_cheese');
 
     // Start install begin.
     $this->drupalGet('admin/modules/project_browser/install-begin', [
       'query' => ['source' => 'project_browser_test_mock'],
     ]);
-    $this->installState->deleteAll();
+    $this->installState->clear();
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     // Try beginning another install while one is in progress, but not yet in
-    // the applying stage.
+    // the applying sandbox.
     $this->waitForProject('Cream cheese on a bagel')
       ->pressButton('Install Cream cheese on a bagel');
 
@@ -238,7 +243,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
   /**
    * Confirms the break lock link is available and works.
    *
-   * The break lock link is not available once the stage is applying.
+   * The break lock link is not available once the sandbox is applying.
    *
    * @legacy-covers ::unlock
    */
@@ -251,7 +256,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     ]);
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     // Try beginning another install while one is in progress, but not yet in
-    // the applying stage.
+    // the applying sandbox.
     $this->waitForProject('Cream cheese on a bagel')
       ->pressButton('Install Cream cheese on a bagel');
     $this->assertPageHasText('The process for adding projects is locked, but that lock has expired. Use unlock link to unlock the process and try to add the project again.');
@@ -367,7 +372,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     $this->drupalGet('admin/modules/project_browser/install-begin', [
       'query' => ['source' => 'project_browser_test_mock'],
     ]);
-    $this->installState->deleteAll();
+    $this->installState->clear();
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     $this->waitForProject('Cream cheese on a bagel')
       ->pressButton('Install Cream cheese on a bagel');
@@ -418,7 +423,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     ]);
     $this->drupalGet('admin/modules/browse/project_browser_test_mock');
     // Try beginning another install while one is in progress, but not yet in
-    // the applying stage.
+    // the applying sandbox.
     $this->waitForProject('Cream cheese on a bagel')
       ->pressButton('Install Cream cheese on a bagel');
     // Close the dialog to assert the state of install button.
@@ -483,8 +488,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
 
     $this->drupalGet('admin/modules/browse/drupal_core');
     $this->svelteInitHelper('css', '.pb-project.pb-project--list');
-    $this->inputSearchField('contact', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
+    $this->searchFor('contact');
     $card = $this->waitForProject('Contact');
     $card->pressButton('List additional actions');
     $this->assertChildElementIsVisible($card, 'css', '.dropbutton .secondary-action a');
@@ -500,8 +504,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     $this->assertStringContainsString('/project-browser/uninstall/contact', $available_actions['Uninstall']);
 
     // Ensure that dropdown menus are mutually exclusive.
-    $this->inputSearchField('translation', TRUE);
-    $this->assertElementIsVisible('css', ".search__search-submit")->click();
+    $this->searchFor('translation');
     $project1 = $this->waitForProject('Content Translation');
     $project2 = $this->waitForProject('Configuration Translation');
 
@@ -521,6 +524,161 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     // Ensure that we can close an open dropdown by clicking the button again.
     $project1->pressButton('List additional actions');
     $this->assertFalse($project1->find('css', '.dropbutton .secondary-action')?->isVisible());
+  }
+
+  /**
+   * Tests applying multiple recipes at once, some of which require input.
+   */
+  public function testApplyMultipleRecipes(): void {
+    $this->config('project_browser.admin_settings')
+      ->set('max_selections', NULL)
+      ->save();
+
+    $this->drupalGet('admin/modules/browse/recipes');
+    // Select a recipe that doesn't require input. It's important to choose this
+    // one first, to ensure that the fields are grouped correctly in the modal.
+    $this->searchFor('comment');
+    $comments_card = $this->waitForProject('Article comments');
+    $comments_card->pressButton('Select Article comments');
+    // And select two recipes that do.
+    $this->searchFor('contact');
+    $contact_form_card = $this->waitForProject('Website feedback contact form');
+    $contact_form_card->pressButton('Select Website feedback contact form');
+    $this->searchFor('test');
+    $test_card = $this->waitForProject('Test Recipe');
+    $test_card->pressButton('Select Test Recipe');
+
+    // Now apply the recipes and ensure the input form opens in a modal, with
+    // the input fields grouped by recipe.
+    $this->assertElementIsVisible('named', ['button', 'Install selected projects'])
+      ->press();
+    $modal = $this->assertElementIsVisible('css', '#drupal-modal');
+    $this->assertSession()
+      ->elementTextContains('css', '.ui-dialog-title', 'Applying recipes');
+    $assert_session = $this->assertSession();
+    $assert_session->elementExists('css', 'summary:contains("Website feedback contact form")', $modal)
+      ->getParent()
+      ->fillField('Feedback form email address', 'ben@space.net');
+    $assert_session->elementExists('css', 'summary:contains("Test Recipe")', $modal)
+      ->getParent()
+      ->fillField('New site name', 'What a twist!');
+    // There should be no group for the recipe that has no input.
+    $assert_session->elementNotExists('css', 'summary:contains("Article comments")', $modal);
+    // Apply the recipes and wait for the modal to vanish.
+    $this->getSession()
+      ->getPage()
+      ->find('css', '.ui-dialog-buttonpane')?->pressButton('Continue');
+    $this->assertTrue($modal->waitFor(10, fn (NodeElement $modal) => !$modal->isValid()));
+    // Reload the container to reflect changes made by the recipes.
+    $this->rebuildAll();
+    // Confirm the recipes did what they should have done.
+    $this->assertSame('What a twist!', $this->config('system.site')->get('name'));
+    $this->assertContains('ben@space.net', (array) ContactForm::load('feedback')?->getRecipients());
+    $this->assertInstanceOf(FieldConfig::class, FieldConfig::loadByName('node', 'article', 'comment'));
+  }
+
+  /**
+   * Searches visible projects by keyword.
+   *
+   * @param string $text
+   *   The text to search for.
+   */
+  private function searchFor(string $text): void {
+    $this->inputSearchField($text, TRUE);
+    $this->assertElementIsVisible('css', ".search__search-submit")->click();
+  }
+
+  /**
+   * Tests that Install buttons are disabled during an install process.
+   */
+  public function testInstallButtonsAreDisabledDuringInstall(): void {
+    TestActivator::handle('drupal/cream_cheese');
+
+    $url = Url::fromRoute('project_browser.browse', [
+      'source' => 'project_browser_test_mock',
+    ]);
+    $this->drupalGet($url);
+    $install_button = $this->waitForProject('Dancing Queen')
+      ->findButton('Install Dancing Queen');
+    $this->assertInstanceOf(NodeElement::class, $install_button);
+
+    // While installing another project, Dancing Queen's install button should
+    // be disabled.
+    $project = $this->waitForProject('Cream cheese on a bagel');
+    $project->pressButton('Install Cream cheese on a bagel');
+    $this->assertTrue(
+      $install_button->waitFor(10, fn () => $install_button->hasAttribute('disabled')),
+    );
+    $this->waitForProjectToBeInstalled($project);
+    $this->assertTrue(
+      $install_button->waitFor(10, fn () => !$install_button->hasAttribute('disabled')),
+    );
+  }
+
+  /**
+   * Tests that Install buttons are disabled during a multi-project install.
+   */
+  public function testInstallButtonsAreDisabledDuringMultiProjectInstall(): void {
+    TestActivator::handle('drupal/dancing_queen', 'drupal/octopus');
+
+    $this->config('project_browser.admin_settings')
+      ->set('max_selections', 2)
+      ->save();
+    $url = Url::fromRoute('project_browser.browse', [
+      'source' => 'project_browser_test_mock',
+    ]);
+    $this->drupalGet($url);
+    $select_button = $this->waitForProject('Cream cheese on a bagel')
+      ->findButton('Select Cream cheese on a bagel');
+    $this->assertInstanceOf(NodeElement::class, $select_button);
+
+    // We shouldn't see a button to clear the selection until we've actually
+    // selected something.
+    $assert_session = $this->assertSession();
+    $assert_session->buttonNotExists('Clear selection');
+
+    $dancing_queen = $this->waitForProject('Dancing Queen');
+    $octopus = $this->waitForProject('Octopus');
+    $dancing_queen->pressButton('Select Dancing Queen');
+    $octopus->pressButton('Select Octopus');
+    // A third select button should be disabled even before we start installing.
+    $this->assertTrue(
+      $select_button->waitFor(10, fn () => $select_button->hasAttribute('disabled')),
+    );
+    // But we should be able to deselect a project.
+    $dancing_queen->pressButton('Deselect Dancing Queen');
+    // Which should cause the disabled button to become enabled again.
+    $this->assertTrue(
+      $select_button->waitFor(10, fn () => !$select_button->hasAttribute('disabled')),
+    );
+    // And we should be able to clear the selection.
+    $this->assertElementIsVisible('named', ['button', 'Clear selection'])
+      ->press();
+
+    // Reselect the projects we want to install and start the process.
+    $dancing_queen->pressButton('Select Dancing Queen');
+    $octopus->pressButton('Select Octopus');
+    $this->assertElementIsVisible('named', ['button', 'Install selected projects'])
+      ->press();
+    $this->assertPageHasText('2 projects selected');
+
+    // While that's happening, we shouldn't be able to select another project,
+    // nor should we be able to clear the selection.
+    $this->assertTrue(
+      $select_button->waitFor(10, fn () => $select_button->hasAttribute('disabled')),
+    );
+    $assert_session->buttonNotExists('Install selected projects');
+    $assert_session->buttonNotExists('Clear selection');
+
+    $this->waitForProjectToBeInstalled($dancing_queen);
+    $this->waitForProjectToBeInstalled($octopus);
+    // Now we can select another project.
+    $this->assertTrue(
+      $select_button->waitFor(10, fn () => !$select_button->hasAttribute('disabled')),
+    );
+    // Nothing is selected, so we shouldn't see a button to clear the selection.
+    $this->assertPageHasText('No projects selected');
+    $assert_session->buttonNotExists('Clear selection');
   }
 
   /**

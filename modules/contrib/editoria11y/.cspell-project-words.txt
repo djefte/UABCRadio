@@ -53,3 +53,4 @@ nocache
 varchar
 fontawesome
 fonticons
+tablesaw

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\project_browser\Functional;
 
 use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
-use Drupal\project_browser\EnabledSourceHandler;
+use Drupal\project_browser\QueryManager;
+use Drupal\project_browser\ProjectRepository;
 use Drupal\Tests\BrowserTestBase;
 use Drush\TestTraits\DrushTestTrait;
 use PHPUnit\Framework\Attributes\Group;
@@ -44,13 +45,15 @@ final class ClearStorageTest extends BrowserTestBase {
     parent::setUp();
 
     $this->config('project_browser.admin_settings')
-      ->set('enabled_sources', ['project_browser_test_mock'])
+      ->set('enabled_sources', [
+        'project_browser_test_mock' => [],
+      ])
       ->save();
 
     $this->keyValue = \Drupal::service('keyvalue')->get('project_browser:project_browser_test_mock');
 
     // Warm the project cache and confirm it is populated.
-    \Drupal::service(EnabledSourceHandler::class)->getProjects('project_browser_test_mock');
+    \Drupal::service(QueryManager::class)->getProjects('project_browser_test_mock');
     $this->assertNotEmpty($this->keyValue->getAll());
   }
 
@@ -60,7 +63,7 @@ final class ClearStorageTest extends BrowserTestBase {
    * @legacy-covers \Drupal\project_browser\EnabledSourceHandler::clearStorage
    */
   public function testClearCacheDirectly(): void {
-    \Drupal::service(EnabledSourceHandler::class)->clearStorage();
+    \Drupal::service(ProjectRepository::class)->clearAll();
     $this->assertEmpty($this->keyValue->getAll());
   }
 

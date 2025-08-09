@@ -41,11 +41,6 @@
         const unsub = store.subscribe(...callbacks);
         return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
     }
-    function get_store_value(store) {
-        let value;
-        subscribe(store, _ => value = _)();
-        return value;
-    }
     function component_subscribe(component, store, callback) {
         component.$$.on_destroy.push(subscribe(store, callback));
     }
@@ -855,57 +850,16 @@
         return __spreadArray([current], others, true);
     }
 
-    // cspell:ignore dont
-    const { once, Drupal: Drupal$2, bodyScrollLock } = window;
+    // eslint-disable-next-line import/prefer-default-export
+    const numberFormatter = new Intl.NumberFormat(navigator.language);
 
-    /**
-     * Finds [data-copy-command] buttons and adds copy functionality to them.
-     */
-    const enableCopyButtons = () => {
-      setTimeout(() => {
-        once('copyButton', '[data-copy-command]').forEach((copyButton) => {
-          copyButton.addEventListener('click', (e) => {
-            // The copy button must be contained in a div
-            const container = e.target.closest('div');
-            // The only <textarea> within the parent div should have its value set
-            // to the command that should be copied.
-            const input = container.querySelector('textarea');
+    const { bodyScrollLock, Drupal: Drupal$2 } = window;
 
-            // Make the input value the selected text
-            input.select();
-            input.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(input.value);
-            Drupal$2.announce(Drupal$2.t('Copied text to clipboard'));
+    function openPopup (messageElement, title) {
+      const isModuleDetail = messageElement.firstElementChild.classList.contains('pb-detail-modal');
 
-            // Create a "receipt" that will visually show the text has been copied.
-            const receipt = document.createElement('div');
-            receipt.textContent = Drupal$2.t('Copied');
-            receipt.classList.add('copied-action');
-            receipt.style.opacity = '1';
-            input.insertAdjacentElement('afterend', receipt);
-            // eslint-disable-next-line max-nested-callbacks
-            setTimeout(() => {
-              // Remove the receipt after 1 second.
-              receipt.remove();
-            }, 1000);
-          });
-        });
-      });
-    };
-
-    const getCommandsPopupMessage = (project) => {
-      const div = document.createElement('div');
-      div.innerHTML = project.commands + '<style>.action-link { margin: 0 2px; padding: 0.25rem 0.25rem; border: 1px solid; }</style>';
-      enableCopyButtons();
-      return div;
-    };
-
-    const openPopup = (getMessage, project) => {
-      const message = typeof getMessage === 'function' ? getMessage() : getMessage;
-      const isModuleDetail = getMessage.firstElementChild.classList.contains('pb-detail-modal');
-
-      const popupModal = Drupal$2.dialog(message, {
-        title: project.title,
+      const popupModal = Drupal$2.dialog(messageElement, {
+        title,
         classes: { 'ui-dialog': isModuleDetail ? 'project-browser-detail-modal' : 'project-browser-popup' },
         width: '90vw',
         close: () => {
@@ -918,7 +872,7 @@
       if (modalElement) {
         modalElement.focus();
       }
-    };
+    }
 
     const BASE_URL = `${window.location.protocol}//${window.location.host}${drupalSettings.path.baseUrl + drupalSettings.path.pathPrefix}`;
     const FULL_MODULE_PATH = `${window.location.protocol}//${window.location.host}${drupalSettings.path.baseUrl}${drupalSettings.project_browser.module_path}`;
@@ -926,34 +880,29 @@
       matchMedia('(forced-colors: active)').matches &&
       matchMedia('(prefers-color-scheme: dark)').matches;
     const PACKAGE_MANAGER = drupalSettings.project_browser.package_manager;
-    const MAX_SELECTIONS = drupalSettings.project_browser.max_selections;
-    const CURRENT_PATH = drupalSettings.project_browser.current_path;
 
-    const { Drupal: Drupal$1 } = window;
+    const {
+      Drupal: Drupal$1,
+      drupalSettings: {
+        project_browser: { currentPath, maxSelections },
+      }
+    } = window;
 
-    // Store for the install list.
-    const installList = writable([]);
+    const selections = new Set();
 
-    function addToInstallList(project) {
-      installList.update((currentList) => {
-        if (!currentList.includes(project)) {
-          currentList.push(project);
-        }
-        return currentList;
+    function onSelectionChanged () {
+      const event = new CustomEvent('install-selection-changed', {
+        detail: Array.from(selections),
       });
+      window.dispatchEvent(event);
     }
 
-    function removeFromInstallList(projectId) {
-      installList.update((currentList) => currentList.filter(
-          (item) => item.id !== projectId,
-        ));
+    function deselectAll() {
+      selections.clear();
+      onSelectionChanged();
     }
 
-    function clearInstallList() {
-      installList.set([]);
-    }
-
-    const handleError = async (errorResponse) => {
+    async function handleError (errorResponse) {
       // The error can take on many shapes, so it should be normalized.
       let err = '';
       if (typeof errorResponse === 'string') {
@@ -999,8 +948,8 @@
         div.innerHTML += `<p>${errorMessage}</p>`;
       }
 
-      openPopup(div, { title: 'Error while installing package(s)' });
-    };
+      openPopup(div, Drupal$1.t('Error while installing package(s)'));
+    }
 
     /**
      * Actives already-downloaded projects.
@@ -1011,24 +960,22 @@
      * @return {Promise<void>}
      *   A promise that resolves when the project is activated.
      */
-    const activateProject = async (projectIds) => {
+    async function activateProject (projectIds) {
       // Remove any existing errors for each project individually.
       const messenger = new Drupal$1.Message();
-      projectIds.forEach((projectId) => {
-        const messageId = `activation_error:${projectId}`;
-        if (messenger.select(messageId)) {
-          messenger.remove(messageId);
-        }
-      });
+      const messageId = 'activation_error';
+      if (messenger.select(messageId)) {
+        messenger.remove(messageId);
+      }
 
       await new Drupal$1.Ajax(
         null,
         document.createElement('div'),
         {
-          url: `${BASE_URL}admin/modules/project_browser/activate?projects=${projectIds.join(',')}`,
+          url: `${BASE_URL}admin/modules/project_browser/activate?projects=${projectIds.join(',')}&destination=${window.location.pathname}`,
         },
       ).execute();
-    };
+    }
 
     /**
      * Performs the requests necessary to download and activate project via Package Manager.
@@ -1039,35 +986,32 @@
      * @return {Promise<void>}
      *   Returns a promise that resolves once the download and activation process is complete.
      */
-    const doRequests = async (projectIds) => {
-      const beginInstallUrl = `${BASE_URL}admin/modules/project_browser/install-begin?redirect=${
-    CURRENT_PATH
-  }`;
+    async function doRequests (projectIds) {
+      const beginInstallUrl = `${BASE_URL}admin/modules/project_browser/install-begin?redirect=${currentPath}`;
       const beginInstallResponse = await fetch(beginInstallUrl);
       if (!beginInstallResponse.ok) {
         await handleError(beginInstallResponse);
       } else {
-        const beginInstallData = await beginInstallResponse.json();
-        const stageId = beginInstallData.stage_id;
+        const { sandboxId } = await beginInstallResponse.json();
 
         // The process of adding a module is separated into four stages, each
         // with their own endpoint. When one stage completes, the next one is
         // requested.
         const installSteps = [
           {
-            url: `${BASE_URL}admin/modules/project_browser/install-require/${stageId}`,
+            url: `${BASE_URL}admin/modules/project_browser/install-require/${sandboxId}`,
             method: 'POST',
           },
           {
-            url: `${BASE_URL}admin/modules/project_browser/install-apply/${stageId}`,
+            url: `${BASE_URL}admin/modules/project_browser/install-apply/${sandboxId}`,
             method: 'GET',
           },
           {
-            url: `${BASE_URL}admin/modules/project_browser/install-post_apply/${stageId}`,
+            url: `${BASE_URL}admin/modules/project_browser/install-post_apply/${sandboxId}`,
             method: 'GET',
           },
           {
-            url: `${BASE_URL}admin/modules/project_browser/install-destroy/${stageId}`,
+            url: `${BASE_URL}admin/modules/project_browser/install-destroy/${sandboxId}`,
             method: 'GET',
           },
         ];
@@ -1105,13 +1049,12 @@
         }
         await activateProject(projectIds);
       }
-    };
+    }
 
-    const processInstallList = async () => {
-      const currentInstallList = get_store_value(installList) || [];
+    async function processInstallList () {
       const projectsToActivate = [];
       const projectsToDownloadAndActivate = [];
-      if (currentInstallList.length === 0) {
+      if (selections.size === 0) {
         const messageElement = document.querySelector('[data-drupal-message-id="install_message"]');
 
         if (!messageElement) {
@@ -1127,27 +1070,56 @@
         return;
       }
 
-      for (const proj of currentInstallList) {
-        if (proj.status === 'absent') {
-          projectsToDownloadAndActivate.push(proj.id);
-        } else if (proj.status === 'present') {
-          projectsToActivate.push(proj.id);
+      Array.from(selections).forEach(({ status, id }) => {
+        if (status === 'absent') {
+          projectsToDownloadAndActivate.push(id);
+        } else if (status === 'present') {
+          projectsToActivate.push(id);
         }
-      }
+      });
 
-      document.body.style.pointerEvents = 'none';
-
+      window.dispatchEvent(new CustomEvent('install-start'));
       if (projectsToActivate.length > 0) {
         await activateProject(projectsToActivate);
       }
       if (projectsToDownloadAndActivate.length > 0) {
         await doRequests(projectsToDownloadAndActivate);
       }
+      window.dispatchEvent(new CustomEvent('install-end'));
+      deselectAll();
+    }
 
-      document.body.style.pointerEvents = 'auto';
+    var InstallationManager = Object.freeze({
 
-      clearInstallList();
-    };
+      maxSelections,
+
+      multiple: maxSelections === null || maxSelections > 1,
+
+      add (project) {
+        if (!selections.has(project)) {
+          selections.add(project);
+          onSelectionChanged();
+        }
+      },
+
+      deselectAll,
+
+      isFull () {
+        return selections.size === this.maxSelections;
+      },
+
+      remove (project) {
+        if (selections.has(project)) {
+          selections.delete(project);
+          onSelectionChanged();
+        }
+      },
+
+      async process () {
+        await processInstallList();
+      },
+
+    });
 
     /* src/Loading.svelte generated by Svelte v3.48.0 */
 
@@ -1220,7 +1192,7 @@
     		c() {
     			span = element("span");
     			t = text(/*message*/ ctx[0]);
-    			toggle_class(span, "pb-ellipsis", MAX_SELECTIONS === 1);
+    			attr(span, "class", "pb-ellipsis");
     		},
     		m(target, anchor) {
     			insert(target, span, anchor);
@@ -1276,7 +1248,7 @@
     	};
     }
 
-    // (40:4) {#if installListLength === 0}
+    // (38:4) {#if installListLength === 0}
     function create_if_block_2$6(ctx) {
     	let t_value = window.Drupal.t('No projects selected') + "";
     	let t;
@@ -1295,7 +1267,7 @@
     	};
     }
 
-    // (63:4) {:else}
+    // (61:4) {:else}
     function create_else_block$6(ctx) {
     	let t_value = window.Drupal.t('Install selected projects') + "";
     	let t;
@@ -1316,13 +1288,13 @@
     	};
     }
 
-    // (54:4) {#if loading}
+    // (52:4) {#if isInstalling}
     function create_if_block_1$9(ctx) {
-    	let loading_1;
+    	let loading;
     	let t;
     	let loadingellipsis;
     	let current;
-    	loading_1 = new Loading({});
+    	loading = new Loading({});
 
     	loadingellipsis = new LoadingEllipsis({
     			props: {
@@ -1332,12 +1304,12 @@
 
     	return {
     		c() {
-    			create_component(loading_1.$$.fragment);
+    			create_component(loading.$$.fragment);
     			t = space();
     			create_component(loadingellipsis.$$.fragment);
     		},
     		m(target, anchor) {
-    			mount_component(loading_1, target, anchor);
+    			mount_component(loading, target, anchor);
     			insert(target, t, anchor);
     			mount_component(loadingellipsis, target, anchor);
     			current = true;
@@ -1349,24 +1321,24 @@
     		},
     		i(local) {
     			if (current) return;
-    			transition_in(loading_1.$$.fragment, local);
+    			transition_in(loading.$$.fragment, local);
     			transition_in(loadingellipsis.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
-    			transition_out(loading_1.$$.fragment, local);
+    			transition_out(loading.$$.fragment, local);
     			transition_out(loadingellipsis.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
-    			destroy_component(loading_1, detaching);
+    			destroy_component(loading, detaching);
     			if (detaching) detach(t);
     			destroy_component(loadingellipsis, detaching);
     		}
     	};
     }
 
-    // (67:2) {#if installListLength !== 0}
+    // (65:2) {#if installListLength !== 0 && !isInstalling}
     function create_if_block$f(ctx) {
     	let button;
     	let mounted;
@@ -1419,13 +1391,13 @@
     	const if_blocks = [];
 
     	function select_block_type_1(ctx, dirty) {
-    		if (/*loading*/ ctx[0]) return 0;
+    		if (/*isInstalling*/ ctx[0]) return 0;
     		return 1;
     	}
 
     	current_block_type_index = select_block_type_1(ctx);
     	if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    	let if_block2 = /*installListLength*/ ctx[1] !== 0 && create_if_block$f(ctx);
+    	let if_block2 = /*installListLength*/ ctx[1] !== 0 && !/*isInstalling*/ ctx[0] && create_if_block$f(ctx);
 
     	return {
     		c() {
@@ -1497,7 +1469,7 @@
     				if_block1.m(button, null);
     			}
 
-    			if (/*installListLength*/ ctx[1] !== 0) {
+    			if (/*installListLength*/ ctx[1] !== 0 && !/*isInstalling*/ ctx[0]) {
     				if (if_block2) {
     					if_block2.p(ctx, dirty);
     				} else {
@@ -1535,42 +1507,31 @@
     }
 
     function instance$m($$self, $$props, $$invalidate) {
-    	let currentInstallList;
-    	let installListLength;
-    	let $installList;
-    	component_subscribe($$self, installList, $$value => $$invalidate(6, $installList = $$value));
-    	let loading = false;
     	const { Drupal } = window;
+    	let isInstalling = false;
+    	let installListLength = 0;
+
+    	window.addEventListener('install-selection-changed', ({ detail }) => {
+    		$$invalidate(1, installListLength = detail.length);
+    	});
+
+    	window.addEventListener('install-start', () => {
+    		$$invalidate(0, isInstalling = true);
+    	});
+
+    	window.addEventListener('install-end', () => {
+    		$$invalidate(0, isInstalling = false);
+    	});
 
     	const handleClick = async () => {
-    		$$invalidate(0, loading = true);
-    		await processInstallList();
-    		$$invalidate(0, loading = false);
+    		await InstallationManager.process();
     	};
 
     	function clearSelection() {
-    		clearInstallList();
+    		InstallationManager.deselectAll();
     	}
 
-    	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$installList*/ 64) {
-    			$$invalidate(5, currentInstallList = $installList || []);
-    		}
-
-    		if ($$self.$$.dirty & /*currentInstallList*/ 32) {
-    			$$invalidate(1, installListLength = currentInstallList.length);
-    		}
-    	};
-
-    	return [
-    		loading,
-    		installListLength,
-    		Drupal,
-    		handleClick,
-    		clearSelection,
-    		currentInstallList,
-    		$installList
-    	];
+    	return [isInstalling, installListLength, Drupal, handleClick, clearSelection];
     }
 
     class ProcessInstallListButton extends SvelteComponent {
@@ -2686,10 +2647,30 @@
     	return child_ctx;
     }
 
+    function get_each_context_3(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[21] = list[i][0];
+    	child_ctx[27] = list[i][1];
+    	return child_ctx;
+    }
+
     // (91:4) {#if numberOfFilters > 0}
     function create_if_block_2$5(ctx) {
-    	let div;
+    	let div1;
+    	let t;
+    	let div0;
     	let current;
+    	let each_value_3 = Object.entries(/*filterDefinitions*/ ctx[1]);
+    	let each_blocks_1 = [];
+
+    	for (let i = 0; i < each_value_3.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
+    	}
+
+    	const out = i => transition_out(each_blocks_1[i], 1, 1, () => {
+    		each_blocks_1[i] = null;
+    	});
+
     	let each_value_2 = Object.entries(/*filterDefinitions*/ ctx[1]);
     	let each_blocks = [];
 
@@ -2697,31 +2678,73 @@
     		each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
     	}
 
-    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
+    	const out_1 = i => transition_out(each_blocks[i], 1, 1, () => {
     		each_blocks[i] = null;
     	});
 
     	return {
     		c() {
-    			div = element("div");
+    			div1 = element("div");
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
+    			t = space();
+    			div0 = element("div");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			attr(div, "class", "search__form-filters");
+    			attr(div0, "class", "boolean-filters-wrapper");
+    			attr(div1, "class", "search__form-filters");
     		},
     		m(target, anchor) {
-    			insert(target, div, anchor);
+    			insert(target, div1, anchor);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(div1, null);
+    			}
+
+    			append(div1, t);
+    			append(div1, div0);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div, null);
+    				each_blocks[i].m(div0, null);
     			}
 
     			current = true;
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*Object, filterDefinitions, onFilterChange, refreshLiveRegion*/ 1027) {
+    			if (dirty[0] & /*filterDefinitions, onFilterChange, refreshLiveRegion*/ 1027) {
+    				each_value_3 = Object.entries(/*filterDefinitions*/ ctx[1]);
+    				let i;
+
+    				for (i = 0; i < each_value_3.length; i += 1) {
+    					const child_ctx = get_each_context_3(ctx, each_value_3, i);
+
+    					if (each_blocks_1[i]) {
+    						each_blocks_1[i].p(child_ctx, dirty);
+    						transition_in(each_blocks_1[i], 1);
+    					} else {
+    						each_blocks_1[i] = create_each_block_3(child_ctx);
+    						each_blocks_1[i].c();
+    						transition_in(each_blocks_1[i], 1);
+    						each_blocks_1[i].m(div1, t);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value_3.length; i < each_blocks_1.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+
+    			if (dirty[0] & /*filterDefinitions, onFilterChange*/ 1026) {
     				each_value_2 = Object.entries(/*filterDefinitions*/ ctx[1]);
     				let i;
 
@@ -2735,14 +2758,14 @@
     						each_blocks[i] = create_each_block_2(child_ctx);
     						each_blocks[i].c();
     						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(div, null);
+    						each_blocks[i].m(div0, null);
     					}
     				}
 
     				group_outros();
 
     				for (i = each_value_2.length; i < each_blocks.length; i += 1) {
-    					out(i);
+    					out_1(i);
     				}
 
     				check_outros();
@@ -2751,6 +2774,10 @@
     		i(local) {
     			if (current) return;
 
+    			for (let i = 0; i < each_value_3.length; i += 1) {
+    				transition_in(each_blocks_1[i]);
+    			}
+
     			for (let i = 0; i < each_value_2.length; i += 1) {
     				transition_in(each_blocks[i]);
     			}
@@ -2758,6 +2785,12 @@
     			current = true;
     		},
     		o(local) {
+    			each_blocks_1 = each_blocks_1.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				transition_out(each_blocks_1[i]);
+    			}
+
     			each_blocks = each_blocks.filter(Boolean);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -2767,13 +2800,14 @@
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div);
+    			if (detaching) detach(div1);
+    			destroy_each(each_blocks_1, detaching);
     			destroy_each(each_blocks, detaching);
     		}
     	};
     }
 
-    // (107:44) 
+    // (101:44) 
     function create_if_block_5$3(ctx) {
     	let textfilter;
     	let current;
@@ -2797,8 +2831,8 @@
     		},
     		p(ctx, dirty) {
     			const textfilter_changes = {};
-    			if (dirty & /*filterDefinitions*/ 2) textfilter_changes.name = /*name*/ ctx[21];
-    			if (dirty & /*refreshLiveRegion*/ 1) textfilter_changes.refresh = /*refreshLiveRegion*/ ctx[0];
+    			if (dirty[0] & /*filterDefinitions*/ 2) textfilter_changes.name = /*name*/ ctx[21];
+    			if (dirty[0] & /*refreshLiveRegion*/ 1) textfilter_changes.refresh = /*refreshLiveRegion*/ ctx[0];
     			textfilter.$set(textfilter_changes);
     		},
     		i(local) {
@@ -2816,7 +2850,7 @@
     	};
     }
 
-    // (100:55) 
+    // (94:10) {#if filter._type === 'multiple_choice'}
     function create_if_block_4$4(ctx) {
     	let multiplechoicefilter;
     	let current;
@@ -2841,9 +2875,9 @@
     		},
     		p(ctx, dirty) {
     			const multiplechoicefilter_changes = {};
-    			if (dirty & /*filterDefinitions*/ 2) multiplechoicefilter_changes.name = /*name*/ ctx[21];
-    			if (dirty & /*filterDefinitions*/ 2) multiplechoicefilter_changes.filterList = Object.keys(/*filterDefinitions*/ ctx[1]);
-    			if (dirty & /*filterDefinitions*/ 2) multiplechoicefilter_changes.choices = /*filter*/ ctx[27].choices;
+    			if (dirty[0] & /*filterDefinitions*/ 2) multiplechoicefilter_changes.name = /*name*/ ctx[21];
+    			if (dirty[0] & /*filterDefinitions*/ 2) multiplechoicefilter_changes.filterList = Object.keys(/*filterDefinitions*/ ctx[1]);
+    			if (dirty[0] & /*filterDefinitions*/ 2) multiplechoicefilter_changes.choices = /*filter*/ ctx[27].choices;
     			multiplechoicefilter.$set(multiplechoicefilter_changes);
     		},
     		i(local) {
@@ -2861,61 +2895,18 @@
     	};
     }
 
-    // (94:10) {#if filter._type === 'boolean'}
-    function create_if_block_3$5(ctx) {
-    	let booleanfilter;
-    	let current;
-
-    	booleanfilter = new BooleanFilter({
-    			props: {
-    				definition: /*filter*/ ctx[27],
-    				name: /*name*/ ctx[21],
-    				changeHandler: /*onFilterChange*/ ctx[10]
-    			}
-    		});
-
-    	return {
-    		c() {
-    			create_component(booleanfilter.$$.fragment);
-    		},
-    		m(target, anchor) {
-    			mount_component(booleanfilter, target, anchor);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const booleanfilter_changes = {};
-    			if (dirty & /*filterDefinitions*/ 2) booleanfilter_changes.definition = /*filter*/ ctx[27];
-    			if (dirty & /*filterDefinitions*/ 2) booleanfilter_changes.name = /*name*/ ctx[21];
-    			booleanfilter.$set(booleanfilter_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(booleanfilter.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(booleanfilter.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			destroy_component(booleanfilter, detaching);
-    		}
-    	};
-    }
-
     // (93:8) {#each Object.entries(filterDefinitions) as [name, filter]}
-    function create_each_block_2(ctx) {
+    function create_each_block_3(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_3$5, create_if_block_4$4, create_if_block_5$3];
+    	const if_block_creators = [create_if_block_4$4, create_if_block_5$3];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
-    		if (/*filter*/ ctx[27]._type === 'boolean') return 0;
-    		if (/*filter*/ ctx[27]._type === 'multiple_choice') return 1;
-    		if (/*filter*/ ctx[27]._type === 'text') return 2;
+    		if (/*filter*/ ctx[27]._type === 'multiple_choice') return 0;
+    		if (/*filter*/ ctx[27]._type === 'text') return 1;
     		return -1;
     	}
 
@@ -2991,7 +2982,105 @@
     	};
     }
 
-    // (120:6) {#if numberOfFilters > 0}
+    // (112:12) {#if filter._type === 'boolean'}
+    function create_if_block_3$5(ctx) {
+    	let booleanfilter;
+    	let current;
+
+    	booleanfilter = new BooleanFilter({
+    			props: {
+    				definition: /*filter*/ ctx[27],
+    				name: /*name*/ ctx[21],
+    				changeHandler: /*onFilterChange*/ ctx[10]
+    			}
+    		});
+
+    	return {
+    		c() {
+    			create_component(booleanfilter.$$.fragment);
+    		},
+    		m(target, anchor) {
+    			mount_component(booleanfilter, target, anchor);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const booleanfilter_changes = {};
+    			if (dirty[0] & /*filterDefinitions*/ 2) booleanfilter_changes.definition = /*filter*/ ctx[27];
+    			if (dirty[0] & /*filterDefinitions*/ 2) booleanfilter_changes.name = /*name*/ ctx[21];
+    			booleanfilter.$set(booleanfilter_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(booleanfilter.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(booleanfilter.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			destroy_component(booleanfilter, detaching);
+    		}
+    	};
+    }
+
+    // (111:10) {#each Object.entries(filterDefinitions) as [name, filter]}
+    function create_each_block_2(ctx) {
+    	let if_block_anchor;
+    	let current;
+    	let if_block = /*filter*/ ctx[27]._type === 'boolean' && create_if_block_3$5(ctx);
+
+    	return {
+    		c() {
+    			if (if_block) if_block.c();
+    			if_block_anchor = empty();
+    		},
+    		m(target, anchor) {
+    			if (if_block) if_block.m(target, anchor);
+    			insert(target, if_block_anchor, anchor);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			if (/*filter*/ ctx[27]._type === 'boolean') {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+
+    					if (dirty[0] & /*filterDefinitions*/ 2) {
+    						transition_in(if_block, 1);
+    					}
+    				} else {
+    					if_block = create_if_block_3$5(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
+    				});
+
+    				check_outros();
+    			}
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(if_block);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(if_block);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (if_block) if_block.d(detaching);
+    			if (detaching) detach(if_block_anchor);
+    		}
+    	};
+    }
+
+    // (126:6) {#if numberOfFilters > 0}
     function create_if_block_1$8(ctx) {
     	let section;
     	let div;
@@ -3061,7 +3150,7 @@
     			}
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*$filters, multipleChoiceFilterNames, filterDefinitions, onFilterChange*/ 1170) {
+    			if (dirty[0] & /*$filters, multipleChoiceFilterNames, filterDefinitions, onFilterChange*/ 1170) {
     				each_value = /*multipleChoiceFilterNames*/ ctx[7];
     				let i;
 
@@ -3115,7 +3204,7 @@
     	};
     }
 
-    // (127:14) {#each $filters[name] as value}
+    // (133:14) {#each $filters[name] as value}
     function create_each_block_1$1(ctx) {
     	let filterapplied;
     	let current;
@@ -3142,8 +3231,8 @@
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
     			const filterapplied_changes = {};
-    			if (dirty & /*filterDefinitions, $filters*/ 18) filterapplied_changes.label = /*filterDefinitions*/ ctx[1][/*name*/ ctx[21]].choices[/*value*/ ctx[24]];
-    			if (dirty & /*$filters*/ 16) filterapplied_changes.clickHandler = func;
+    			if (dirty[0] & /*filterDefinitions, $filters*/ 18) filterapplied_changes.label = /*filterDefinitions*/ ctx[1][/*name*/ ctx[21]].choices[/*value*/ ctx[24]];
+    			if (dirty[0] & /*$filters*/ 16) filterapplied_changes.clickHandler = func;
     			filterapplied.$set(filterapplied_changes);
     		},
     		i(local) {
@@ -3161,7 +3250,7 @@
     	};
     }
 
-    // (126:12) {#each multipleChoiceFilterNames as name}
+    // (132:12) {#each multipleChoiceFilterNames as name}
     function create_each_block$4(ctx) {
     	let each_1_anchor;
     	let current;
@@ -3193,7 +3282,7 @@
     			current = true;
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*filterDefinitions, multipleChoiceFilterNames, $filters, onFilterChange*/ 1170) {
+    			if (dirty[0] & /*filterDefinitions, multipleChoiceFilterNames, $filters, onFilterChange*/ 1170) {
     				each_value_1 = /*$filters*/ ctx[4][/*name*/ ctx[21]];
     				let i;
 
@@ -3245,7 +3334,7 @@
     	};
     }
 
-    // (156:6) {#if numberOfSorts > 1}
+    // (162:6) {#if numberOfSorts > 1}
     function create_if_block$b(ctx) {
     	let searchsort;
     	let updating_sortText;
@@ -3278,10 +3367,10 @@
     		},
     		p(ctx, dirty) {
     			const searchsort_changes = {};
-    			if (dirty & /*refreshLiveRegion*/ 1) searchsort_changes.refresh = /*refreshLiveRegion*/ ctx[0];
-    			if (dirty & /*sorts*/ 4) searchsort_changes.sorts = /*sorts*/ ctx[2];
+    			if (dirty[0] & /*refreshLiveRegion*/ 1) searchsort_changes.refresh = /*refreshLiveRegion*/ ctx[0];
+    			if (dirty[0] & /*sorts*/ 4) searchsort_changes.sorts = /*sorts*/ ctx[2];
 
-    			if (!updating_sortText && dirty & /*sortText*/ 8) {
+    			if (!updating_sortText && dirty[0] & /*sortText*/ 8) {
     				updating_sortText = true;
     				searchsort_changes.sortText = /*sortText*/ ctx[3];
     				add_flush_callback(() => updating_sortText = false);
@@ -3340,7 +3429,7 @@
     			if (if_block2) if_block2.m(div0, null);
     			current = true;
     		},
-    		p(ctx, [dirty]) {
+    		p(ctx, dirty) {
     			if (/*numberOfFilters*/ ctx[8] > 0) if_block0.p(ctx, dirty);
     			if (/*numberOfFilters*/ ctx[8] > 0) if_block1.p(ctx, dirty);
     			if (/*numberOfSorts*/ ctx[9] > 1) if_block2.p(ctx, dirty);
@@ -3505,11 +3594,20 @@
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$g, create_fragment$g, safe_not_equal, {
-    			refreshLiveRegion: 0,
-    			filterDefinitions: 1,
-    			sorts: 2
-    		});
+    		init(
+    			this,
+    			options,
+    			instance$g,
+    			create_fragment$g,
+    			safe_not_equal,
+    			{
+    				refreshLiveRegion: 0,
+    				filterDefinitions: 1,
+    				sorts: 2
+    			},
+    			null,
+    			[-1, -1]
+    		);
     	}
     }
 
@@ -3532,9 +3630,9 @@
     	let t;
     	let if_block_anchor;
     	let current;
-    	const default_slot_template = /*#slots*/ ctx[12].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$1);
-    	let if_block = PACKAGE_MANAGER && /*processMultipleProjects*/ ctx[4] && create_if_block_1$7();
+    	const default_slot_template = /*#slots*/ ctx[11].default;
+    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[10], get_default_slot_context$1);
+    	let if_block = PACKAGE_MANAGER && InstallationManager.multiple && create_if_block_1$7();
 
     	return {
     		c() {
@@ -3564,15 +3662,15 @@
     		},
     		p(ctx, dirty) {
     			if (default_slot) {
-    				if (default_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 2052)) {
+    				if (default_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 1028)) {
     					update_slot_base(
     						default_slot,
     						default_slot_template,
     						ctx,
-    						/*$$scope*/ ctx[11],
+    						/*$$scope*/ ctx[10],
     						!current
-    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
-    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[11], dirty, get_default_slot_changes$1),
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[10])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[10], dirty, get_default_slot_changes$1),
     						get_default_slot_context$1
     					);
     				}
@@ -3628,7 +3726,7 @@
     	};
     }
 
-    // (52:6) {#if PACKAGE_MANAGER && processMultipleProjects}
+    // (52:6) {#if PACKAGE_MANAGER && InstallationManager.multiple}
     function create_if_block_1$7(ctx) {
     	let processinstalllistbutton;
     	let current;
@@ -3668,10 +3766,10 @@
     	let t2;
     	let t3;
     	let current;
-    	const head_slot_template = /*#slots*/ ctx[12].head;
-    	const head_slot = create_slot(head_slot_template, ctx, /*$$scope*/ ctx[11], get_head_slot_context);
-    	const left_slot_template = /*#slots*/ ctx[12].left;
-    	const left_slot = create_slot(left_slot_template, ctx, /*$$scope*/ ctx[11], get_left_slot_context);
+    	const head_slot_template = /*#slots*/ ctx[11].head;
+    	const head_slot = create_slot(head_slot_template, ctx, /*$$scope*/ ctx[10], get_head_slot_context);
+    	const left_slot_template = /*#slots*/ ctx[11].left;
+    	const left_slot = create_slot(left_slot_template, ctx, /*$$scope*/ ctx[10], get_left_slot_context);
     	const if_block_creators = [create_if_block$a, create_else_block$4];
     	const if_blocks = [];
 
@@ -3682,10 +3780,10 @@
 
     	current_block_type_index = select_block_type(ctx);
     	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    	const foot_slot_template = /*#slots*/ ctx[12].foot;
-    	const foot_slot = create_slot(foot_slot_template, ctx, /*$$scope*/ ctx[11], get_foot_slot_context);
-    	const bottom_slot_template = /*#slots*/ ctx[12].bottom;
-    	const bottom_slot = create_slot(bottom_slot_template, ctx, /*$$scope*/ ctx[11], get_bottom_slot_context);
+    	const foot_slot_template = /*#slots*/ ctx[11].foot;
+    	const foot_slot = create_slot(foot_slot_template, ctx, /*$$scope*/ ctx[10], get_foot_slot_context);
+    	const bottom_slot_template = /*#slots*/ ctx[11].bottom;
+    	const bottom_slot = create_slot(bottom_slot_template, ctx, /*$$scope*/ ctx[10], get_bottom_slot_context);
 
     	return {
     		c() {
@@ -3737,30 +3835,30 @@
     		},
     		p(ctx, [dirty]) {
     			if (head_slot) {
-    				if (head_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 2052)) {
+    				if (head_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 1028)) {
     					update_slot_base(
     						head_slot,
     						head_slot_template,
     						ctx,
-    						/*$$scope*/ ctx[11],
+    						/*$$scope*/ ctx[10],
     						!current
-    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
-    						: get_slot_changes(head_slot_template, /*$$scope*/ ctx[11], dirty, get_head_slot_changes),
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[10])
+    						: get_slot_changes(head_slot_template, /*$$scope*/ ctx[10], dirty, get_head_slot_changes),
     						get_head_slot_context
     					);
     				}
     			}
 
     			if (left_slot) {
-    				if (left_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 2052)) {
+    				if (left_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 1028)) {
     					update_slot_base(
     						left_slot,
     						left_slot_template,
     						ctx,
-    						/*$$scope*/ ctx[11],
+    						/*$$scope*/ ctx[10],
     						!current
-    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
-    						: get_slot_changes(left_slot_template, /*$$scope*/ ctx[11], dirty, get_left_slot_changes),
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[10])
+    						: get_slot_changes(left_slot_template, /*$$scope*/ ctx[10], dirty, get_left_slot_changes),
     						get_left_slot_context
     					);
     				}
@@ -3793,30 +3891,30 @@
     			}
 
     			if (foot_slot) {
-    				if (foot_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 2052)) {
+    				if (foot_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 1028)) {
     					update_slot_base(
     						foot_slot,
     						foot_slot_template,
     						ctx,
-    						/*$$scope*/ ctx[11],
+    						/*$$scope*/ ctx[10],
     						!current
-    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
-    						: get_slot_changes(foot_slot_template, /*$$scope*/ ctx[11], dirty, get_foot_slot_changes),
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[10])
+    						: get_slot_changes(foot_slot_template, /*$$scope*/ ctx[10], dirty, get_foot_slot_changes),
     						get_foot_slot_context
     					);
     				}
     			}
 
     			if (bottom_slot) {
-    				if (bottom_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 2052)) {
+    				if (bottom_slot.p && (!current || dirty & /*$$scope, visibleRows*/ 1028)) {
     					update_slot_base(
     						bottom_slot,
     						bottom_slot_template,
     						ctx,
-    						/*$$scope*/ ctx[11],
+    						/*$$scope*/ ctx[10],
     						!current
-    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
-    						: get_slot_changes(bottom_slot_template, /*$$scope*/ ctx[11], dirty, get_bottom_slot_changes),
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[10])
+    						: get_slot_changes(bottom_slot_template, /*$$scope*/ ctx[10], dirty, get_bottom_slot_changes),
     						get_bottom_slot_context
     					);
     				}
@@ -3858,9 +3956,8 @@
     	let visibleRows;
     	let $pageSize;
     	let { $$slots: slots = {}, $$scope } = $$props;
-    	const processMultipleProjects = MAX_SELECTIONS === null || MAX_SELECTIONS > 1;
     	const pageSize = getContext('pageSize');
-    	component_subscribe($$self, pageSize, value => $$invalidate(10, $pageSize = value));
+    	component_subscribe($$self, pageSize, value => $$invalidate(9, $pageSize = value));
     	const mediaQueryValues = getContext('mediaQueryValues');
     	let { pageIndex = 0 } = $$props;
     	let { toggleView } = $$props;
@@ -3873,27 +3970,27 @@
     	let mqMatches;
 
     	mediaQueryValues.subscribe(mqlMap => {
-    		$$invalidate(8, mqMatches = mqlMap.get('(min-width: 1200px)'));
+    		$$invalidate(7, mqMatches = mqlMap.get('(min-width: 1200px)'));
     	});
 
     	$$self.$$set = $$props => {
-    		if ('pageIndex' in $$props) $$invalidate(6, pageIndex = $$props.pageIndex);
+    		if ('pageIndex' in $$props) $$invalidate(5, pageIndex = $$props.pageIndex);
     		if ('toggleView' in $$props) $$invalidate(0, toggleView = $$props.toggleView);
-    		if ('rows' in $$props) $$invalidate(7, rows = $$props.rows);
+    		if ('rows' in $$props) $$invalidate(6, rows = $$props.rows);
     		if ('labels' in $$props) $$invalidate(1, labels = $$props.labels);
-    		if ('$$scope' in $$props) $$invalidate(11, $$scope = $$props.$$scope);
+    		if ('$$scope' in $$props) $$invalidate(10, $$scope = $$props.$$scope);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*mqMatches*/ 256) {
+    		if ($$self.$$.dirty & /*mqMatches*/ 128) {
     			$$invalidate(3, isDesktop = mqMatches);
     		}
 
-    		if ($$self.$$.dirty & /*rows*/ 128) {
-    			$$invalidate(9, filteredRows = rows);
+    		if ($$self.$$.dirty & /*rows*/ 64) {
+    			$$invalidate(8, filteredRows = rows);
     		}
 
-    		if ($$self.$$.dirty & /*filteredRows, pageIndex, $pageSize*/ 1600) {
+    		if ($$self.$$.dirty & /*filteredRows, pageIndex, $pageSize*/ 800) {
     			$$invalidate(2, visibleRows = filteredRows
     			? filteredRows.slice(pageIndex, pageIndex + $pageSize)
     			: []);
@@ -3905,7 +4002,6 @@
     		labels,
     		visibleRows,
     		isDesktop,
-    		processMultipleProjects,
     		pageSize,
     		pageIndex,
     		rows,
@@ -3922,9 +4018,9 @@
     		super();
 
     		init(this, options, instance$f, create_fragment$f, safe_not_equal, {
-    			pageIndex: 6,
+    			pageIndex: 5,
     			toggleView: 0,
-    			rows: 7,
+    			rows: 6,
     			labels: 1
     		});
     	}
@@ -5072,7 +5168,7 @@
     	return child_ctx;
     }
 
-    // (81:6) {#if tasks.length > 1}
+    // (90:6) {#if tasks.length > 1}
     function create_if_block$8(ctx) {
     	let li;
     	let button;
@@ -5154,7 +5250,7 @@
     	};
     }
 
-    // (92:8) {#each tasks.slice(1) as task}
+    // (101:8) {#each tasks.slice(1) as task}
     function create_each_block$2(ctx) {
     	let li;
     	let a;
@@ -5347,6 +5443,13 @@
 
     	afterUpdate(() => {
     		Drupal.attachBehaviors(thisElement);
+    	});
+
+    	// Add the `destination` query parameter to tasks which have opted into it.
+    	tasks.filter(task => task.set_destination).forEach(task => {
+    		const url = new URL(task.url);
+    		url.searchParams.set('destination', window.location.pathname);
+    		task.url = url.toString();
     	});
 
     	function div1_binding($$value) {
@@ -5554,7 +5657,7 @@
     	let current_block_type_index;
     	let if_block;
     	let current;
-    	const if_block_creators = [create_if_block_3$3, create_if_block_8$1];
+    	const if_block_creators = [create_if_block_3$3, create_if_block_7$1];
     	const if_blocks = [];
 
     	function select_block_type_1(ctx, dirty) {
@@ -5636,7 +5739,7 @@
     	};
     }
 
-    // (53:40) 
+    // (95:40) 
     function create_if_block_1$5(ctx) {
     	let projectstatusindicator;
     	let t;
@@ -5721,7 +5824,7 @@
     	};
     }
 
-    // (51:2) {#if !project.is_compatible}
+    // (93:2) {#if !project.is_compatible}
     function create_if_block$6(ctx) {
     	let projectstatusindicator;
     	let current;
@@ -5761,14 +5864,14 @@
     	};
     }
 
-    // (102:33) 
-    function create_if_block_8$1(ctx) {
+    // (130:33) 
+    function create_if_block_7$1(ctx) {
     	let show_if;
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_9$1, create_else_block_3];
+    	const if_block_creators = [create_if_block_8$1, create_else_block_3];
     	const if_blocks = [];
 
     	function select_block_type_4(ctx, dirty) {
@@ -5834,18 +5937,366 @@
     	};
     }
 
-    // (62:6) {#if PACKAGE_MANAGER}
+    // (104:6) {#if PACKAGE_MANAGER}
     function create_if_block_3$3(ctx) {
+    	let projectbuttonbase;
+    	let current;
+
+    	projectbuttonbase = new ProjectButtonBase({
+    			props: {
+    				disabled: /*isInstalling*/ ctx[3] || !/*isInInstallList*/ ctx[2] && /*installListFull*/ ctx[1],
+    				click: /*onClick*/ ctx[4],
+    				$$slots: { default: [create_default_slot_1$1] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			create_component(projectbuttonbase.$$.fragment);
+    		},
+    		m(target, anchor) {
+    			mount_component(projectbuttonbase, target, anchor);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const projectbuttonbase_changes = {};
+    			if (dirty & /*isInstalling, isInInstallList, installListFull*/ 14) projectbuttonbase_changes.disabled = /*isInstalling*/ ctx[3] || !/*isInInstallList*/ ctx[2] && /*installListFull*/ ctx[1];
+
+    			if (dirty & /*$$scope, isInstalling, isInInstallList, project*/ 1037) {
+    				projectbuttonbase_changes.$$scope = { dirty, ctx };
+    			}
+
+    			projectbuttonbase.$set(projectbuttonbase_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(projectbuttonbase.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(projectbuttonbase.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			destroy_component(projectbuttonbase, detaching);
+    		}
+    	};
+    }
+
+    // (135:8) {:else}
+    function create_else_block_3(ctx) {
+    	let projectbuttonbase;
+    	let current;
+
+    	projectbuttonbase = new ProjectButtonBase({
+    			props: {
+    				"aria-haspopup": "dialog",
+    				click: /*func*/ ctx[6],
+    				$$slots: { default: [create_default_slot_3] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			create_component(projectbuttonbase.$$.fragment);
+    		},
+    		m(target, anchor) {
+    			mount_component(projectbuttonbase, target, anchor);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const projectbuttonbase_changes = {};
+    			if (dirty & /*project*/ 1) projectbuttonbase_changes.click = /*func*/ ctx[6];
+
+    			if (dirty & /*$$scope, project*/ 1025) {
+    				projectbuttonbase_changes.$$scope = { dirty, ctx };
+    			}
+
+    			projectbuttonbase.$set(projectbuttonbase_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(projectbuttonbase.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(projectbuttonbase.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			destroy_component(projectbuttonbase, detaching);
+    		}
+    	};
+    }
+
+    // (131:8) {#if project.commands.match(/^https?:\/\//)}
+    function create_if_block_8$1(ctx) {
+    	let a;
+    	let projectbuttonbase;
+    	let a_href_value;
+    	let current;
+
+    	projectbuttonbase = new ProjectButtonBase({
+    			props: {
+    				$$slots: { default: [create_default_slot_2] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			a = element("a");
+    			create_component(projectbuttonbase.$$.fragment);
+    			attr(a, "href", a_href_value = /*project*/ ctx[0].commands);
+    			attr(a, "target", "_blank");
+    			attr(a, "rel", "noreferrer");
+    		},
+    		m(target, anchor) {
+    			insert(target, a, anchor);
+    			mount_component(projectbuttonbase, a, null);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const projectbuttonbase_changes = {};
+
+    			if (dirty & /*$$scope*/ 1024) {
+    				projectbuttonbase_changes.$$scope = { dirty, ctx };
+    			}
+
+    			projectbuttonbase.$set(projectbuttonbase_changes);
+
+    			if (!current || dirty & /*project*/ 1 && a_href_value !== (a_href_value = /*project*/ ctx[0].commands)) {
+    				attr(a, "href", a_href_value);
+    			}
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(projectbuttonbase.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(projectbuttonbase.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(a);
+    			destroy_component(projectbuttonbase);
+    		}
+    	};
+    }
+
+    // (136:10) <ProjectButtonBase             aria-haspopup="dialog"             click={() => openPopup(getCommandsPopupMessage(), project.title)}           >
+    function create_default_slot_3(ctx) {
+    	let html_tag;
+    	let raw_value = window.Drupal.t('View Commands <span class="visually-hidden">for @title</span>', { '@title': /*project*/ ctx[0].title }) + "";
+    	let html_anchor;
+
+    	return {
+    		c() {
+    			html_tag = new HtmlTag(false);
+    			html_anchor = empty();
+    			html_tag.a = html_anchor;
+    		},
+    		m(target, anchor) {
+    			html_tag.m(raw_value, target, anchor);
+    			insert(target, html_anchor, anchor);
+    		},
+    		p(ctx, dirty) {
+    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('View Commands <span class="visually-hidden">for @title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(html_anchor);
+    			if (detaching) html_tag.d();
+    		}
+    	};
+    }
+
+    // (133:13) <ProjectButtonBase>
+    function create_default_slot_2(ctx) {
+    	let t_value = window.Drupal.t('Install') + "";
+    	let t;
+
+    	return {
+    		c() {
+    			t = text(t_value);
+    		},
+    		m(target, anchor) {
+    			insert(target, t, anchor);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(t);
+    		}
+    	};
+    }
+
+    // (123:10) {:else}
+    function create_else_block_2(ctx) {
+    	let html_tag;
+    	let raw_value = window.Drupal.t('Install <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
+    	let html_anchor;
+
+    	return {
+    		c() {
+    			html_tag = new HtmlTag(false);
+    			html_anchor = empty();
+    			html_tag.a = html_anchor;
+    		},
+    		m(target, anchor) {
+    			html_tag.m(raw_value, target, anchor);
+    			insert(target, html_anchor, anchor);
+    		},
+    		p(ctx, dirty) {
+    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Install <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
+    		},
+    		i: noop,
+    		o: noop,
+    		d(detaching) {
+    			if (detaching) detach(html_anchor);
+    			if (detaching) html_tag.d();
+    		}
+    	};
+    }
+
+    // (111:49) 
+    function create_if_block_5$1(ctx) {
+    	let if_block_anchor;
+
+    	function select_block_type_3(ctx, dirty) {
+    		if (/*isInInstallList*/ ctx[2]) return create_if_block_6$1;
+    		return create_else_block_1;
+    	}
+
+    	let current_block_type = select_block_type_3(ctx);
+    	let if_block = current_block_type(ctx);
+
+    	return {
+    		c() {
+    			if_block.c();
+    			if_block_anchor = empty();
+    		},
+    		m(target, anchor) {
+    			if_block.m(target, anchor);
+    			insert(target, if_block_anchor, anchor);
+    		},
+    		p(ctx, dirty) {
+    			if (current_block_type === (current_block_type = select_block_type_3(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d(detaching) {
+    			if_block.d(detaching);
+    			if (detaching) detach(if_block_anchor);
+    		}
+    	};
+    }
+
+    // (109:10) {#if isInstalling && isInInstallList}
+    function create_if_block_4$2(ctx) {
+    	let loadingellipsis;
+    	let current;
+    	loadingellipsis = new LoadingEllipsis({});
+
+    	return {
+    		c() {
+    			create_component(loadingellipsis.$$.fragment);
+    		},
+    		m(target, anchor) {
+    			mount_component(loadingellipsis, target, anchor);
+    			current = true;
+    		},
+    		p: noop,
+    		i(local) {
+    			if (current) return;
+    			transition_in(loadingellipsis.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(loadingellipsis.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			destroy_component(loadingellipsis, detaching);
+    		}
+    	};
+    }
+
+    // (117:12) {:else}
+    function create_else_block_1(ctx) {
+    	let html_tag;
+    	let raw_value = window.Drupal.t('Select <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
+    	let html_anchor;
+
+    	return {
+    		c() {
+    			html_tag = new HtmlTag(false);
+    			html_anchor = empty();
+    			html_tag.a = html_anchor;
+    		},
+    		m(target, anchor) {
+    			html_tag.m(raw_value, target, anchor);
+    			insert(target, html_anchor, anchor);
+    		},
+    		p(ctx, dirty) {
+    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Select <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(html_anchor);
+    			if (detaching) html_tag.d();
+    		}
+    	};
+    }
+
+    // (112:12) {#if isInInstallList}
+    function create_if_block_6$1(ctx) {
+    	let html_tag;
+    	let raw_value = window.Drupal.t('Deselect <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
+    	let html_anchor;
+
+    	return {
+    		c() {
+    			html_tag = new HtmlTag(false);
+    			html_anchor = empty();
+    			html_tag.a = html_anchor;
+    		},
+    		m(target, anchor) {
+    			html_tag.m(raw_value, target, anchor);
+    			insert(target, html_anchor, anchor);
+    		},
+    		p(ctx, dirty) {
+    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Deselect <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(html_anchor);
+    			if (detaching) html_tag.d();
+    		}
+    	};
+    }
+
+    // (105:8) <ProjectButtonBase           disabled={isInstalling || (!isInInstallList && installListFull)}           click={onClick}         >
+    function create_default_slot_1$1(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_4$2, create_if_block_5$1, create_else_block_1];
+    	const if_block_creators = [create_if_block_4$2, create_if_block_5$1, create_else_block_2];
     	const if_blocks = [];
 
     	function select_block_type_2(ctx, dirty) {
-    		if (/*isInInstallList*/ ctx[2] && !/*processMultipleProjects*/ ctx[3]) return 0;
-    		if (/*InstallListFull*/ ctx[1] && !/*isInInstallList*/ ctx[2] && /*processMultipleProjects*/ ctx[3]) return 1;
+    		if (/*isInstalling*/ ctx[3] && /*isInInstallList*/ ctx[2]) return 0;
+    		if (InstallationManager.multiple) return 1;
     		return 2;
     	}
 
@@ -5905,464 +6356,7 @@
     	};
     }
 
-    // (107:8) {:else}
-    function create_else_block_3(ctx) {
-    	let projectbuttonbase;
-    	let current;
-
-    	projectbuttonbase = new ProjectButtonBase({
-    			props: {
-    				"aria-haspopup": "dialog",
-    				click: /*func*/ ctx[6],
-    				$$slots: { default: [create_default_slot_5] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			create_component(projectbuttonbase.$$.fragment);
-    		},
-    		m(target, anchor) {
-    			mount_component(projectbuttonbase, target, anchor);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const projectbuttonbase_changes = {};
-    			if (dirty & /*project*/ 1) projectbuttonbase_changes.click = /*func*/ ctx[6];
-
-    			if (dirty & /*$$scope, project*/ 1025) {
-    				projectbuttonbase_changes.$$scope = { dirty, ctx };
-    			}
-
-    			projectbuttonbase.$set(projectbuttonbase_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(projectbuttonbase.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(projectbuttonbase.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			destroy_component(projectbuttonbase, detaching);
-    		}
-    	};
-    }
-
-    // (103:8) {#if project.commands.match(/^https?:\/\//)}
-    function create_if_block_9$1(ctx) {
-    	let a;
-    	let projectbuttonbase;
-    	let a_href_value;
-    	let current;
-
-    	projectbuttonbase = new ProjectButtonBase({
-    			props: {
-    				$$slots: { default: [create_default_slot_4] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			a = element("a");
-    			create_component(projectbuttonbase.$$.fragment);
-    			attr(a, "href", a_href_value = /*project*/ ctx[0].commands);
-    			attr(a, "target", "_blank");
-    			attr(a, "rel", "noreferrer");
-    		},
-    		m(target, anchor) {
-    			insert(target, a, anchor);
-    			mount_component(projectbuttonbase, a, null);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const projectbuttonbase_changes = {};
-
-    			if (dirty & /*$$scope*/ 1024) {
-    				projectbuttonbase_changes.$$scope = { dirty, ctx };
-    			}
-
-    			projectbuttonbase.$set(projectbuttonbase_changes);
-
-    			if (!current || dirty & /*project*/ 1 && a_href_value !== (a_href_value = /*project*/ ctx[0].commands)) {
-    				attr(a, "href", a_href_value);
-    			}
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(projectbuttonbase.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(projectbuttonbase.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(a);
-    			destroy_component(projectbuttonbase);
-    		}
-    	};
-    }
-
-    // (108:10) <ProjectButtonBase             aria-haspopup="dialog"             click={() => openPopup(getCommandsPopupMessage(project), project)}           >
-    function create_default_slot_5(ctx) {
-    	let html_tag;
-    	let raw_value = window.Drupal.t('View Commands <span class="visually-hidden">for @title</span>', { '@title': /*project*/ ctx[0].title }) + "";
-    	let html_anchor;
-
-    	return {
-    		c() {
-    			html_tag = new HtmlTag(false);
-    			html_anchor = empty();
-    			html_tag.a = html_anchor;
-    		},
-    		m(target, anchor) {
-    			html_tag.m(raw_value, target, anchor);
-    			insert(target, html_anchor, anchor);
-    		},
-    		p(ctx, dirty) {
-    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('View Commands <span class="visually-hidden">for @title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(html_anchor);
-    			if (detaching) html_tag.d();
-    		}
-    	};
-    }
-
-    // (105:13) <ProjectButtonBase>
-    function create_default_slot_4(ctx) {
-    	let t_value = window.Drupal.t('Install') + "";
-    	let t;
-
-    	return {
-    		c() {
-    			t = text(t_value);
-    		},
-    		m(target, anchor) {
-    			insert(target, t, anchor);
-    		},
-    		p: noop,
-    		d(detaching) {
-    			if (detaching) detach(t);
-    		}
-    	};
-    }
-
-    // (76:8) {:else}
-    function create_else_block_1(ctx) {
-    	let projectbuttonbase;
-    	let current;
-
-    	projectbuttonbase = new ProjectButtonBase({
-    			props: {
-    				click: /*onClick*/ ctx[4],
-    				$$slots: { default: [create_default_slot_3] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			create_component(projectbuttonbase.$$.fragment);
-    		},
-    		m(target, anchor) {
-    			mount_component(projectbuttonbase, target, anchor);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const projectbuttonbase_changes = {};
-
-    			if (dirty & /*$$scope, project, isInInstallList*/ 1029) {
-    				projectbuttonbase_changes.$$scope = { dirty, ctx };
-    			}
-
-    			projectbuttonbase.$set(projectbuttonbase_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(projectbuttonbase.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(projectbuttonbase.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			destroy_component(projectbuttonbase, detaching);
-    		}
-    	};
-    }
-
-    // (67:81) 
-    function create_if_block_5$1(ctx) {
-    	let projectbuttonbase;
-    	let current;
-
-    	projectbuttonbase = new ProjectButtonBase({
-    			props: {
-    				disabled: true,
-    				$$slots: { default: [create_default_slot_2] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			create_component(projectbuttonbase.$$.fragment);
-    		},
-    		m(target, anchor) {
-    			mount_component(projectbuttonbase, target, anchor);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const projectbuttonbase_changes = {};
-
-    			if (dirty & /*$$scope, project*/ 1025) {
-    				projectbuttonbase_changes.$$scope = { dirty, ctx };
-    			}
-
-    			projectbuttonbase.$set(projectbuttonbase_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(projectbuttonbase.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(projectbuttonbase.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			destroy_component(projectbuttonbase, detaching);
-    		}
-    	};
-    }
-
-    // (63:8) {#if isInInstallList && !processMultipleProjects}
-    function create_if_block_4$2(ctx) {
-    	let projectbuttonbase;
-    	let current;
-
-    	projectbuttonbase = new ProjectButtonBase({
-    			props: {
-    				$$slots: { default: [create_default_slot_1$1] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			create_component(projectbuttonbase.$$.fragment);
-    		},
-    		m(target, anchor) {
-    			mount_component(projectbuttonbase, target, anchor);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const projectbuttonbase_changes = {};
-
-    			if (dirty & /*$$scope*/ 1024) {
-    				projectbuttonbase_changes.$$scope = { dirty, ctx };
-    			}
-
-    			projectbuttonbase.$set(projectbuttonbase_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(projectbuttonbase.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(projectbuttonbase.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			destroy_component(projectbuttonbase, detaching);
-    		}
-    	};
-    }
-
-    // (92:12) {:else}
-    function create_else_block_2(ctx) {
-    	let html_tag;
-    	let raw_value = window.Drupal.t('Install <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
-    	let html_anchor;
-
-    	return {
-    		c() {
-    			html_tag = new HtmlTag(false);
-    			html_anchor = empty();
-    			html_tag.a = html_anchor;
-    		},
-    		m(target, anchor) {
-    			html_tag.m(raw_value, target, anchor);
-    			insert(target, html_anchor, anchor);
-    		},
-    		p(ctx, dirty) {
-    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Install <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(html_anchor);
-    			if (detaching) html_tag.d();
-    		}
-    	};
-    }
-
-    // (85:46) 
-    function create_if_block_7$1(ctx) {
-    	let html_tag;
-    	let raw_value = window.Drupal.t('Select <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
-    	let html_anchor;
-
-    	return {
-    		c() {
-    			html_tag = new HtmlTag(false);
-    			html_anchor = empty();
-    			html_tag.a = html_anchor;
-    		},
-    		m(target, anchor) {
-    			html_tag.m(raw_value, target, anchor);
-    			insert(target, html_anchor, anchor);
-    		},
-    		p(ctx, dirty) {
-    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Select <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(html_anchor);
-    			if (detaching) html_tag.d();
-    		}
-    	};
-    }
-
-    // (78:12) {#if isInInstallList}
-    function create_if_block_6$1(ctx) {
-    	let html_tag;
-    	let raw_value = window.Drupal.t('Deselect <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
-    	let html_anchor;
-
-    	return {
-    		c() {
-    			html_tag = new HtmlTag(false);
-    			html_anchor = empty();
-    			html_tag.a = html_anchor;
-    		},
-    		m(target, anchor) {
-    			html_tag.m(raw_value, target, anchor);
-    			insert(target, html_anchor, anchor);
-    		},
-    		p(ctx, dirty) {
-    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Deselect <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(html_anchor);
-    			if (detaching) html_tag.d();
-    		}
-    	};
-    }
-
-    // (77:10) <ProjectButtonBase click={onClick}>
-    function create_default_slot_3(ctx) {
-    	let if_block_anchor;
-
-    	function select_block_type_3(ctx, dirty) {
-    		if (/*isInInstallList*/ ctx[2]) return create_if_block_6$1;
-    		if (/*processMultipleProjects*/ ctx[3]) return create_if_block_7$1;
-    		return create_else_block_2;
-    	}
-
-    	let current_block_type = select_block_type_3(ctx);
-    	let if_block = current_block_type(ctx);
-
-    	return {
-    		c() {
-    			if_block.c();
-    			if_block_anchor = empty();
-    		},
-    		m(target, anchor) {
-    			if_block.m(target, anchor);
-    			insert(target, if_block_anchor, anchor);
-    		},
-    		p(ctx, dirty) {
-    			if (current_block_type === (current_block_type = select_block_type_3(ctx)) && if_block) {
-    				if_block.p(ctx, dirty);
-    			} else {
-    				if_block.d(1);
-    				if_block = current_block_type(ctx);
-
-    				if (if_block) {
-    					if_block.c();
-    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
-    				}
-    			}
-    		},
-    		d(detaching) {
-    			if_block.d(detaching);
-    			if (detaching) detach(if_block_anchor);
-    		}
-    	};
-    }
-
-    // (68:10) <ProjectButtonBase disabled>
-    function create_default_slot_2(ctx) {
-    	let html_tag;
-    	let raw_value = window.Drupal.t('Select <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "";
-    	let html_anchor;
-
-    	return {
-    		c() {
-    			html_tag = new HtmlTag(false);
-    			html_anchor = empty();
-    			html_tag.a = html_anchor;
-    		},
-    		m(target, anchor) {
-    			html_tag.m(raw_value, target, anchor);
-    			insert(target, html_anchor, anchor);
-    		},
-    		p(ctx, dirty) {
-    			if (dirty & /*project*/ 1 && raw_value !== (raw_value = window.Drupal.t('Select <span class="visually-hidden">@title</span>', { '@title': /*project*/ ctx[0].title }) + "")) html_tag.p(raw_value);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(html_anchor);
-    			if (detaching) html_tag.d();
-    		}
-    	};
-    }
-
-    // (64:10) <ProjectButtonBase>
-    function create_default_slot_1$1(ctx) {
-    	let loadingellipsis;
-    	let current;
-    	loadingellipsis = new LoadingEllipsis({});
-
-    	return {
-    		c() {
-    			create_component(loadingellipsis.$$.fragment);
-    		},
-    		m(target, anchor) {
-    			mount_component(loadingellipsis, target, anchor);
-    			current = true;
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(loadingellipsis.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(loadingellipsis.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			destroy_component(loadingellipsis, detaching);
-    		}
-    	};
-    }
-
-    // (54:4) <ProjectStatusIndicator {project} statusText={window.Drupal.t('Installed')}>
+    // (96:4) <ProjectStatusIndicator {project} statusText={window.Drupal.t('Installed')}>
     function create_default_slot$2(ctx) {
     	let projecticon;
     	let current;
@@ -6392,7 +6386,7 @@
     	};
     }
 
-    // (57:4) {#if project.tasks.length > 0}
+    // (99:4) {#if project.tasks.length > 0}
     function create_if_block_2$3(ctx) {
     	let dropbutton;
     	let current;
@@ -6501,58 +6495,103 @@
     }
 
     function instance$8($$self, $$props, $$invalidate) {
-    	let isInInstallList;
-    	let $installList;
-    	component_subscribe($$self, installList, $$value => $$invalidate(5, $installList = $$value));
     	let { project } = $$props;
-    	let InstallListFull;
-    	const processMultipleProjects = MAX_SELECTIONS === null || MAX_SELECTIONS > 1;
+    	let installListFull;
+    	let isInInstallList = false;
+    	let isInstalling = false;
 
-    	function handleAddToInstallListClick(singleProject) {
-    		addToInstallList(singleProject);
-    	}
+    	window.addEventListener('install-selection-changed', ({ detail }) => {
+    		$$invalidate(2, isInInstallList = detail.includes(project));
+    		$$invalidate(1, installListFull = InstallationManager.isFull());
+    	});
 
-    	function handleRemoveFromInstallList(projectId) {
-    		removeFromInstallList(projectId);
-    	}
+    	window.addEventListener('install-start', () => {
+    		$$invalidate(3, isInstalling = true);
+    	});
+
+    	window.addEventListener('install-end', () => {
+    		$$invalidate(3, isInstalling = false);
+    	});
+
+    	const { once, Drupal } = window;
 
     	const onClick = async () => {
-    		if (processMultipleProjects) {
+    		if (InstallationManager.multiple) {
     			if (isInInstallList) {
-    				handleRemoveFromInstallList(project.id);
+    				InstallationManager.remove(project);
     			} else {
-    				handleAddToInstallListClick(project);
+    				InstallationManager.add(project);
     			}
     		} else {
-    			handleAddToInstallListClick(project);
-    			await processInstallList();
+    			InstallationManager.add(project);
+    			await InstallationManager.process();
     		}
     	};
 
-    	const func = () => openPopup(getCommandsPopupMessage(project), project);
+    	/**
+     * Finds [data-copy-command] buttons and adds copy functionality to them.
+     */
+    	function enableCopyButtons() {
+    		setTimeout(() => {
+    			once('copyButton', '[data-copy-command]').forEach(copyButton => {
+    				// return;
+
+    				copyButton.addEventListener('click', e => {
+    					// The copy button must be contained in a div
+    					const container = e.target.closest('div');
+
+    					// The only <textarea> within the parent div should have its value set
+    					// to the command that should be copied.
+    					const input = container.querySelector('textarea');
+
+    					// Make the input value the selected text
+    					input.select();
+
+    					input.setSelectionRange(0, 99999);
+    					navigator.clipboard.writeText(input.value);
+    					Drupal.announce(window.Drupal.t('Copied text to clipboard'));
+
+    					// Create a "receipt" that will visually show the text has been copied.
+    					const receipt = document.createElement('div');
+
+    					receipt.textContent = window.Drupal.t('Copied');
+    					receipt.classList.add('copied-action');
+    					receipt.style.opacity = '1';
+    					input.insertAdjacentElement('afterend', receipt);
+
+    					// eslint-disable-next-line max-nested-callbacks
+    					setTimeout(
+    						() => {
+    							// Remove the receipt after 1 second.
+    							receipt.remove();
+    						},
+    						1000
+    					);
+    				});
+    			});
+    		});
+    	}
+
+    	function getCommandsPopupMessage() {
+    		const div = document.createElement('div');
+    		div.innerHTML = `${project.commands}<style>.action-link { margin: 0 2px; padding: 0.25rem 0.25rem; border: 1px solid; }</style>`;
+    		enableCopyButtons();
+    		return div;
+    	}
+
+    	const func = () => openPopup(getCommandsPopupMessage(), project.title);
 
     	$$self.$$set = $$props => {
     		if ('project' in $$props) $$invalidate(0, project = $$props.project);
     	};
 
-    	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$installList, project*/ 33) {
-    			$$invalidate(2, isInInstallList = $installList.some(item => item.id === project.id));
-    		}
-
-    		if ($$self.$$.dirty & /*$installList*/ 32) {
-    			// If MAX_SELECTIONS is null (no limit), then the install list is never full.
-    			$$invalidate(1, InstallListFull = $installList.length === MAX_SELECTIONS);
-    		}
-    	};
-
     	return [
     		project,
-    		InstallListFull,
+    		installListFull,
     		isInInstallList,
-    		processMultipleProjects,
+    		isInstalling,
     		onClick,
-    		$installList,
+    		getCommandsPopupMessage,
     		func
     	];
     }
@@ -6592,7 +6631,7 @@
     	};
     }
 
-    // (34:0) {#if normalizedSources.length > index}
+    // (39:0) {#if normalizedSources.length > index}
     function create_if_block$5(ctx) {
     	let img;
     	let img_src_value;
@@ -6681,9 +6720,15 @@
 
     function instance$7($$self, $$props, $$invalidate) {
     	let { sources } = $$props;
+    	let { projectSource } = $$props;
     	let { index = 0 } = $$props;
     	const normalizedSources = sources ? [sources].flat() : [];
-    	const fallbackImage = `${FULL_MODULE_PATH}/images/puzzle-piece-placeholder.svg`;
+
+    	const imageFile = projectSource === 'recipes'
+    	? 'recipe-logo.svg'
+    	: 'puzzle-piece-placeholder.svg';
+
+    	const fallbackImage = `${FULL_MODULE_PATH}/images/${imageFile}`;
 
     	const showFallback = ev => {
     		ev.target.src = fallbackImage;
@@ -6711,6 +6756,7 @@
     	$$self.$$set = $$new_props => {
     		$$invalidate(5, $$props = assign(assign({}, $$props), exclude_internal_props($$new_props)));
     		if ('sources' in $$new_props) $$invalidate(6, sources = $$new_props.sources);
+    		if ('projectSource' in $$new_props) $$invalidate(7, projectSource = $$new_props.projectSource);
     		if ('index' in $$new_props) $$invalidate(0, index = $$new_props.index);
     	};
 
@@ -6723,14 +6769,15 @@
     		showFallback,
     		defaultImgProps,
     		$$props,
-    		sources
+    		sources,
+    		projectSource
     	];
     }
 
     class Image extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$7, safe_not_equal, { sources: 6, index: 0 });
+    		init(this, options, instance$7, create_fragment$7, safe_not_equal, { sources: 6, projectSource: 7, index: 0 });
     	}
     }
 
@@ -6996,9 +7043,6 @@
     		init(this, options, instance$6, create_fragment$6, safe_not_equal, { sources: 0 });
     	}
     }
-
-    // eslint-disable-next-line import/prefer-default-export
-    const numberFormatter = new Intl.NumberFormat(navigator.language);
 
     /* src/DetailModal.svelte generated by Svelte v3.48.0 */
 
@@ -8012,7 +8056,7 @@
     	};
     }
 
-    // (62:4) {#if project.is_covered}
+    // (65:4) {#if project.is_covered}
     function create_if_block_3$1(ctx) {
     	let span;
     	let projecticon;
@@ -8046,7 +8090,7 @@
     	};
     }
 
-    // (67:4) {#if project.is_maintained}
+    // (70:4) {#if project.is_maintained}
     function create_if_block_2$1(ctx) {
     	let span;
     	let projecticon;
@@ -8080,7 +8124,7 @@
     	};
     }
 
-    // (72:4) {#if toggleView === 'Grid' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
+    // (75:4) {#if toggleView === 'Grid' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
     function create_if_block_1$1(ctx) {
     	let div;
     	let span;
@@ -8109,7 +8153,7 @@
     	};
     }
 
-    // (83:4) {#if toggleView === 'List' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
+    // (86:4) {#if toggleView === 'List' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
     function create_if_block$1(ctx) {
     	let div2;
     	let div0;
@@ -8206,6 +8250,7 @@
     	image = new Image({
     			props: {
     				sources: /*project*/ ctx[0].logo,
+    				projectSource: /*project*/ ctx[0].source,
     				class: "pb-project__logo-image"
     			}
     		});
@@ -8300,6 +8345,7 @@
     		p(ctx, [dirty]) {
     			const image_changes = {};
     			if (dirty & /*project*/ 1) image_changes.sources = /*project*/ ctx[0].logo;
+    			if (dirty & /*project*/ 1) image_changes.projectSource = /*project*/ ctx[0].source;
     			image.$set(image_changes);
 
     			if (!current || dirty & /*displayMode*/ 4 && div0_class_value !== (div0_class_value = "pb-project__logo pb-project__logo--" + /*displayMode*/ ctx[2])) {
@@ -8484,7 +8530,7 @@
     	const func = () => {
     		const modalDialog = document.createElement('div');
     		(() => new DetailModal({ target: modalDialog, props: { project } }))();
-    		openPopup(modalDialog, project);
+    		openPopup(modalDialog, project.title);
     	};
 
     	const click_handler = () => {
@@ -8656,29 +8702,46 @@
     // This is the single source of truth for all projects that have been loaded from
     // the backend. It is keyed by fully qualified project ID, and shared by all
     // QueryManager instances.
-    const cache =  writable({});
+    const cache = {};
 
-    function getFromCache (projects) {
-      const cacheData = get_store_value(cache);
-      return projects
-        .map(id => cacheData[id])
-        .filter(item => typeof item === 'object');
-    }
+    // All instances of QueryManager.
+    const instances = new Set();
 
-    function updateProjectsInCache (projects) {
-      // Use `.update()` so that all subscribers (i.e., individual QueryManager
-      // instances) will be notified and receive the latest project data.
-      cache.update((cacheData) => {
-        projects.forEach((project) => {
-          cacheData[project.id] = project;
-        });
-        return cacheData;
+    async function doLoad (instance) {
+      // We're going to query the backend, so reset the instance's internal state.
+      instance.list.clear();
+      instance.count = 0;
+
+      const response = await fetch(`${BASE_URL}project-browser/data/project?${instance.queryString}`);
+      if (!response.ok) {
+        return;
+      }
+
+      const { error, list, totalResults } = await response.json();
+      if (error && error.length) {
+        new Drupal.Message().add(error, { type: 'error' });
+      }
+
+      // Store the IDs of the projects we've just fetched.
+      list.forEach(({ id }) => {
+        instance.list.add(id);
+      });
+      instance.count = instance.paginated ? totalResults : list.length;
+
+      // Update the static cache with the data we've received.
+      list.forEach((project) => {
+        cache[project.id] = project;
+      });
+
+      // Notify the subscribers.
+      Array.from(instance.subscribers).forEach((callback) => {
+        callback(list);
       });
     }
 
     // Allow cached projects to be updated via AJAX.
-    Drupal.AjaxCommands.prototype.refresh_projects = (ajax, { projects }) => {
-      updateProjectsInCache(projects);
+    Drupal.AjaxCommands.prototype.refresh_projects = () => {
+      Array.from(instances).forEach(doLoad);
     };
 
     /**
@@ -8695,40 +8758,32 @@
         // If pagination is disabled, then the number of results returned from the
         // first page is, effectively, the total number of results.
         this.paginated = paginated;
-
         // A list of project IDs that were returned by the last query. These are
         // only the project IDs; the most current data for each of them is stored
         // in the static cache.
-        this.list = [];
+        this.list = new Set();
         // The subscribers that are listening for changes in the projects.
-        this.subscribers = [];
+        this.subscribers = new Set();
         // The total (i.e., not paginated) number of results returned by the most
         // recent query.
         this.count = 0;
+        // The most recent query string that this instance sent to the backend.
+        this.queryString = null;
 
-        // Whenever the cache changes, we want to notify our subscribers about any
-        // changes to the projects we have most recently loaded.
-        cache.subscribe(() => {
-          const projects = getFromCache(this.list);
-
-          this.subscribers.forEach((callback) => {
-            callback(projects);
-          });
-        });
-
-        this.lastQueryParams = null;
+        instances.add(this);
       }
 
       subscribe (callback) {
-        const index = this.subscribers.length;
-        this.subscribers.push(callback);
+        this.subscribers.add(callback);
 
         // The store contract requires us to immediately call the new subscriber.
-        callback(getFromCache(this.list));
+        callback(
+          Array.from(this.list).map(id => cache[id])
+        );
 
         // The store contract requires us to return an unsubscribe function.
         return () => {
-          this.subscribers.splice(index, 1);
+          this.subscribers.delete(callback);
         };
       }
 
@@ -8758,32 +8813,10 @@
 
         const queryString = searchParams.toString();
 
-        if (this.lastQueryParams === queryString) {
-          return;
+        if (this.queryString !== queryString) {
+          this.queryString = queryString;
+          await doLoad(this);
         }
-        // We're going to query the backend, so reinitialize our internal state.
-        this.list = [];
-        this.count = 0;
-        this.lastQueryParams = queryString;
-
-        const res = await fetch(
-          `${BASE_URL}project-browser/data/project?${queryString}`,
-        );
-        if (!res.ok) {
-          return;
-        }
-
-        const { error, list: fetchedList, totalResults } = await res.json();
-        if (error && error.length) {
-          new Drupal.Message().add(error, { type: 'error' });
-        }
-
-        fetchedList.forEach((project) => {
-          this.list.push(project.id);
-        });
-        this.count = this.paginated ? totalResults : fetchedList.length;
-
-        updateProjectsInCache(fetchedList);
       }
     }
 
@@ -8793,7 +8826,7 @@
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[48] = list[i];
+    	child_ctx[47] = list[i];
     	return child_ctx;
     }
 
@@ -8806,7 +8839,7 @@
     	project = new Project({
     			props: {
     				toggleView: /*toggleView*/ ctx[3],
-    				project: /*row*/ ctx[48]
+    				project: /*row*/ ctx[47]
     			}
     		});
 
@@ -8827,7 +8860,7 @@
     			ctx = new_ctx;
     			const project_changes = {};
     			if (dirty[0] & /*toggleView*/ 8) project_changes.toggleView = /*toggleView*/ ctx[3];
-    			if (dirty[0] & /*rows*/ 32) project_changes.project = /*row*/ ctx[48];
+    			if (dirty[0] & /*rows*/ 32) project_changes.project = /*row*/ ctx[47];
     			project.$set(project_changes);
     		},
     		i(local) {
@@ -8853,7 +8886,7 @@
     	let each_1_anchor;
     	let current;
     	let each_value = /*rows*/ ctx[5];
-    	const get_key = ctx => /*row*/ ctx[48].id;
+    	const get_key = ctx => /*row*/ ctx[47].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
     		let child_ctx = get_each_context(ctx, each_value, i);
@@ -9077,7 +9110,7 @@
     	let current;
     	let if_block0 = (/*numberOfFilters*/ ctx[11] > 0 || /*numberOfSorts*/ ctx[12] > 1) && create_if_block_4(ctx);
     	let if_block1 = /*rowsCount*/ ctx[1] && create_if_block_3(ctx);
-    	let if_block2 = /*matches*/ ctx[47] && create_if_block_2(ctx);
+    	let if_block2 = /*matches*/ ctx[46] && create_if_block_2(ctx);
 
     	return {
     		c() {
@@ -9120,7 +9153,7 @@
     				if_block1 = null;
     			}
 
-    			if (/*matches*/ ctx[47]) {
+    			if (/*matches*/ ctx[46]) {
     				if (if_block2) {
     					if_block2.p(ctx, dirty);
     				} else {
@@ -9324,7 +9357,7 @@
     			if (dirty[0] & /*rows*/ 32) projectgrid_changes.rows = /*rows*/ ctx[5];
     			if (dirty[0] & /*$pageSize*/ 16) projectgrid_changes.$pageSize = /*$pageSize*/ ctx[4];
 
-    			if (dirty[0] & /*$page, rowsCount, toggleView, rows*/ 43 | dirty[1] & /*$$scope, matches*/ 1114112) {
+    			if (dirty[0] & /*$page, rowsCount, toggleView, rows*/ 43 | dirty[1] & /*$$scope, matches*/ 557056) {
     				projectgrid_changes.$$scope = { dirty, ctx };
     			}
 
@@ -9381,8 +9414,8 @@
     				$$slots: {
     					default: [
     						create_default_slot,
-    						({ matches }) => ({ 47: matches }),
-    						({ matches }) => [0, matches ? 65536 : 0]
+    						({ matches }) => ({ 46: matches }),
+    						({ matches }) => [0, matches ? 32768 : 0]
     					]
     				},
     				$$scope: { ctx }
@@ -9400,7 +9433,7 @@
     		p(ctx, dirty) {
     			const mediaquery_changes = {};
 
-    			if (dirty[0] & /*loading, toggleView, rows, $pageSize, $page, rowsCount*/ 63 | dirty[1] & /*$$scope, matches*/ 1114112) {
+    			if (dirty[0] & /*loading, toggleView, rows, $pageSize, $page, rowsCount*/ 63 | dirty[1] & /*$$scope, matches*/ 557056) {
     				mediaquery_changes.$$scope = { dirty, ctx };
     			}
 
@@ -9429,10 +9462,8 @@
     	let $sort;
     	let $filters;
     	let $focusedElement;
-    	let $installList;
     	let $pageSize;
     	let $currentPage;
-    	component_subscribe($$self, installList, $$value => $$invalidate(35, $installList = $$value));
     	const { Drupal, drupalSettings } = window;
     	const { announce } = Drupal;
     	let { id } = $$props;
@@ -9481,7 +9512,7 @@
     	});
 
     	const [currentPage, previousPage] = withPrevious(0);
-    	component_subscribe($$self, currentPage, value => $$invalidate(36, $currentPage = value));
+    	component_subscribe($$self, currentPage, value => $$invalidate(35, $currentPage = value));
     	component_subscribe($$self, previousPage, value => $$invalidate(31, $previousPage = value));
     	let element = '';
 
@@ -9516,8 +9547,8 @@
      * Load remote data when the Svelte component is mounted.
      */
     	onMount(async () => {
-    		if (MAX_SELECTIONS === 1) {
-    			set_store_value(installList, $installList = [], $installList);
+    		if (InstallationManager.maxSelections === 1) {
+    			InstallationManager.deselectAll();
     		}
 
     		await load();

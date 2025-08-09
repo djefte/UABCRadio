@@ -3,11 +3,16 @@
 
   // eslint-disable-next-line import/no-mutable-exports,import/prefer-default-export
   export let sources;
+  export let projectSource;
   export let index = 0;
 
   const normalizedSources = sources ? [sources].flat() : [];
   const { Drupal } = window;
-  const fallbackImage = `${FULL_MODULE_PATH}/images/puzzle-piece-placeholder.svg`;
+  const imageFile =
+    projectSource === 'recipes'
+      ? 'recipe-logo.svg'
+      : 'puzzle-piece-placeholder.svg';
+  const fallbackImage = `${FULL_MODULE_PATH}/images/${imageFile}`;
   const showFallback = (ev) => {
     ev.target.src = fallbackImage;
   };

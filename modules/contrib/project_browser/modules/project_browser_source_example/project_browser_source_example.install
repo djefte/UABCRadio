@@ -11,12 +11,9 @@
  * Implements hook_install().
  */
 function project_browser_source_example_install(): void {
-  $configFactory = \Drupal::configFactory();
-  $current_source_plugin = $configFactory->getEditable('project_browser.admin_settings')
-    ->get('enabled_sources');
-  $current_source_plugin[] = 'project_browser_source_example';
-  $configFactory->getEditable('project_browser.admin_settings')
-    ->set('enabled_sources', $current_source_plugin)
+  \Drupal::configFactory()
+    ->getEditable('project_browser.admin_settings')
+    ->set('enabled_sources.project_browser_source_example', [])
     ->save(TRUE);
 }
 

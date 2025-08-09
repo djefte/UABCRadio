@@ -91,13 +91,7 @@
     {#if numberOfFilters > 0}
       <div class="search__form-filters">
         {#each Object.entries(filterDefinitions) as [name, filter]}
-          {#if filter._type === 'boolean'}
-            <BooleanFilter
-              definition={filter}
-              {name}
-              changeHandler={onFilterChange}
-            />
-          {:else if filter._type === 'multiple_choice'}
+          {#if filter._type === 'multiple_choice'}
             <MultipleChoiceFilter
               {name}
               filterList={Object.keys(filterDefinitions)}
@@ -112,6 +106,18 @@
             />
           {/if}
         {/each}
+
+        <div class="boolean-filters-wrapper">
+          {#each Object.entries(filterDefinitions) as [name, filter]}
+            {#if filter._type === 'boolean'}
+              <BooleanFilter
+                definition={filter}
+                {name}
+                changeHandler={onFilterChange}
+              />
+            {/if}
+          {/each}
+        </div>
       </div>
     {/if}
     <div
