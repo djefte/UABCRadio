@@ -1,5 +1,0 @@
-# Schema for the configuration files of the uabcradio theme.
-
-uabcradio.settings:
-  type: theme_settings
-  label: 'uabcradio settings'
