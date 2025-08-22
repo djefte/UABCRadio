@@ -1,0 +1,8 @@
+.audio-player,
+.audio-player-container {
+    margin: 20px auto;
+}
+
+.hidden {
+    display: none !important;
+}

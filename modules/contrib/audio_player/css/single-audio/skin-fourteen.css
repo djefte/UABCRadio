@@ -1,0 +1,334 @@
+.default-palette {
+  --single-audio-player-bg: #fff;
+  --single-audio-text-color: #333;
+  --single-audio-time-color: #555;
+  --single-audio-primary-color: #007bff;
+  --single-audio-primary-hover-color: #0056b3;
+  --single-audio-secondary-color: #555;
+  --single-audio-progress-bg: #e0e0e0;
+  --single-audio-progress-fill: #007bff;
+  --single-audio-buffered-color: #a0c4e4;
+  --single-audio-volume-slider-bg: #ddd;
+  --single-audio-volume-slider-thumb: #007bff;
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --single-audio-button-bg: #007bff;
+  --single-audio-button-hover-bg: #f0f0f0;
+}
+
+/* Base Audio Player Container */
+.audio-player.skin-fourteen {
+    background-color: var(--single-audio-player-bg);
+    border-radius: 12px;
+    box-shadow: var(--single-audio-box-shadow);
+    padding: 25px;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+    z-index: 10;
+    position: relative;
+    font-family: Arial, sans-serif; /* Added a default font-family */
+}
+
+/* Top controls: Song Name and Time Display */
+.audio-player.skin-fourteen .audio-player-controls-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95em;
+    color: var(--single-audio-time-color);
+    flex-wrap: wrap;
+}
+
+.audio-player.skin-fourteen .audio-player-song-name {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--single-audio-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.audio-player.skin-fourteen .audio-player-time-display {
+    min-width: 80px;
+    text-align: right;
+}
+
+/* Waveform Canvas Container */
+.audio-player.skin-fourteen .audio-player-waveform-container {
+    width: 100%;
+    height: 80px; /* Height of the waveform */
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--single-audio-progress-bg); /* Background for the canvas */
+    margin-bottom: -15px; /* Pulls it closer to the progress bar */
+    position: relative;
+    z-index: 5; /* Above progress bar, below other controls */
+}
+
+.audio-player.skin-fourteen .audio-player-waveform-canvas {
+    width: 100%;
+    height: 100%;
+    display: block; /* Removes extra space below canvas */
+}
+
+/* Progress Bar (sitting below the waveform) */
+.audio-player.skin-fourteen .audio-player-progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: var(--single-audio-progress-bg);
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    margin-top: 5px; /* Small gap between waveform and progress bar */
+}
+
+.audio-player.skin-fourteen .audio-player-buffered-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: var(--single-audio-buffered-color); /* Semi-transparent green for buffered */
+    border-radius: 4px;
+    z-index: 1;
+}
+
+.audio-player.skin-fourteen .audio-player-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: var(--single-audio-progress-fill); /* Solid green for played progress */
+    border-radius: 4px;
+    transition: width 0.1s linear; /* Smooth transition for progress updates */
+    z-index: 2;
+}
+
+/* Bottom Controls */
+.audio-player.skin-fourteen .audio-player-controls-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.audio-player.skin-fourteen .audio-player-main-controls,
+.audio-player.skin-fourteen .audio-player-volume-controls,
+.audio-player.skin-fourteen .audio-player-playback-speed-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.audio-player.skin-fourteen .audio-player-control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    color: var(--single-audio-secondary-color); /* Default icon color */
+}
+
+.audio-player.skin-fourteen .audio-player-control-btn:hover {
+    background-color: var(--single-audio-button-hover-bg);
+}
+
+.audio-player.skin-fourteen .audio-player-control-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor; /* Use the button's color for the SVG */
+}
+
+/* Specific Play/Pause Button Styles */
+.audio-player.skin-fourteen .audio-player-play-pause-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--single-audio-button-bg); /* Green background */
+    color: var(--single-audio-player-bg); /* White icon */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border: none;
+}
+
+.audio-player.skin-fourteen .audio-player-play-pause-btn:hover {
+    background-color: var(--single-audio-primary-hover-color); /* Darker green on hover */
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+.audio-player.skin-fourteen .audio-player-play-pause-btn svg {
+    width: 30px;
+    height: 30px;
+}
+
+/* --- Custom Div Volume Slider Styles --- */
+.audio-player.skin-fourteen .audio-player-volume-slider {
+    width: 100px; /* Explicit width for the slider track */
+    height: 6px; /* Height of the slider track */
+    background: var(--single-audio-volume-slider-bg); /* The background color of the empty part of the track */
+    border-radius: 3px;
+    cursor: pointer; /* Indicate it's interactive */
+    position: relative; /* Needed for positioning the fill div */
+    overflow: hidden; /* Ensures the fill stays within the rounded corners */
+}
+
+.audio-player.skin-fourteen .audio-player-volume-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%; /* Make the fill the same height as its parent slider */
+    width: 100%; /* This width will be dynamically set by JavaScript */
+    background-color: var(--single-audio-volume-slider-thumb); /* The vibrant "filled" color */
+    border-radius: 3px;
+    transition: width 0.1s linear; /* Smooth transition for visual updates */
+}
+
+/* Playback Speed Select */
+.audio-player.skin-fourteen .audio-player-control-select {
+    background-color: var(--single-audio-button-hover-bg);
+    border: 1px solid var(--single-audio-volume-slider-bg);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    outline: none;
+    color: var(--single-audio-secondary-color);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.audio-player.skin-fourteen .audio-player-control-select:hover,
+.audio-player.skin-fourteen .audio-player-control-select:focus {
+    border-color: var(--single-audio-primary-color);
+    background-color: #e8e8e8;
+}
+
+/* ==================== Equalizer Animation Styles ==================== */
+/* These styles are for the visual equalizer effect, separate from core player functionality */
+.audio-player.skin-fourteen .audio-player-equalizer-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Bars grow upwards from the bottom */
+    position: relative;
+    z-index: 1;
+    height: 80px; /* Height of the equalizer visualization */
+}
+
+.audio-player.skin-fourteen .audio-player-equalizer-bar {
+    width: 8px;
+    background-color: var(--single-audio-primary-color); /* Green color for the bars */
+    margin: 0 2px; /* Spacing between bars */
+    border-radius: 2px;
+    transform-origin: bottom; /* Ensure animation scales from the bottom */
+    animation: equalize 0.8s ease-in-out infinite alternate; /* Animation for dynamic bars */
+    animation-play-state: paused; /* Pause by default, play when audio is active */
+}
+
+/* Keyframes for the equalizer animation */
+@keyframes equalize {
+    0% { transform: scaleY(0.2); opacity: 0.7; }
+    50% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(0.4); opacity: 0.8; }
+}
+
+.audio-player.skin-fourteen .audio-player-equalizer-bar.playing {
+    animation-play-state: running; /* Resume animation when "playing" class is added */
+}
+
+.audio-player.skin-fourteen .audio-player-equalizer-container.hidden {
+    display: none; /* Hide the entire equalizer when not active */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .audio-player.skin-fourteen {
+        padding: 20px;
+        gap: 15px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-controls-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-song-name {
+        font-size: 1.1em;
+        max-width: 100%;
+    }
+
+    .audio-player.skin-fourteen .audio-player-time-display {
+        width: 100%;
+        text-align: left;
+    }
+
+    .audio-player.skin-fourteen .audio-player-controls-bottom {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-main-controls,
+    .audio-player.skin-fourteen .audio-player-volume-controls,
+    .audio-player.skin-fourteen .audio-player-playback-speed-controls {
+        width: 100%;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-volume-slider {
+        width: 120px; /* Slightly wider volume slider on smaller screens */
+    }
+
+    .audio-player.skin-fourteen .audio-player-waveform-container {
+        height: 60px; /* Smaller height for waveform on mobile */
+        margin-bottom: -10px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-equalizer-container {
+        height: 60px;
+        margin-top: 15px;
+    }
+    .audio-player.skin-fourteen .audio-player-equalizer-bar {
+        width: 6px;
+        margin: 0 1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .audio-player.skin-fourteen {
+        padding: 15px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-control-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-play-pause-btn {
+        width: 45px;
+        height: 45px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-play-pause-btn svg {
+        width: 26px;
+        height: 26px;
+    }
+
+    .audio-player.skin-fourteen .audio-player-song-name {
+        font-size: 1em;
+    }
+}

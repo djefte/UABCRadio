@@ -1,0 +1,46 @@
+<div class="audio-main-container">
+  {% for audio in audios %}
+    {% set original_url = audio.original_url %}
+      <div class="skin-five audio-player-container {{ palette }}">
+        <div class="audio-player skin-five">
+            <audio class="audio-player-audio" src="{{ original_url }}"></audio>
+            <div class="audio-player-controls">
+                <button class="audio-player-rewind-btn audio-player-control-btn" aria-label="Rewind">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+                </button>
+                <button class="audio-player-play-pause-btn audio-player-control-btn" aria-label="Play/Pause">
+                    <svg class="audio-player-play-icon" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg class="audio-player-pause-icon" style="display: none;" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button class="audio-player-fast-forward-btn audio-player-control-btn" aria-label="Fast Forward">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M13 6v12l8.5-6L13 6zm-9 0v12l8.5-6L4 6z"/></svg>
+                </button>
+            </div>
+
+            <div class="audio-player-song-info">
+                <span class="audio-player-song-name">Your Awesome Song Name Here Lorem ipusm lorem lorem ipsum</span>
+            </div>
+
+            <div class="audio-player-progress-section">
+                <span class="audio-player-current-time audio-player-time-display">0:00</span>
+                <div class="audio-player-progress-bar-wrapper">
+                    <div class="audio-player-buffered-bar"></div> <div class="audio-player-progress-bar"></div>
+                </div>
+                <span class="audio-player-duration audio-player-time-display">0:00</span>
+            </div>
+
+            <div class="audio-player-volume-controls">
+                <button class="audio-player-mute-unmute-btn audio-player-control-btn" aria-label="Mute/Unmute">
+                    <svg class="audio-player-volume-on-icon" viewBox="0 0 24 24">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                    <svg class="audio-player-volume-off-icon" viewBox="0 0 24 24" style="display: none;">
+                        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .9-.23 1.73-.63 2.47l1.46 1.46C20.6 14.9 21 13.55 21 12c0-4.42-3.58-8-8-8-1.55 0-2.9.4-4.11 1.07L7.46 6.54C8.42 5.6 9.66 5 11 5c3.02 0 5.5 2.48 5.5 5.5v.5l2 2v-2zm-8.04-5.04L3 12.04 3 12c0 4.42 3.58 8 8 8 1.55 0 2.9-.4 4.11-1.07l-1.47-1.47c-.96.94-2.21 1.54-3.54 1.54-3.02 0-5.5-2.48-5.5-5.5v-.5l-2-2zM4.27 3L3 4.27l9 9V19c0 .89-.39 1.69-1 2.25v.06h-1v1h4v-1h-1v-.06c-.61-.56-1-1.36-1-2.25v-4.11l7.73 7.73L21 19.73 4.27 3z"/>
+                    </svg>
+                </button>
+                <input type="range" class="audio-player-volume-slider" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+            </div>
+        </div>
+    </div>
+  {% endfor %}
+</div>

@@ -54,3 +54,5 @@ block.settings.simple_search_form_block:
       sequence:
         type: string
         label: 'URL query parameter to preserve'
+  constraints:
+    FullyValidatable: ~

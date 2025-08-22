@@ -1,0 +1,754 @@
+.default-palette {
+    /* Base Colors */
+    --playlist-background: #17212b;
+    --playlist-shadow: rgba(0, 0, 0, 0.4);
+    --playlist-border-light: rgba(255, 255, 255, 0.1);
+    --playlist-border-medium: #444;
+
+    /* Text Colors */
+    --playlist-text-primary: #ffffff;
+    --playlist-text-secondary: #bbbbbb;
+    --playlist-text-tertiary: #b0b0b0;
+    --playlist-text-time: #aaaaaa;
+
+    /* Accent Colors */
+    --playlist-accent-color: #1a73e8; /* Google Blue */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #55585f;
+    --playlist-buffer-bar-color: #7b7e85;
+
+    /* Playlist Colors */
+    --playlist-item-border: #c7c7c717;
+    --playlist-item-hover: #313d49;
+    --playlist-active-background: #1a73e8; /* Brighter active song */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(128, 128, 128, 0.2);
+    --playlist-play-pause-button-hover-bg: #1a73e8;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #2b3a4a;
+    --playlist-scrollbar-thumb: #55677a;
+    --playlist-scrollbar-thumb-hover: #7a8ba3;
+}
+.palette-1 {
+    /* Base Colors */
+    --playlist-background: #11151c;
+    --playlist-shadow: rgba(0, 0, 0, 0.6);
+    --playlist-border-light: rgba(255, 255, 255, 0.07);
+    --playlist-border-medium: #303b47;
+
+    /* Text Colors */
+    --playlist-text-primary: #e0eafc;
+    --playlist-text-secondary: #a8b8cc;
+    --playlist-text-tertiary: #92a3b8;
+    --playlist-text-time: #8595a8;
+
+    /* Accent Colors */
+    --playlist-accent-color: #00e676; /* Green Accent */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #4a5c6e;
+    --playlist-buffer-bar-color: #6a7c8e;
+
+    /* Playlist Colors */
+    --playlist-item-border: #a4b4c11a;
+    --playlist-item-hover: #1e2833;
+    --playlist-active-background: #00e676;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(50, 200, 100, 0.15);
+    --playlist-play-pause-button-hover-bg: #00e676;
+    --playlist-play-pause-button-hover-color: #222; /* Dark text on hover */
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #1b2530;
+    --playlist-scrollbar-thumb: #3e5060;
+    --playlist-scrollbar-thumb-hover: #5a6e80;
+}
+
+.palette-2 {
+    /* Base Colors */
+    --playlist-background: #252520;
+    --playlist-shadow: rgba(0, 0, 0, 0.5);
+    --playlist-border-light: rgba(255, 255, 255, 0.08);
+    --playlist-border-medium: #4a4a40;
+
+    /* Text Colors */
+    --playlist-text-primary: #f8f8f0;
+    --playlist-text-secondary: #d4d4c8;
+    --playlist-text-tertiary: #c0c0b0;
+    --playlist-text-time: #a8a898;
+
+    /* Accent Colors */
+    --playlist-accent-color: #ffc107; /* Amber Gold */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #606050;
+    --playlist-buffer-bar-color: #808070;
+
+    /* Playlist Colors */
+    --playlist-item-border: #c8c8b81a;
+    --playlist-item-hover: #353528;
+    --playlist-active-background: #ffc107;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(200, 150, 0, 0.15);
+    --playlist-play-pause-button-hover-bg: #ffc107;
+    --playlist-play-pause-button-hover-color: #222; /* Dark text on hover */
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #2f2f25;
+    --playlist-scrollbar-thumb: #5a5a4a;
+    --playlist-scrollbar-thumb-hover: #7a7a6a;
+}
+
+.palette-3 {
+    /* Base Colors */
+    --playlist-background: #21172b;
+    --playlist-shadow: rgba(0, 0, 0, 0.45);
+    --playlist-border-light: rgba(255, 255, 255, 0.1);
+    --playlist-border-medium: #4c3a5e;
+
+    /* Text Colors */
+    --playlist-text-primary: #f0e6f7;
+    --playlist-text-secondary: #d1b8e0;
+    --playlist-text-tertiary: #bfa5cc;
+    --playlist-text-time: #a890b8;
+
+    /* Accent Colors */
+    --playlist-accent-color: #e91e63; /* Pink (Fuchsia) */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #6e5480;
+    --playlist-buffer-bar-color: #8f74a0;
+
+    /* Playlist Colors */
+    --playlist-item-border: #d4baf21a;
+    --playlist-item-hover: #2f253a;
+    --playlist-active-background: #e91e63;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(200, 50, 100, 0.15);
+    --playlist-play-pause-button-hover-bg: #e91e63;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #2a1f38;
+    --playlist-scrollbar-thumb: #58416d;
+    --playlist-scrollbar-thumb-hover: #7a6092;
+}
+
+.palette-4 {
+    /* Base Colors */
+    --playlist-background: #1a2a3a;
+    --playlist-shadow: rgba(0, 0, 0, 0.4);
+    --playlist-border-light: rgba(255, 255, 255, 0.15);
+    --playlist-border-medium: #5a7a9a;
+
+    /* Text Colors */
+    --playlist-text-primary: #eaf7ff;
+    --playlist-text-secondary: #c2dbe8;
+    --playlist-text-tertiary: #aecfdc;
+    --playlist-text-time: #9cbacf;
+
+    /* Accent Colors */
+    --playlist-accent-color: #03a9f4; /* Light Blue */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #6080a0;
+    --playlist-buffer-bar-color: #80a0c0;
+
+    /* Playlist Colors */
+    --playlist-item-border: #b0c8d81a;
+    --playlist-item-hover: #2b3d4d;
+    --playlist-active-background: #03a9f4;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(50, 150, 200, 0.2);
+    --playlist-play-pause-button-hover-bg: #03a9f4;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #2a3d4f;
+    --playlist-scrollbar-thumb: #5d7e9d;
+    --playlist-scrollbar-thumb-hover: #7ea1bf;
+}
+
+.palette-5 {
+    /* Base Colors */
+    --playlist-background: #2b2b2b;
+    --playlist-shadow: rgba(0, 0, 0, 0.4);
+    --playlist-border-light: rgba(255, 255, 255, 0.1);
+    --playlist-border-medium: #555555;
+
+    /* Text Colors */
+    --playlist-text-primary: #ffffff;
+    --playlist-text-secondary: #cccccc;
+    --playlist-text-tertiary: #bebebe;
+    --playlist-text-time: #b0b0b0;
+
+    /* Accent Colors */
+    --playlist-accent-color: #e65100; /* Amber Orange */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #666666;
+    --playlist-buffer-bar-color: #888888;
+
+    /* Playlist Colors */
+    --playlist-item-border: #a0a0a017;
+    --playlist-item-hover: #3a3a3a;
+    --playlist-active-background: #e65100;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(200, 100, 0, 0.2);
+    --playlist-play-pause-button-hover-bg: #e65100;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #353535;
+    --playlist-scrollbar-thumb: #606060;
+    --playlist-scrollbar-thumb-hover: #808080;
+}
+
+.palette-6 {
+    /* Base Colors */
+    --playlist-background: #0a0a0a;
+    --playlist-shadow: rgba(0, 0, 0, 0.7);
+    --playlist-border-light: rgba(255, 255, 255, 0.03);
+    --playlist-border-medium: #222222;
+
+    /* Text Colors */
+    --playlist-text-primary: #ffffff;
+    --playlist-text-secondary: #c0c0c0;
+    --playlist-text-tertiary: #b5b5b5;
+    --playlist-text-time: #aaaaaa;
+
+    /* Accent Colors */
+    --playlist-accent-color: #9c27b0; /* Deep Purple */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #333333;
+    --playlist-buffer-bar-color: #555555;
+
+    /* Playlist Colors */
+    --playlist-item-border: #80808017;
+    --playlist-item-hover: #151515;
+    --playlist-active-background: #9c27b0;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(180, 50, 200, 0.1);
+    --playlist-play-pause-button-hover-bg: #9c27b0;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #111111;
+    --playlist-scrollbar-thumb: #404040;
+    --playlist-scrollbar-thumb-hover: #606060;
+}
+
+.palette-7 {
+    /* Base Colors */
+    --playlist-background: #281a33;
+    --playlist-shadow: rgba(0, 0, 0, 0.5);
+    --playlist-border-light: rgba(255, 255, 255, 0.09);
+    --playlist-border-medium: #5a406e;
+
+    /* Text Colors */
+    --playlist-text-primary: #f7eafc;
+    --playlist-text-secondary: #d1b8e0;
+    --playlist-text-tertiary: #bfa5cc;
+    --playlist-text-time: #a890b8;
+
+    /* Accent Colors */
+    --playlist-accent-color: #ff5722; /* Deep Orange */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #6e5480;
+    --playlist-buffer-bar-color: #8f74a0;
+
+    /* Playlist Colors */
+    --playlist-item-border: #d4baf21a;
+    --playlist-item-hover: #3a254a;
+    --playlist-active-background: #ff5722;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(200, 100, 0, 0.15);
+    --playlist-play-pause-button-hover-bg: #ff5722;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #352145;
+    --playlist-scrollbar-thumb: #644a77;
+    --playlist-scrollbar-thumb-hover: #866b9d;
+}
+
+.palette-8 {
+    /* Base Colors */
+    --playlist-background: #14201a;
+    --playlist-shadow: rgba(0, 0, 0, 0.45);
+    --playlist-border-light: rgba(255, 255, 255, 0.07);
+    --playlist-border-medium: #3b4e41;
+
+    /* Text Colors */
+    --playlist-text-primary: #e6f5ea;
+    --playlist-text-secondary: #b6d4c1;
+    --playlist-text-tertiary: #a0c2ae;
+    --playlist-text-time: #8cb59d;
+
+    /* Accent Colors */
+    --playlist-accent-color: #4caf50; /* Google Green */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #4a6652;
+    --playlist-buffer-bar-color: #6a8c72;
+
+    /* Playlist Colors */
+    --playlist-item-border: #a8c7b41a;
+    --playlist-item-hover: #22352b;
+    --playlist-active-background: #4caf50;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(100, 180, 100, 0.15);
+    --playlist-play-pause-button-hover-bg: #4caf50;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #1e3026;
+    --playlist-scrollbar-thumb: #415e4a;
+    --playlist-scrollbar-thumb-hover: #5d8067;
+}
+
+.palette-9 {
+    /* Base Colors */
+    --playlist-background: #1c1c1c;
+    --playlist-shadow: rgba(0, 0, 0, 0.6);
+    --playlist-border-light: rgba(255, 255, 255, 0.05);
+    --playlist-border-medium: #333333;
+
+    /* Text Colors */
+    --playlist-text-primary: #f0f0f0;
+    --playlist-text-secondary: #b0b0b0;
+    --playlist-text-tertiary: #a0a0a0;
+    --playlist-text-time: #959595;
+
+    /* Accent Colors */
+    --playlist-accent-color: #00bcd4; /* Cyan */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #444444;
+    --playlist-buffer-bar-color: #666666;
+
+    /* Playlist Colors */
+    --playlist-item-border: #9999991a;
+    --playlist-item-hover: #2a2a2a;
+    --playlist-active-background: #00bcd4;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(150, 150, 150, 0.1);
+    --playlist-play-pause-button-hover-bg: #00bcd4;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #222222;
+    --playlist-scrollbar-thumb: #505050;
+    --playlist-scrollbar-thumb-hover: #707070;
+}
+
+.palette-10 {
+    /* Base Colors */
+    --playlist-background: #0f1a24;
+    --playlist-shadow: rgba(0, 0, 0, 0.5);
+    --playlist-border-light: rgba(255, 255, 255, 0.08);
+    --playlist-border-medium: #3a4a5a;
+
+    /* Text Colors */
+    --playlist-text-primary: #e0f2f7;
+    --playlist-text-secondary: #a8c0d1;
+    --playlist-text-tertiary: #92afc4;
+    --playlist-text-time: #859db3;
+
+    /* Accent Colors */
+    --playlist-accent-color: #007bff; /* Vibrant Blue */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #4a657a;
+    --playlist-buffer-bar-color: #6a889e;
+
+    /* Playlist Colors */
+    --playlist-item-border: #a4b4c11a;
+    --playlist-item-hover: #1e354a;
+    --playlist-active-background: #007bff;
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(100, 150, 200, 0.15);
+    --playlist-play-pause-button-hover-bg: #007bff;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #1a2f40;
+    --playlist-scrollbar-thumb: #3e5b72;
+    --playlist-scrollbar-thumb-hover: #5a7b94;
+}
+
+.palette-11 {
+    /* Base Colors */
+    --playlist-background: #fcfcfc;
+    --playlist-shadow: rgba(0, 0, 0, 0.07);
+    --playlist-border-light: rgba(0, 0, 0, 0.03);
+    --playlist-border-medium: #e8e8e8;
+
+    /* Text Colors */
+    --playlist-text-primary: #222222;
+    --playlist-text-secondary: #5a5a5a;
+    --playlist-text-tertiary: #7a7a7a;
+    --playlist-text-time: #9e9e9e;
+
+    /* Accent Colors */
+    --playlist-accent-color: #424242; /* Dark Gray */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e0e0e0;
+    --playlist-buffer-bar-color: #c7c7c7;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e0e0e0;
+    --playlist-item-hover: #f0f0f0;
+    --playlist-active-background: #eeeeee; /* Light gray for active */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.05);
+    --playlist-play-pause-button-hover-bg: #424242;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f5f5f5;
+    --playlist-scrollbar-thumb: #cccccc;
+    --playlist-scrollbar-thumb-hover: #aaaaaa;
+}
+
+.palette-12 {
+    /* Base Colors */
+    --playlist-background: #ffffff;
+    --playlist-shadow: rgba(0, 0, 0, 0.09);
+    --playlist-border-light: rgba(0, 0, 0, 0.04);
+    --playlist-border-medium: #e5e5e5;
+
+    /* Text Colors */
+    --playlist-text-primary: #212121;
+    --playlist-text-secondary: #555555;
+    --playlist-text-tertiary: #757575;
+    --playlist-text-time: #9e9e9e;
+
+    /* Accent Colors */
+    --playlist-accent-color: #ff4081; /* Pink */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e0e0e0;
+    --playlist-buffer-bar-color: #bdbdbd;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e0e0e0;
+    --playlist-item-hover: #f0f0f0;
+    --playlist-active-background: #ffebee; /* Lighter accent */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.05);
+    --playlist-play-pause-button-hover-bg: #ff4081;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f8f8f8;
+    --playlist-scrollbar-thumb: #cccccc;
+    --playlist-scrollbar-thumb-hover: #aaaaaa;
+}
+
+.palette-13 {
+    /* Base Colors */
+    --playlist-background: #fcfaf5;
+    --playlist-shadow: rgba(0, 0, 0, 0.07);
+    --playlist-border-light: rgba(0, 0, 0, 0.04);
+    --playlist-border-medium: #ebe5d9;
+
+    /* Text Colors */
+    --playlist-text-primary: #4a453e;
+    --playlist-text-secondary: #7b756b;
+    --playlist-text-tertiary: #9c968c;
+    --playlist-text-time: #bcb8ae;
+
+    /* Accent Colors */
+    --playlist-accent-color: #795548; /* Brown */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #ebe5d9;
+    --playlist-buffer-bar-color: #d4cfc3;
+
+    /* Playlist Colors */
+    --playlist-item-border: #ebe5d9;
+    --playlist-item-hover: #f5f0e8;
+    --playlist-active-background: #efebe8; /* Lighter brown/beige */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.05);
+    --playlist-play-pause-button-hover-bg: #795548;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #fdfaf3;
+    --playlist-scrollbar-thumb: #e2dcca;
+    --playlist-scrollbar-thumb-hover: #cdc6b8;
+}
+
+.palette-14 {
+    /* Base Colors */
+    --playlist-background: #eef7f8;
+    --playlist-shadow: rgba(0, 0, 0, 0.06);
+    --playlist-border-light: rgba(0, 0, 0, 0.03);
+    --playlist-border-medium: #dbe7e8;
+
+    /* Text Colors */
+    --playlist-text-primary: #2c4a5c;
+    --playlist-text-secondary: #5e7d8c;
+    --playlist-text-tertiary: #7d96a3;
+    --playlist-text-time: #9cb3c0;
+
+    /* Accent Colors */
+    --playlist-accent-color: #03a9f4; /* Light Blue */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #dbe7e8;
+    --playlist-buffer-bar-color: #c2d1d2;
+
+    /* Playlist Colors */
+    --playlist-item-border: #dbe7e8;
+    --playlist-item-hover: #e5f0f1;
+    --playlist-active-background: #e0f2f7; /* Lighter accent */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.04);
+    --playlist-play-pause-button-hover-bg: #03a9f4;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f5fcfc;
+    --playlist-scrollbar-thumb: #cfe0e1;
+    --playlist-scrollbar-thumb-hover: #b8c9ca;
+}
+
+.palette-15 {
+    /* Base Colors */
+    --playlist-background: #f5f5f5;
+    --playlist-shadow: rgba(0, 0, 0, 0.08);
+    --playlist-border-light: rgba(0, 0, 0, 0.05);
+    --playlist-border-medium: #e0e0e0;
+
+    /* Text Colors */
+    --playlist-text-primary: #333333;
+    --playlist-text-secondary: #616161;
+    --playlist-text-tertiary: #757575;
+    --playlist-text-time: #9e9e9e;
+
+    /* Accent Colors */
+    --playlist-accent-color: #673ab7; /* Deep Purple */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e0e0e0;
+    --playlist-buffer-bar-color: #c7c7c7;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e0e0e0;
+    --playlist-item-hover: #eeeeee;
+    --playlist-active-background: #f3e5f5; /* Very light purple */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.05);
+    --playlist-play-pause-button-hover-bg: #673ab7;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f8f8f8;
+    --playlist-scrollbar-thumb: #d5d5d5;
+    --playlist-scrollbar-thumb-hover: #bdbdbd;
+}
+
+.palette-16 {
+    /* Base Colors */
+    --playlist-background: #f0f8f0;
+    --playlist-shadow: rgba(0, 0, 0, 0.06);
+    --playlist-border-light: rgba(0, 0, 0, 0.03);
+    --playlist-border-medium: #e0f0e0;
+
+    /* Text Colors */
+    --playlist-text-primary: #2e3d30;
+    --playlist-text-secondary: #5f7a60;
+    --playlist-text-tertiary: #7d977e;
+    --playlist-text-time: #9cb59d;
+
+    /* Accent Colors */
+    --playlist-accent-color: #4caf50; /* Google Green */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e0f0e0;
+    --playlist-buffer-bar-color: #c8e0c8;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e0f0e0;
+    --playlist-item-hover: #e8f5e8;
+    --playlist-active-background: #e8f5e8; /* Very light green */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.04);
+    --playlist-play-pause-button-hover-bg: #4caf50;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f5fff5;
+    --playlist-scrollbar-thumb: #cfe8cf;
+    --playlist-scrollbar-thumb-hover: #b8d4b8;
+}
+
+.palette-17 {
+    /* Base Colors */
+    --playlist-background: #fafaf0;
+    --playlist-shadow: rgba(0, 0, 0, 0.07);
+    --playlist-border-light: rgba(0, 0, 0, 0.04);
+    --playlist-border-medium: #e9e9e0;
+
+    /* Text Colors */
+    --playlist-text-primary: #3d3d33;
+    --playlist-text-secondary: #6e6e60;
+    --playlist-text-tertiary: #8f8f80;
+    --playlist-text-time: #b0b0a0;
+
+    /* Accent Colors */
+    --playlist-accent-color: #ffc107; /* Amber Gold */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e9e9e0;
+    --playlist-buffer-bar-color: #d0d0c5;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e9e9e0;
+    --playlist-item-hover: #f3f3e8;
+    --playlist-active-background: #fff8e1; /* Very light amber */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.05);
+    --playlist-play-pause-button-hover-bg: #ffc107;
+    --playlist-play-pause-button-hover-color: #333333; /* Darker text on hover */
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f5f5eb;
+    --playlist-scrollbar-thumb: #d8d8ce;
+    --playlist-scrollbar-thumb-hover: #c0c0b8;
+}
+
+.palette-18 {
+    /* Base Colors */
+    --playlist-background: #fdfdfd;
+    --playlist-shadow: rgba(0, 0, 0, 0.05);
+    --playlist-border-light: rgba(0, 0, 0, 0.02);
+    --playlist-border-medium: #f0f0f0;
+
+    /* Text Colors */
+    --playlist-text-primary: #1a1a1a;
+    --playlist-text-secondary: #4a4a4a;
+    --playlist-text-tertiary: #6a6a6a;
+    --playlist-text-time: #8a8a8a;
+
+    /* Accent Colors */
+    --playlist-accent-color: #f44336; /* Red */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #eeeeee;
+    --playlist-buffer-bar-color: #dddddd;
+
+    /* Playlist Colors */
+    --playlist-item-border: #eeeeee;
+    --playlist-item-hover: #f5f5f5;
+    --playlist-active-background: #ffebee; /* Very light red */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.03);
+    --playlist-play-pause-button-hover-bg: #f44336;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #fcfcfc;
+    --playlist-scrollbar-thumb: #e0e0e0;
+    --playlist-scrollbar-thumb-hover: #c9c9c9;
+}
+
+.palette-19 {
+    /* Base Colors */
+    --playlist-background: #f8f8f8;
+    --playlist-shadow: rgba(0, 0, 0, 0.08);
+    --playlist-border-light: rgba(0, 0, 0, 0.03);
+    --playlist-border-medium: #e8e8e8;
+
+    /* Text Colors */
+    --playlist-text-primary: #333333;
+    --playlist-text-secondary: #666666;
+    --playlist-text-tertiary: #888888;
+    --playlist-text-time: #aaaaaa;
+
+    /* Accent Colors */
+    --playlist-accent-color: #82b1ff; /* Light Blue */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e8e8e8;
+    --playlist-buffer-bar-color: #d0d0d0;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e8e8e8;
+    --playlist-item-hover: #f0f0f0;
+    --playlist-active-background: #e3f2fd; /* Very light blue */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.04);
+    --playlist-play-pause-button-hover-bg: #82b1ff;
+    --playlist-play-pause-button-hover-color: #333333; /* Darker text on hover */
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f0f0f0;
+    --playlist-scrollbar-thumb: #d8d8d8;
+    --playlist-scrollbar-thumb-hover: #c0c0c0;
+}
+
+.palette-20 {
+    /* Base Colors */
+    --playlist-background: #ffffff;
+    --playlist-shadow: rgba(0, 0, 0, 0.1);
+    --playlist-border-light: rgba(0, 0, 0, 0.05);
+    --playlist-border-medium: #e0e0e0;
+
+    /* Text Colors */
+    --playlist-text-primary: #212121;
+    --playlist-text-secondary: #555555;
+    --playlist-text-tertiary: #757575;
+    --playlist-text-time: #9e9e9e;
+
+    /* Accent Colors */
+    --playlist-accent-color: #007bff; /* Vibrant Blue */
+
+    /* Progress & Volume Bar Colors */
+    --playlist-progress-bar-background: #e0e0e0;
+    --playlist-buffer-bar-color: #bdbdbd;
+
+    /* Playlist Colors */
+    --playlist-item-border: #e0e0e0;
+    --playlist-item-hover: #f0f0f0;
+    --playlist-active-background: #e6f2ff; /* Lighter blue for active background */
+
+    /* Play/Pause Button Background */
+    --playlist-play-pause-button-bg: rgba(0, 0, 0, 0.05);
+    --playlist-play-pause-button-hover-bg: #007bff;
+    --playlist-play-pause-button-hover-color: #fff;
+
+    /* Scrollbar Colors */
+    --playlist-scrollbar-track: #f5f5f5;
+    --playlist-scrollbar-thumb: #cccccc;
+    --playlist-scrollbar-thumb-hover: #aaaaaa;
+}

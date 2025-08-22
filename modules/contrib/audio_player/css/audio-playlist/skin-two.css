@@ -1,0 +1,678 @@
+.audio-player-container.skin-two-playlist {
+    background-color: var(--playlist-background);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px var(--playlist-shadow);
+    width: 900px; /* Increased overall width for two-column layout */
+    max-width: 95%;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between main sections */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Top Row: Music Icon + Title + Caret */
+.audio-player-container.skin-two-playlist .audio-player-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--playlist-border-light);
+}
+
+.audio-player-container.skin-two-playlist .audio-player-music-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0; /* Adjusted for new layout */
+    flex-shrink: 0;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-music-icon svg {
+    color: var(--playlist-text-secondary);
+    width: 38px; /* Slightly larger icon */
+    height: 38px;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-current-track-title {
+    flex-grow: 1;
+    text-align: left;
+    font-weight: 500;
+    font-size: 1.2em; /* Slightly larger font */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--playlist-text-primary);
+    line-height: 1.4;
+    white-space: nowrap; /* Ensure title stays in one line */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-song-main-title {
+    font-weight: 600;
+    display: block;
+    font-size: 1.1em;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-song-sub-title {
+    font-weight: 400;
+    color: var(--playlist-text-tertiary);
+    font-size: 0.85em; /* Slightly smaller for sub-title */
+    display: block;
+    white-space: nowrap; /* Prevent sub-title from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-toggle-player {
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-toggle-player svg {
+    cursor: pointer;
+    color: var(--playlist-text-secondary);
+    width: 24px; /* Slightly larger caret */
+    height: 24px;
+    transition: color 0.2s ease;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-toggle-player svg:hover {
+    color: var(--playlist-text-primary);
+}
+
+/* Main Content Area: Two Columns (Player Controls & Playlist) */
+.audio-player-content-wrapper {
+    display: flex;
+    flex-direction: row; /* Default to row for two columns */
+    gap: 25px; /* Space between columns */
+    flex-grow: 1;
+    transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.audio-player-content-wrapper:not(.audio-player-full-width) .audio-player-main-player-section:not(.playing) {
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDgwMCA4MDAiIHdpZHRoPSI4MDAiIGhlaWdodD0iODAwIj4KCTxkZWZzPgoJCTxpbWFnZSAgd2lkdGg9IjU2NCIgaGVpZ2h0PSI3NTIiIGlkPSJpbWcxIiBocmVmPSJkYXRhOmltYWdlL3BuZztiYXNlNjQsaVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQWpRQUFBTHdDQU1BQUFDM0xCK1RBQUFBQVhOU1IwSUIyY2tzZndBQUF2MVFURlJGUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EUTBORFEwTkRRME5EelF2czR3QUFBUDkwVWs1VEFOQnhGUC83dEZVRzdwYzQyWG9hL3IxZUNmT2dRUUhoZ3lIR1p3MzRxVW9ENkkwcHozQVNzbE9XTjloNS9idGRuMERnZ3NWbTk2aEpBdWVMem0vNnNWSUY3WlUyMTNnWXVsdnluai9mZ1IvRFphZEk1b29telc2d1VleVROYTFmUlNzUjNxcVFkbHdreDRsclRDMFA4ZE5HR2V1L2tqa01oeTVzT2dxbGMzc08wbGtkNHFacDc3VTlCOEIrUFBTNE5DenFxOFJxVkFpaUJJOU5qQ29uM1hLOFR0cGg4QkQxRm9iajNGclZLSkdrNVVRVkUrbEQrWFRCR3dzbEhuZWR0c3NqTXE2YVY2eUVJTkU3UW4vSUlpOTl5UmRReXNMYmFPUStvY3pXOXI0Y1pOU0FZNXRpV0cySW96Q1UvRTh4Vmt1dnQzeXpoV0NPUjdrem1IV1pBdHdMN1FBQUpUSkpSRUZVZUp6dDNYbWdUZVgreC9GbmNmMXljMi9HUkJGeWtWSmtLRVBSS1VNblUxR21yakdLeWxnb2tsT29uQ3NVTW9WRXgxQ1pTMElrWkNpUlNxbmMwODJVb1NpNmxkeCtlNStCTTN6M3M2Zm5XZDluUGV2eitzT1o5bjdXOTlkOS85YlpaKysxOW5JRVFKUWM3Z0hpNGpqT1dlNFpmTWpiMGZ3bG1JM3pLL2NZZnVQMWFBTHlPYzVwN2tIOHhZSm9Bdkk3emsrc2cvaUxIZEVJVVNEd2Erb0h4a2w4eFpab0Fnb0d1am5DTlltdldCUk5RRkhIT2NReWlML1lGVTFBY2NmWjcvNGcvbUpkTkVLVURQeWFTblY1RUgreE1KcUEwbzd6amF1RCtJdWQwUVNVZFp5OTdnM2lMOVpHRS9nLzdRb25GVThXNjJCeE5BSDV5anFmdXpLSXY5Z2RUVUFsNXo5NHNsZ3g2Nk1Sb3JMamZJY25pMVh5UVRRQkJVczdCL0Jrc1RMK2lDYmdXdWNnbml4V3hEZlJCRlJ6RHVISlloWDhGSTBRMVIzSCtVRExKTDdpcjJnQ3JuY080OG5pT1BrdW1vRGF6dmQ0c2pnZWZveEdpTHFCWDFQcmxFN2lLLzZNSnFDKzQ2eFJONGkvK0RhYWdBVEhXYVZvRUgveGN6UkNWTDdNMllvbmk2UG03MmdDR2p2T05qeFpIQjNmUnhPUTZEaExsU3prRjRnbVRUTm5PNTRzamhpaXlWQzlsSE1RVHhaSEJ0R2NkNGZqTEZTNm9LMFFUVGF0blIxNHNqZ3NSSk5EM2N1Y1EzaXlXQTdSNU5iV2NlWm9XZGdXaUlhVXY5WC9qZ1JQdXB1cGF3T2VobWlrcWw5enZGaWduVVd0cCtqZWtwY2dtc2dVYUhUeGpockJ0OTE2d2JWTm1ndlJST2xCNThXYjF2VjF4cnEvWlhNZ210ajBkWnoxQ2M1b3R1MnpRalR4dVBiVEFidXFiZkhkWCtpSUptNTEzNys5cXVPTTVCN0RSWWhHamNvbGFqdVQyL3ZrVVRLaVVTbXhjTGxQcjBuaW5rSTdSS05hNWJ2bXQzZUdjVStoRmFMUklzbHhEaTJ3OW9CQVJLUE5DR2R1UjJjUTl4UTZJQnF0U3ZaeG5CWFcvVW1PYUxSTGR2WmN0Y0NxZ3dJUmpTdEdmUEpubmI3Y1F5aURhRnd6ZGt5TlpYWmNuUXJSdUtueWpYTzdUT0FlSW42SXhtMkpWeDc5MXVNUGpSRU5nOGFKVDF6czVlUFhFUTJUOForVTl1elR4b2lHVFlHRVJuMjgrY0FZMFhCeWtuZXU5ZURwd0lpR1dmVXJhenU5dUllSUVxTGgxN2pGeTEzdjV4NGlHb2pHQ0dQejcvYlE4emVJeGhTMVMzbm1OSEpFWTQ2NlpXOGFsY285UkNRUWpWRktEM1h1NVo0aFBFUmptdGIxanlaeHp4QUdvakZQOHZTQjNiaG5rRUkwUnJxcTkxQ0RqekJHTklhYTdxUW1jYzhRQ3FJeFZ2TGpFdzM5TFlWb1REYkRtV3ppd2NXSXhteXpuTlBtdmNLQWFFeDM3VjEvTWUza0tVUmp2anVhRFREcnFoK0l4Z3Y2VGl0bzBtRTNpTVliWmo4OHRnUDNET2NnR3ErWTgvTkY3YmhueUlCb3ZDUDVzck5tN0cwUWpaZk0zbnZXaExkcFF6VGVNblpDRC80L3dCR04xNlRNdTQzNzZUNUU0ejN6bk9kNFgxeEFORjYwNEkwVXpzMGpHbTk2cG53cnZvMGpHbzl5RnE1amU5ZGlST05aZmZkdFlqcTZEOUY0Mk5uS243TnNGOUY0MnVzYk9LNGhoR2k4TGZudE0rNi9yUmFpOGJwNVQzL3M5aVlSamVjVk9GUEU1WU50RUkwRjNuQmF1TG85UkdPRlFpKzRlZEFFb3JGRDZTYzd1YmN4UkdPTFN5YzFkMnRUaU1ZYWJTczk0ZEtXRUkxRjZnMXM1c3AyRUkxTmxqcTN1N0VaUkdPWGR2VmNlSDlaUkdPWldkdjB2MDBvb3JITmNxZVQ3aU1tRUkxOTNuUWE2OTBBb3JIUWc3dldhMTBmMFZocFl2bEdHbGRITkhhYVZiS2h2c1VSamFXUzh6K2diVzFFWTYwR20zN1Z0REtpc1ZmdEoyL1ZzekNpc2Rqc0NWdTBySXRvYkZaZzJ1QlVEY3NpR3J0Vks3cEsvYUtJeG5MWFY1cWxmRTFFWTd2R2VWYW9YaExSV0svdTF0OFVyNGhvN0ZkZzhTMXFGMFEwZnJCNmlOSzN6a0kwdnJCbWo4b0QraENOUDZ6dG9mRDZ6WWpHSitaZFVsL1pXb2pHTDlyMnZFblZVb2pHTng2OGRMQ2lsUkNOZjVTOFROSHJsNGpHUjV3OGFwN21RelIrVW1Ed0VCWExJQnAvK2V2UENoWkJORDd6NHVQeG4wcUhhUHptOWRGeHY2U0FhSHhuL1kzeHJvQm8vS2RHbmpqM05ZakdoeVkrRWQvakdrVGpSKy9WaSt2dWlNYVhidGdVejcwUmpUOE5mVEtPT3lNYW54cjBkT3ozUlRSK2RmV3VtTytLYVB5cTh0UzZzZDRWMGZoWHl6ZGl2Q09pOGEva1NkL0Vka2RFNDJNcDdjL0dkRDlFNDJkcnR3Nks1VzZJeHRmZXJ4UEx2UkNOdjIyc0hjT2RFSTNQemI4cit2c2dHcCtyV3pzNTZ2c2dHci9MdC82R2FPK0NhSHd2LzRPam83d0hvb0h5WDBaNUIwUUQ0cVV1MGQwZTBZQncra2YzWUJqUmdCQ2xKMFIxeFZSRUF3SDlOa1Z6Z2dLaWdhQkhubzNpeG9nRzB2UWVGL2x0RVEya0diRmxhY1MzUlRTUWJ2UDZpQStUUURTUTRjWDdJcjBsb29FTUJkYlVpdkNXaUFZeVhUczZ3a3ZzSWhvNHA4S2V5RzZIYU9DOExUVWp1aG1pZ2ZQZXVEQ2lYMUNJQnJKbzhtWWt0MEkwa0ZYTlNONmZHdEZBVmt1M0o0Vy9FYUtCYko0Y0d2NDJpQWF5VzNaNzJKc2dHc2h1K3RHd3IwRWhHbExCb1RHZDVHeUZyVFhDM1FMUmtMWTlYT2FQMWNkMXJXNjJrc3V1QzNNTFJFUGFWajN3ejA3blJJdlR1clpnc0JtZHc5d0EwWkIyWEp2K2NmZHR2U2NkMHJVUlkrMnNJdjg1b2lHbDdXblNQZDd1NkpKSnVyWmpwcVJmUjBwL2ptaEltWHVhZEdVTDF6eThVdGVtVFBScVcrbVBFUTFwMTlVNXY3UHpiRjlGVjREMGdMclBTeDhMSXhwUzlqMU5oclhURSsvVnRVSEQvTzJFN0tlSWhrUkdFNUIzeEIwaGZtSVo2V05oUkVQSy9ldnBuQ2EvZkhQYS9qL0VFMDVKVHJsRU5LUzFEV1EvdmFoZjI2cTZ0bXdLMmJ2Z0l4cVNaRStUYnUyR1BDTjBiZHdJbldlRS9obWlJY24zTk9uS0Y1cDdqYTd0RytEVEswUCtDTkdRSW9rbVlQd0xLOFB0a2p6citvNjlRdjBJMFpBaWpFYUk0aHVyOVhwZTF4UzhoandWNmllSWhoUnhORUcxNTN6WVVkY2dqUHJlRnVyVUJFUkQrdUlmVWQyOHlMU3ZoLzJwYVJRK3p6NFM0Z2VJaGhSbE5BRVYrODdhcVdNU1JzbXBMOUEvUURTazZLTUphRm10VXlYbGszQzY3MFg2KzRpR0ZGTTBBZS92ZWVZN3RaTncyanR5SnZsOVJFTnF2U0RXZTVZdDBieDlSWldqY0FweElXWkVRNG85bW9EQjE5U3Jac2VyVTB0Yi8wcDlHOUdRWXYzMWxDbTFXY2wxYWliaDlVMFo2cnVJaGhUWG5pYmQ2SUl6ZHlpWWhGZWxvMGVJN3lJYWtvSm9oT2h6SlBrS0JjdXdtdG1KK0NhaUlkWGVxR2Fkb1c4Tzl2YVR4YzJXRU45RU5DUWxlNW8wcGY2OGU2S3F0VGpjdkNiMzl4QU5TZFdlSnMyZ0swWjU5OXdwNm5xNmlJYWtOQm9oS3Jacjc5VkRieW9meXgwOG9pRXBqa2FJNHJkM1QvRG1TNXJFVzM0aUdwSzZ4elRuWGZSWmYrcFJwZW4yZnBQckNBbEVReXI3dFk1VkUzYWV5S3RqWGIxU1MrWDhEcUloNllrbTRLMExXM3J0RllacUgrYjhEcUloYVl0R2lKbE43dlRZTThVTFcrWDRCcUloYVl4R2lCVlZGdy9RdUx4eWQ3Nlc0eHVJaG5SVzcxODZrOTk3MGtObk1ZeWRsK05zUzBSRDBoeE40REh4NUE2ZmFONkVPamxmZ0VJMEpPM1JDREcxK2FiMjJqZWl4dDN6c24rTmFFZ3VSQk40NE5SazQ1Y3ViQ1orbFo5dW51MXJSRU55SlpxQTE3dVFoOGFaSnNkNWM0aUd0UGw2WFN2blVHZFJKdzhjNHBld090dVhpSWJrMXA0bXFITXo4eC9iWkQ5QUF0R1FYTnZUQkpVOU9jMzBiTEkvVllOb1NLNUdFL2hMcXNDNjJhNXVNRnFKeTdOK2hXaEl3NGJyV2ptRXFTMy9aZlNiVHd4OEpzc1hpSWJrZWpSQ2xQcW91Y0d2U2YyN2RKWXZFQTJKSVJvaFJ0eGZ3ZGhYd0xQOUIwRTBKSlpvaERpNm9CL0xkaU93Nlliem55TWFrc3NQaE04clU5SFFwMjI2VFR2L09hSWhQVFJlMThyaGxOMVM3Z3pYdG1XeVhHSUUwZEQ0b2hHaTRtYm5FcjZ0aDlSbjdMbFBFUTJKTXhvaEZ2MXM0RFVZOXBjNDl5bWlJZkZHSThUMC9GMTVCOGl0MzVoem55SWFFdHNENFhQZWJzWTlRVTZQSjJWK2htaEkreTdYdFhMRWVsWXg3TS92STBVeVAwTTBKQU9pRWNXN0Z6UHFPcy85LzVYNUdhSWhtUkNORUZ1M203U3pXZEE2OHpORVF6SWpHbEY4UTcyVDNET2NkK3VxakU4UURjbVFhSVJvT2I0Qzl3am5QUEZFeGllSWhuUitWOHh1U0hkVDNtRjJkVUxHSjRpR1pGQTBZazJTSVpmcFBYY2tGcUlobVJTTm1GcXp0aGx2YmJNOTQ4TExpSVprVkRSQy9MakNpQ2VJbXk5Ty80aG9TSVpGSXlidm0yYkE4Vmt0RnFWL1JEU2tMOHZyV2psV3RYdDM1aDVCMUg4My9TT2lJWm0ycHdrWTBZci9zczdUdXFWOVFEUWs4L1kwUXVTZmR6ZjNDSTFXcG4xQU5DUVRveEhpbGZudjhBNXcrYjYwRDRpR1pHWTBvbVJQM2l2SVp4eFRnMmhJaGtZalJMRVRuRnR2L0ZiYUIwUkR5dkUyQ1FaNStibmNid2J0bnU1VGd2OGlHcEs1MFlobFhSbGYrRDVXS1Bndm9pRVpISTFZOUhrUzI3WVBwSjBuZ1doSWxUN1R0YklDSzhxeFBXUFQ4TzNndjRpR1pIUTBJdi84dTVpMlBPS3g0TCtJaG1SMk5FS1VPTWEwNGFaTEJhSUp3ZlJvMk01d2FaTWlFRTBJeGtjam5uNGkvRzAwcVBxUlFEUWg1RCtsYTJWbEN2K1A0MkNKY2IwRm9nbkJBOUdJUTVjekhNK1hkc2s5UkVQeVFqVGlaUFBOcm05emIvQks0NGlHWlA1am1xRCtFOXpmNXVMbWlDWUVUK3hwaENnenBYbjRHNmwxd1dsRUU4S3NqcnBXVnF2TVFiY2YxOXc3RmRHRTRKVm94S2NsWFg3WHJLMDFFRTBJbm9sR2JLN2tialVIaXlPYUVMd1RqZGg4djZzSDJCUS9pR2hDOE1nRDRUUlZYZjFMYjJsVFJCUEM3c3E2VnRaZytDZzN0M2JSRDRpRzVxbG94TEJud3Q5R21hT0ZFUTNOUTQ5cGdpYTYrSTVaYlZJUURjMWJleHJSN2VoSzE3YjExQkJFUS9OWU5HTE44a2x1YmVyWlJ4QU5qZjhNMkNnMSs4bXRGeThQRjBNME5NOUZJKzVjSHY0MlNsejZIMFJEODE0MDRpdVhmcU4rVlE3UjBEd1l6ZVRpYlYzWnprUGpFUTNOZzlHSW5nMWNlWjVnYVZORVE1dHV4SHZjUmVsRU1UZTJVdUNDSTRpRzVNbG94TEVTNFc4VHZ5WE5FQTNKbTlFa3JNL3J3bFlXdGtJMEpDOCtwZ2xvMmM2Rmh6V2pCaU1ha2pmM05FTE03YUovRy8vNEF0R1FPcy9RdGJKbTZ4dHEzOFIxMnhFTnliUFJ6SisyUWZjbWhqeUZhRWllalVac3JxOTdDMXRySUJxU2Q2TVJQeFVKZjV1NDNQa2FvaUVsdXZYeW4zb1Z4N1hVdTRFR2F4RU55YXQvUFFWTjc2VjMvVUxIRUEzSnczc2E3YitnM3ErRGFFaWVqbWJFdEVNNmwvL3g3NGlHNU9sb3hLbENPbGR2dGdUUmtLN2RvV3RsTnlSMDZxRng5ZG9iRVEzSjI5R0l0MXBvWER6L0tVUkQ4bmcwV2g4THY5RVMwWkM4SG8zT3g4S3o3MEUwSks5SEkycnMwcmYySDRpRzVQbG9VdjdVZDUxVVJFTXIrcjJ1bGQweTVsRnRTNWRDTkNUdlJ6TzQwREJkUzJOUFEvTitOT0x2LzlXMGNJR1RpSVprUVRTRC8zaGV6OExmRjBVMHBLVEhkYTNzbnZ0bTZsbDNlU0tpSWRrUVRaR3VlblkxMWJjaEdwSUZ2NTZFZUxleGxtV1RCeUFha2cxN0dsSHh2MXFlRmk1NEhOR1FySWhHckd1a1k5VVJqeUVhVWtvYlhTdTdhY2I5T2xaZDJoVFJrT3lJUnR5eFFzT2lLVzBRRGNtU2FDNDRxMkhSNlYwUkRjbVNhT29jL2s3OW9nbXJFUTNKa21pMHZBUCtzT0dJaHZSWkpWMHJ1eXV2aHY5OTF6WkFOQ1Jib2hFVCtpdGZzdmhCUkVPeUpwb3lCNVF2K1ZVNVJFT3lKcHF5azVTZjJUM3lVVVJEc2lZYThWSlAxU3VPNjQxb1NHOW9mdWNGOTZoL1ZuaFBCVVJEc2ljYTBmWU54UXYrM3krSWhtUlJOTzFlVjd6ZzVmc1FEY21pYUxwOXJmaWlQc1VPSXhxU1JkR0kwd1hWcm5mTE80aUdaRk0wWDFSUnU5NytFb2lHZElmcUJ3S01VditoZHIxN1ppTWFrazNSaUNkSEtGMnVUUXFpSVZrVnphTmpsQzYzN0haRVE3cmVyY3VJdXVHNXdVcVhHOU1QMFpDc2lxYjRPS1h2SU5GcUlhSWhXUldOR1BhTXl0VnVYWVZvU0RiOXlTM0VVMCtwWE8wUFhNT1NadFVEWWRIdEZaV3JJWm9RU3Y5YjE4b3MrazFVdDlabmxSQU56YkpvS24rbGJxMnpmeUlhbW1YUnZONU8zVnAvTzRGb2FKWkZzN2FKdXJXNnZJUm9hSlpGSTVhMlZyWlVoVDJJaHJhMHFhNlZlU2g4cHFiWVlVUkRzeTJhcDU5UXR0VCtFb2lHWmxzMHZTY3JXeXJ2YjRpR1psczA0dlozVkswMGFqQ2lvVmtYemV4N1ZhM1VmUXFpb1kzdG8ydGxKajFtcVZycDRkR0lobVpkTlB2TEtscklPU01RRGMyNlgwOGQ1eWxhYUhkbFJCT0NkWHVhMVltS0Z1bzNCdEdFWUYwMDRyWDJhdGFaMkJQUmhORDNPVjByYzJuL21wcDFOdFpHTkNIWUYwMkpZMnJXdWVRQW9nbkJ2bWhPRkZPelRzMHRpQ1lFKzZJcC82MmFkWjdyaTJoQ3NPK0JzS3IvVm8rT1JEUWh0SDFWMThwc0ZuWlFzVXJhL3pjaEdwS0YwVXpzcDJLVmJkVUZvZ25Cd21pVzNLVmlsY2VDYnlhQWFFZ1dSdlBMUlNwV0tYWllJSm9RNnIrcmEyVTJkeTVYc2NyUGZ4V0lKZ1FMOXpUTFdxbFlaVlR3SFNnUURjbkNQVTJiUlNwV21Sczhnd3JSa0N5TVp1cWcwL0V2VXZCNDhGOUVRN0l3R2xGM1cveHJGRDhZL0JmUmtHeU01ck9xOGEreE9pSDRMNkloNWZ1dnJwWDVqQnNZL3hyZHBnWC9SVFFrRzZOUmNaYmw1QjdCZnhFTnljWm9qcFdJZjQxVnR3Yi9SVFFrRzZOcDhWYmNTNHg0TE8wRG9pRmwvTmV4eWswZnhMM0VWK1hTUGlBYWtvM1JWUDBzN2lWTzVVLzdnR2hJTmtaenNtamNTL3o5eDdRUGlJWmtZelFGZm90N2lZN3BKL2NpR3BLTjBjVC80dFBlSzlJL0loclM3SHQwcmN3bmI5ei9XMmM4RGtZME5CdWptZnBndkNzY3VDVDlJNkloMlJpTldOazh6Z1Z1WEovK0VkR1FySXptbmdWeExuRHJxdlNQaUlaa1pUU1hISS92L3JNNlpueUNhRWdQUHE5clpVYmZWSXJ2L3UvVnkvZ0UwWkNzakNiZUEycm1aNTRFZzJoSVZrYno3d3J4M1QveklRMmlvVmtaVGFWdjRycDd3dXJNenhBTnljcG9SZzJQNis3dDVtWitobWhJamVNLzlzUThCOHJFZGZjalJUSS9RelFrSzZPWjlrQTg5eTd3ZXFQTVR4RU55Y3BmVHpWMnhYUHY5TE5YMGlBYWtwVjdtbmNieDNQdnYvNTg3bE5FUXlvWTU1T25SaHFTSE0rOXA1Ni91Z0tpSVZrWnpjSEw0N2h6WXBZM25VQTBKQ3NmMC94UVBJNDczNW5sZllnUkRjbktQYzNPbW5IY3VmMmM4NThqR3BLVjBSVDVLZmI3VHUrYTVRdEVRN0l5R2xIdXU1anZ1clZHbGk4UURTbDVnSzZWT2NYeEZnRGJyOHZ5QmFJaDJSbk5kK1ZpdldlUGJCZE9SVFFrTzZOcHZUVFdlNmFXeXZvVm9pSFpHVTNTeUJqdldIQitvNnhmSWhxU25kR0lRcWRpdTkrNUF6M1RJUnJTSEVYWFlUTk1uanl4M2E5TTlzTzNFQTNKMGozTmhsdGl1bHZ3dXBWWklScVNwWHVhR0srcTBTWWwrOWVJaG1UcG5rWWtyZzUvbTF3cTVYeGpHMFJEeW54L0JOc2tYOVk1K2p2bHpma2VKWWlHWkdzMHNWeUxaVml1NDlFUkRjbld4elFpYjQwZDBkNmw5N2ljMzBFMEpHdjNOR0x4M1ZIZTRhdmNyejBnR3BLMWV4b3g0S0dLMGQzaGFPRmMzMEkwSkh1akVWVytpT3JtZTRoemVSRU5xYnFDSzVZWUt1SEZhNks0ZGVOVlozTi9FOUdRTE43VFJIZUp1ZWVwOTF4RE5DU0w5elJDTkYwVi9qWVorcjF5aFBndW9pRlpIVTJmSmkwanZHWHBDYzJvYnlNYTJoL2FWalpBczdjanZPRUh0Y2h2SXhwU3lkZ1B3ZmFDdVYwaXV0bVFwK2p2SXhxYTFYc2FJVW9jaStCRzQzcUgrQUdpSVZtK3B4R2kzdGF3TjlseC9hOGhmb0pvYUpidmFZUTRWU2pNRGZadDdCRHFSNGlHdER4UjE4ckdHREpKZXAzdXN2Vm5odndab3FGWnY2Y1JZbk45eVEvNy9mNUM2QjhpR3BvUG9oRkREODhPOWFQemI4cElRVFFrSC94NkNpaHkzWWZrcjZpeEtWdWs5ME0wcExvYmRLMXNsaGxuVWpibi9ON2VhZm1UNVBkQ05EUS8vSHBLazNxeXc1ZFp2OTQ5YmdieHVuWjJpSWJtbTJnQzN1ODFjRkw2UWFDZkhUdmVJb0k3SUJxYW42SUpXbjdrMlB3cUtXSDNNZWtRRGNrdmoybGlnMmhJemhsZEs5c0EwWkFRalF5aUlTRWFHVVJEUWpReWlJYUVhR1FRRGVuN29ycFd0Z0dpSVNFYUdVUkRRalF5aUlhRWFHUVFEUW5SeUNBYVV1WGR1bGEyQWFJaElSb1pSRU5DTkRLSWhvUm9aQkFOQ2RISUlCcFNnWk82VnJZQm9pRWhHaGxFUTBJME1vaUdoR2hrRUEwSjBjZ2dHcHJmemthSUNxS2hJUm9KUkVORE5CS0lob1pvSkJBTkRkRklJQm9hb3BGQU5EUkVJNEZvYUloR0F0SFFFSTBFb3FFVm9TNGtBZWtRRFEzUlNDQWFHcUtSUURRMFJDT0JhR2lJUmdMUjBHcDlvRzFwNzBNME5FUWpnV2hvaUVZQzBkQVFqUVNpb1NFYUNVUkRLNVdxYldudlF6UTBSQ09CYUdpSVJnTFIwQkNOQktLaElSb0pSRU9iZEwrMnBiMFAwZEFRalFTaW9TRWFDVVJEUXpRU2lJYUdhQ1FRRGUybWRkcVc5ajVFUTBNMEVvaUdobWdrRUEwTjBVZ2dtaEFyLzZwdGFlOUROQ0ZXUmpTaElab1FLeU9hMEJCTmlKVVJUV2lJSnNUS2lDWTBSRU43ZXBDMnBiMFAwZEFRalFTaW9TRWFDVVJEUXpRU2lJYUdhQ1FRRFcxQ0wyMUxleCtpb1NFYUNVUkRRelFTaUlhR2FDUVFEUTNSU0NBYTJrVS9hRnZhK3hBTkRkRklJQm9hb3BGQU5EUkVJNEZvYUloR0F0SFFIaDJwYldudlF6UTBSQ09CYUdpSVJnTFIwQkNOQktLaElSb0pSRU5iMlVqYjB0NkhhR2lJUmdMUjBCQ05CS0toSVJvSlJFTjdlTFMycGIwUDBkQVFqUVNpb1NFYUNVUkRRelFTaUlhR2FDUVFEYTNFZm0xTGV4K2lvU0VhQ1VSRFF6UVNpSWFHYUNRUURRM1JTQ0FhMnVOSjJwYjJQa1JEUXpRU2lJYUdhQ1FRRFEzUlNDQWFHcUtSUURTMEIxN1F0clQzSVJvYW9wRkFORFJFSTRGb2FJaEdBdEhRRUkwRW9xRzkwa0hiMHQ2SGFHaUlSZ0xSMEJDTkJLS2hJUm9KUkVORE5CS0lodFpwcHJhbHZRL1IwQkNOQktLaElSb0pSRU5ETkJLSWhuYkZYbTFMZXgraW9TRWFDVVJEUXpRU2lJYUdhQ1NNajJid21TcnJQcjNnclR3TmxpWFhHck15OGJmbFpVNGNyekIrLzhPVGcyZm80NEV3QzBPam1UbXRZOHJvTVIzM2xPc2MralpqaDNTY3JtMEFSQ05oV2pSZFAyaTdkUFJKL3VmdzhldEp3cGhva2haKzlGT2JqMzc3azN1T0RFdWFjVTlnTUJPaW1meEwwY2xWWm5OUGtSMmlrV0NPcHM3TlBmZmZlT3dTM2lFb2lFYUNNNXJkUmIrZFA0bHgrekovbnVXZXdHQmMwZFM1NlpVR2I1OW0ybmdFRUkwRVN6UjlpdTFjZVlaanc1RkROQkx1UnpPLzJoVU5ON3UrMVdnaEdnbVhvOW42NWx0ZkdmeEw2VHhFSStGbU5JdHFKYVM2dUxtNElCb0oxNkxwVTZKbFZiZTJwY0RpNXR3VEdNeWRhT3BjdXYvUEhhNXNTUlZFSStGR05EMFRxbDN0d21hVVFqUVMrcU01MFdXRjltMm9oOGMwRXBxalNmcmZ4eXYxYmtHVHVlMjRKekNZMW1pMlRxZytTT2Y2R3VIWGs0VEdhTWJuN1dEZ0s1RVJ3cDVHUWxjMHhkOWQzMC9UMHE1QU5CS2FvdW5jc0t1ZWhkMkNYMDhTT3FJcHZxdlRPZzNMdXVyamE3Z25NSmlHYUc1T0dLRitVYmNoR2dubDBaelpmYjNxSlRrZ0dnbkYwUXg0dElJblhzUU9DOUZJS0kxbWN0MjFYbjFlSmlkRUk2RXltaXN2L0VUaGFyeHVYY1U5Z2NIVVJiUG00OGVVcmNVUDBVaW9pbWIxL2FYTVA0WXpDb2hHUWxFMGlTZTNxVm5JRkloR1FrazBNeTlycW1JWmsvUVp5ejJCd1JSRU03blYzVmI5WmtxRGFDVGlqMmJuViswVnpHRWFSQ01SZHpSNTNyVHlwVDFFSXhGbk5Ibi9lNkdhT1V5RGFDVGlpK2JENzFzcW1zTTBGLzdFUFlIQjRva20vNGxMN0hpaGlZQm9KT0tJcHZ3N2xkVE5ZUnBFSXhGN05IbnlLQnpET0hoTUl4RnJOS3Z6TlZRNmgybXdwNUdJTVpvMWh6eCtESEE0YnpYbW5zQmdzVVh6eWpGYmpwc0pCZEZJeEJUTmxodFZqMkVjUEthUmlDR2FoTUxMMU05aEd1eHBKS0tQcHM5L3ZIaENmN1FRalVUVTBielQ2bGNkYzVqbTY3TGNFeGdzMm1pNmZtblowVlloSUJxSktLTVo5T2s3ZXVZd0RhS1JpQzZhMmdjT2FackROSWhHSXFwbzdseXVhd3pqSUJxSmFLS3A4Rzl0WXhobitERHVDUXdXUlRTL1hLUnZET01nR29tSW95bGU5Q3VkYzVnRzBVaEVIRTJ4RXpySE1BNGUwMGhFR3MybUJsckhNQTcyTkJJUlJsTnZxOTR4akxQcVZ1NEpEQlpaTk1OSGFSN0RPSWhHSXFKb25uNUM5eGpHUVRRU2tVUnpRWDVyVHpvSUNkRklSQkROaDNWTXVWaTJpeENOUlBob2ZweGwrNkdkbEtaTHVTY3dXTmhvTmlSdGNHTU8wMkJQSXhFdW1tNEQvZm1PaGRqVFNJU0pKdUhLNmU3TVlScEVJeEVtbWhzK2NtY000Mnk2Z1hzQ2c4bWorY2kzLytrUWpZUTBtbVVkL2ZjRVRRWkVJeUdMWnUzaHpxN05ZUnBFSXlHSkp1Rm1DNjZtRWl0RUl5R0o1c0xmM1J2RE9JaEdJblEwSFJhNk9JWnhMdmJMYVJleENCbE42Z00rT2NPSmhtZ2tRa1V6dFU1MVYrY3dEYUtSQ0JXTnIwNDlJQ0FhaVJEUkRKM28yMmRvMG0yL2puc0NnOUhSclA3bmNaZm5NQTJpa2FDaitTTy95Mk1ZQjlGSWtORmN0OXZ0TVl5RGFDU29hQVozdTlyMU9VeURCOElTVkRUNDVTVEV1L1c1SnpBWUVVM0Q5YTVQWVI1RUk1RTdtdnk0SkxWQU5GSzVveWx4akdFTTQrQ0JzRVN1YU5aMndVTkFnVDJOVks1b2ZIdFVjSGJkcDNCUFlMQ2MwVnkxbDJVTTR5QWFpWnpSL0NPVll3cnpJQnFKSE5HY0tNWXpobkVRalVUMmFPcGNOWnRwRHRNZ0dvbnMwUnk4bkdrTTQ3eHQ5NFh6NHBNdG1vUmVIYmptTUEyaWtjZ1d6ZUZTWEdNWUI3K2VKTEpHTTNtT1A2NndFZ25zYVNTeVJ2TnlkN1l4ak5QSzF5ZndoSkVsbXNrYkYvRE5ZUnBFSTVFbG1yTVg4STFoSFB4NmtqZ2Z6ZFJudjJPY3d6VFkwMGljaitiMWRveGpHQWZSU0p5UEJxODZaVFd0Ry9jRUJqc1h6ZERSbkdNWUI5RkluSXRtMUhET01ZeURCOElTbWRFa2pmTGgyNUpMWUU4amtSbU5uNjVQR1FsRUk1RVp6UjZjZ3BETndsYmNFeGdzSTVvQ3YvR09ZUnpzYVNReW9xbnNxNnVhUnVDbWRkd1RHQ3c5bXJMZm4yR2V3ekR6N3VhZXdHVHAwZFQra0hrTTAvemc4emNDazB1UDVzaWx6R09ZcHRoaDdnbE1saDdON2I1K0owOUNYdnhoSUpFV1RXdGNweWFIcWZkeVQyQ3l0R2p3dDFNT2RjOTh3RDJDeWRLaVdZaVRFTElyK3pYM0JFWUxSdlBqeGR4VG1PYkYrN2duTUZvd21zYnZjazlobXA0VHVTY3dXakNhYXovbm5zSXczKzlveEQyQzBRTFJUQjJKdHpISzdzMG0zQk9ZemNHN0J1YzI5RW51Q2N6bStQbnFwcUcwbjhNOWdka0MwZnhjbUhzSXc4enVmNFI3QkxNRm9ybGxBL2NRaHJuMFA5d1RHTTRSYTI3am5zRTBlT0VwREVmY1A0TjdCc01VSE5tTGV3VERPZUx1eGR3ekdLYktUdTRKVE9lSVp4L25uc0V3aTFwd1QyQTZSMVQvaEhzR3N5enRpcitkd25CV0ozS1BZSmpMOTNGUFlEd0hMM0huY0JSUFc0WGpkTUI3YW1RenZTdjNCT1p6Y0Q1dWRuWGU1NTdBZk02MEI3aEhNRXErdi83QVBZTDVuRTRwM0NNWTVmWmwzQk40Z0RPeEgvY0lKbG4rUjNQdUVUekFhWVNUbHJQNHYxKzRKL0FDNTRVQjNDTVlwUEpMT0xZb0FzNWZ1Q2N3U1plWHVDZndCRVNURlo3WWk0aFQ4RFQzQ09hbzl4NzNCTjdnbE1hcENKbnFYb1hyOVVURWViVXo5d2pHd0htVkVYTHVXc0k5Z2lsR2xNRXA3WkZ4WG12UFBZSXA5cGZnbnNBckhDY3Y5d2lHMkoyWXlqMkNWemcxY1VSc3V1TUZ1U2Z3REdmY1FPNFJ6TkR3YmU0SnZNUFplRFAzQ0ViWTJ4OXZJUmN4WjhwRDNDTVlvUnplUVM1eXpvVy9jNDlnZ2gwTmNRcEM1QnljS3hlRXF3OUd3emxjaW5zRUExejVLZmNFbnVMZ1BZU0ZLUHRIS3ZjSW51SnN1SVY3QkhiT0ZMelZkRlFjZ1FOcW5uMkVld0tQY2NRY3Y1OGROdjVWdkQxNWRQQ3VFVzBmeFpVWW8rU0lIck80WitCVitDajNCSjdqaUcvTGM4L0E2cjRYdVNmd0hrZVUvNVo3Qms2N050N1BQWUwzT0VMY3M0QjdDRDRqYWpUbUhzR0RBdEcwZjQxN0NENHQzK0Nld0lzQzBiemNuWHNJTm84OHl6MkJKemwrdnBCN2wyVjRiVHNXd2F1d3pOakJQUVdQWm9sNEVCeVQ0UFdlSGhuUFBRV0xTaWYzYzQvZ1VjRm84dVRobm9KRDZlTS9jWS9nVmNGbzVqZTZoSHNNOXlYbjdjczlnbWVsWFMyMzBqZmNZN2pPK2FBbTl3amVsUmJOelJ1NXgzRGQvTHU0Si9Dd3RHZ1N0cHpobnNObHpYRmtkQnpTb2hISGZIWWE4NkNudVNmd3RQUm94dnZyMkxVVnVDNWFYTktqRWUvZHlqdUdxL0Jld1hIS2lHYTZqeTZtZHNNbTdnbThMaU9hNGgwbThzN2hublp6dVNmd3ZJeG94T2I2ckdPNDUzZGZQdjJ0Vm1ZMGRZcXRaSjNETGUzZXdRdmJjY3VNUnR5NW5ITU10K0Q4V3hYT1JTTkdKckVONFpwVW5MaXV3dmxvTGpqTE9JWXI2bDdybTBmN2VwMlBScXhxeWplR0c1S2Z3UmxPYW1TSlpzWWRWaDhoMFhZaUxueWdTSlpveE9LNzJjYlFMK25TYnR3aldDTnJOS1dPMi90aTl5ZjdtbkdQWUkrczBZajlaWm1tMEE2WFBWQXBXelRpOXd1Wnh0Q3I1SUs2M0NOWUpYczB5OXZZK0FzcXBXSTE3aEhza2owYUsxL3QvdHRjUEp4UkswYzBZbDBqbGpFMG1qSURiM1NsV001b1ZzK2Z6VEtITHNuNUgrQWV3VDQ1bzdIc3pPNnpKWEMxUmZWeVJTUG1kbkYvQ2wwYS9BK1hxdGNnZHpSaXdUM3VqNkZGd2ZlcWNJOWdKeUthNGt0dmNuOE9EYzV1dVlGN0JFc1IwWWprOFRZYzNkYnVBSDQxYVVKRkkxWXM5dnlmVVBtMjQxZVRObVEwb3VlcTcxeWVRN0dENzdiakhzRmlkRFNpNXlmYjNKMURxY1RuS25LUFlMVVEwWWllVncxd2RRNkY2cjQ5Y1JEM0RIWUxGWTFZdE4rajFlejRFRWRiYVJZeUdvOVdrKysyVFRiODZXZTIwTkdJOHRjdGNXOE9SZlo4aVZlMDlaTkVJK1pQM09MYUhFcnN1KzF6N2hGOFFSYU5tUHpSeXk2Tm9VSytNWE54RUlRcnBORUlNWHo4YVhmbWlGdmxLVjMzY3MvZ0YyR2lFVC9jNW8yM00vL2lGQTdwZEUyNGFNVFJGVDNjbUNNK2JSUC95VDJDbjRTTlJneXVZL3E3cHhiODd0RVh1R2Z3bGZEUkNGRjEvMG50YzhSdXhELy9oV1RjRlVrMFlrT0R2THJuaUZYOVpWZmlzaGh1aXlnYUlhYVplWGgyMzBaNXJUdDd3Z01pakVhOGY0RjVKeW1XbnR6aEIrNFpmQ25TYUlRNG5HTFdhOGRGNzZwaTRabDluaEI1TktKSi9lSDY1b2hXajJ2bTRPbGZMbEZFSThURjFRdzU3TGJlbUZyY0kvaFpWTkdJT2c5MytWWFRJSkhiVzJYVGRkd3orRnQwMFFoUnRzbU5YYlVNRXFteDlTYk5aQjBBb280bWtNM0phZTAxREJLUnl0MjZsdURmMWZsZTlORUVWRTFnZVcvVnpzOXZic3l4WGNnaHBtZ0NENGxUTDNYNW1JbmtWeGJpRkFORHhCaU5FRzEyLzkzRmd5YnFuYmh0dEh0YkE3bVlveEdpMjdiQnJqd21Udjd4NGUxNHNjQWtjVVFUY0diV3k1cFBxc3RYWU94OWVPaHJtUGlpRWFMTytwTnp0YjI4OEdXbndwK202bG9jWWhadk5BRkZycTNWKzRyNGw4bXA0VGVuOEM1V1psSVFUZENLMWdmZWE2dG1xYUJkZTEvcmlvY3h4bElVVGREeTUvcGVGdi94RS90YXZEMXdqb0pwUUIrRjBRUWw5ZTgrckhxTTk1MXpkZEdidS84OFV1azhvSVBpYUlLSzVPMWY3S0VaMGZ3MVh2RGpRZ216RHpkVVB3cG9vU0dhREd0cTFUeTc1ZFZKYjE0ZCtpWkpMeTU4Zm1ldFh2ZmlMRGR2MFJmTk9TbExCcVpjZFdiNWpKZG5UZDJSK1dDNXc4S2ZFeHZnMVdxUCtuL3Z4MHg2cnByYy9BQUFBQUJKUlU1RXJrSmdnZz09Ii8+Cgk8L2RlZnM+Cgk8c3R5bGU+Cgk8L3N0eWxlPgoJPHVzZSBzdHlsZT0ib3BhY2l0eTogLjEiIGhyZWY9IiNpbWcxIiB4PSI5NSIgeT0iMSIvPgo8L3N2Zz4=');
+    background-size: 155px auto; /* Width is 150px, height adjusts automatically */
+    background-position: top center; /* Align background image to the top */
+    background-repeat: no-repeat; /* Prevent background from repeating */
+}
+
+/* Main Player Section (left column) */
+.audio-player-main-player-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Takes 2/3 of the space */
+    justify-content: space-evenly;
+    position: relative;
+}
+
+/* Player Controls Section */
+.audio-player-container.skin-two-playlist .audio-player-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between rows within controls */
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
+    max-height: 500px;
+    opacity: 1;
+    padding-bottom: 0;
+    align-items: stretch; /* Stretch items to fill available width */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-controls.audio-player-hidden {
+    max-height: 0;
+    opacity: 0;
+    padding-bottom: 0;
+    gap: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Control Row 1 (Playback and Progress) - Now includes main playback buttons */
+.audio-player-container.skin-two-playlist .audio-player-control-row-1 {
+    display: flex;
+    flex-direction: column; /* Stack vertically for clear separation */
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+/* Main Playback Buttons (Previous, Play/Pause, Next) */
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* More space between buttons */
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons svg {
+    cursor: pointer;
+    width: 22px; /* Slightly larger icons */
+    height: 22px;
+    color: var(--playlist-text-secondary);
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons .audio-player-play-icon,
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons .audio-player-pause-icon {
+    width: 45px; /* Larger play/pause button */
+    height: 45px;
+    color: var(--playlist-text-primary);
+    background: var(--playlist-play-pause-button-bg);
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons svg:hover {
+    color: var(--playlist-accent-color);
+    transform: scale(1.1);
+}
+
+/* Progress Bar and Time Display */
+.audio-player-container.skin-two-playlist .audio-player-progress-and-time {
+    display: flex;
+    flex-direction: row; /* Ensure horizontal layout */
+    gap: 10px; /* Space between time, bar, and time */
+    align-items: center;
+    flex-grow: 1;
+    width: 100%;
+    justify-content: space-between; /* Distribute items */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-progress-bar-container {
+    width: 100%;
+    height: 6px; /* Thicker progress bar */
+    background-color: var(--playlist-progress-bar-background);
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    flex-grow: 1; /* Allows it to take available space */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-buffer-bar {
+    position: absolute;
+    height: 100%;
+    background-color: var(--playlist-buffer-bar-color);
+    border-radius: 3px;
+    width: 0%;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-progress-bar {
+    position: absolute;
+    height: 100%;
+    background-color: var(--playlist-accent-color);
+    border-radius: 3px;
+    width: 0%;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-current-time,
+.audio-player-container.skin-two-playlist .audio-player-duration {
+    font-size: 0.9em;
+    color: var(--playlist-text-time);
+    flex-shrink: 0; /* Prevent shrinking */
+    min-width: 45px; /* Ensure enough space for time */
+    text-align: center; /* Center align time text */
+}
+
+/* Control Row 2 (Volume and Mode) */
+.audio-player-container.skin-two-playlist .audio-player-control-row-2 {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between volume and mode buttons */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: center;
+    width: 100%;
+}
+
+/* Volume Controls (Icon + Slider) */
+.audio-player-container.skin-two-playlist .audio-player-volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+    max-width: 180px; /* Ensure enough space */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-volume-icon-wrapper {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-volume-icon-wrapper svg {
+    width: 24px; /* Larger volume icon */
+    height: 24px;
+    color: var(--playlist-text-secondary);
+    transition: color 0.2s ease;
+}
+.audio-player-container.skin-two-playlist .audio-player-volume-icon-wrapper svg:hover {
+    color: var(--playlist-text-primary);
+}
+
+.audio-player-container.skin-two-playlist .audio-player-volume-slider-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-custom-volume-slider {
+    width: 100%;
+    height: 4px; /* Thicker volume slider */
+    background-color: var(--playlist-progress-bar-background);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-custom-volume-slider-fill {
+    height: 100%;
+    width: 100%;
+    background-color: var(--playlist-accent-color);
+    border-radius: 2px;
+    transform-origin: left;
+    transition: width 0.05s linear;
+}
+
+/* Mode Buttons (Autoplay, Random) */
+.audio-player-container.skin-two-playlist .audio-player-mode-buttons {
+    display: flex;
+    gap: 15px;
+    flex-shrink: 0;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-mode-buttons svg {
+    cursor: pointer;
+    width: 22px; /* Slightly larger mode icons */
+    height: 22px;
+    color: var(--playlist-text-secondary);
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-mode-buttons svg.audio-player-active {
+    color: var(--playlist-accent-color);
+}
+
+.audio-player-container.skin-two-playlist .audio-player-mode-buttons svg:hover {
+    color: var(--playlist-text-primary);
+    transform: scale(1.1);
+}
+
+/* Equalizer Canvas */
+.audio-player-container.skin-two-playlist .audio-player-equalizer-canvas {
+    width: 100%;
+    height: 75px;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Playlist Section */
+.audio-player-container.skin-two-playlist .audio-player-playlist {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Takes 1/3 of the space */
+    border-left: 1px solid var(--playlist-border-light); /* Separator line */
+    padding-left: 25px; /* Padding for the separator */
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
+    max-height: 500px;
+    opacity: 1;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist.audio-player-hidden {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    margin-top: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-left: none; /* Remove border when hidden */
+    padding-left: 0;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist h3 {
+    margin-top: 0;
+    margin-bottom: 15px; /* More space below title */
+    color: var(--playlist-text-primary); /* Changed from #e0e0e0 to primary */
+    font-size: 1.1em;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--playlist-border-medium);
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content {
+    max-height: 500px; /* Adjusted max-height for two-column layout */
+    overflow-y: auto;
+    &::-webkit-scrollbar {
+        width: 8px; /* Thicker scrollbar */
+    }
+    &::-webkit-scrollbar-track {
+        background: var(--playlist-scrollbar-track);  /* Darker track */
+        border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--playlist-scrollbar-thumb); /* More visible thumb */
+        border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--playlist-scrollbar-track);
+    }
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content li {
+    display: flex;
+    align-items: center; /* Align items vertically in the middle */
+    gap: 10px; /* Space between icon and text */
+    padding: 12px 15px; /* More padding for list items */
+    cursor: pointer;
+    color: var(--playlist-text-primary); /* Changed from #cccccc to primary */
+    font-size: 0.95em;
+    transition: background-color 0.2s ease;
+    margin-bottom: 5px; /* Small gap between items */
+    border-bottom: 1px solid var(--playlist-item-border);
+    border-radius: unset;
+    margin: auto 3px;
+    justify-content: space-between;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content li .audio-player-playlist-item-info {
+    flex-grow: 1; /* Allow text to take available space */
+    display: flex;
+    justify-content: space-between; /* Separate title and duration */
+    align-items: center;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-item-icon {
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    width: 20px; /* Icon size */
+    height: 20px;
+    color: var(--playlist-text-secondary);
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist li:nth-child(odd) {
+    background-color: transparent; /* Remove odd/even background for cleaner look */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content li:last-child {
+    border-bottom: none;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content li:hover {
+    background-color: var(--playlist-item-hover); /* Darker hover effect */
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content li.audio-player-active-song {
+    background-color: var(--playlist-active-background); /* Brighter active song */
+    color: var(--playlist-text-primary);
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-playlist-content li.audio-player-active-song span {
+    color: var(--playlist-text-primary);
+}
+
+/* ---
+
+## Mobile-Specific Media Queries
+
+```css */
+@media (max-width: 767px) {
+    .audio-player-container.skin-two-playlist {
+        padding: 20px;
+        gap: 15px;
+    }
+
+    .audio-player-content-wrapper {
+        flex-direction: column; /* Stack columns vertically on mobile */
+        gap: 20px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-top-row {
+        justify-content: space-between; /* Ensure elements are spaced out */
+        text-align: left; /* Align text to left */
+        padding-bottom: 10px;
+        flex-direction: row; /* Explicitly keep as row */
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-music-icon {
+        margin-bottom: 0; /* No margin if not stacked */
+    }
+    .audio-player-container.skin-two-playlist .audio-player-current-track-title {
+        flex-basis: auto; /* Allow content to dictate width, but shrink if needed */
+        font-size: 1.1em;
+        order: unset; /* Remove specific order */
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-toggle-player {
+        order: unset; /* Remove specific order */
+        margin-left: 15px; /* Restore original margin */
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-song-main-title {
+        font-size: 1em;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-song-sub-title {
+        font-size: 0.8em;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-controls {
+        gap: 15px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-control-row-1 {
+        flex-direction: column; /* Ensure playback and progress stay stacked */
+        gap: 10px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-main-playback-buttons {
+        width: 100%;
+        gap: 15px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-main-playback-buttons svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-main-playback-buttons .audio-player-play-icon,
+    .audio-player-container.skin-two-playlist .audio-player-main-playback-buttons .audio-player-pause-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-progress-and-time {
+        flex-direction: row; /* Keep as row */
+        justify-content: space-between; /* Distribute items */
+        gap: 10px; /* Maintain gap */
+    }
+    .audio-player-container.skin-two-playlist .audio-player-current-time,
+    .audio-player-container.skin-two-playlist .audio-player-duration {
+        font-size: 0.8em; /* Slightly smaller on mobile */
+        min-width: 40px;
+        width: auto; /* Ensure it doesn't take full width */
+        text-align: center;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-progress-bar-container {
+        flex-basis: auto; /* Let it shrink/grow */
+        order: unset; /* Remove specific order */
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-control-row-2 {
+        flex-direction: row; /* Keep volume and mode side-by-side */
+        justify-content: center;
+        width: 100%;
+        gap: 15px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-volume-controls {
+        min-width: unset;
+        flex-grow: 1;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-mode-buttons {
+        flex-shrink: 0;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-playlist {
+        border-left: none; /* Remove border when stacked */
+        padding-left: 0;
+        padding-top: 15px; /* Add padding when stacked */
+        border-top: 1px solid var(--playlist-border-light);
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-playlist h3 {
+        text-align: center;
+        font-size: 1em;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-playlist-content {
+        max-height: 500px; /* Shorter playlist on mobile */
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-playlist-content li {
+        padding: 10px 12px;
+        font-size: 0.6em;
+    }
+
+    .audio-player-content-wrapper:not(.audio-player-full-width) .audio-player-main-player-section:not(.playing) {
+        background-size: 85px auto; /* Width is 150px, height adjusts automatically */
+    }
+    .audio-player-container.skin-two-playlist .audio-player-equalizer-canvas {
+        height: 55px;
+    }
+}
+
+@media (max-width: 500px) {
+    .audio-player-container.skin-two-playlist {
+        padding: 15px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-music-icon svg {
+        width: 34px;
+        height: 34px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-toggle-player svg {
+        width: 22px;
+        height: 22px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-current-track-title {
+        font-size: 1em;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-song-main-title {
+        font-size: 0.95em;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-song-sub-title {
+        font-size: 0.75em;
+    }
+
+    /* Ensure progress and time remain in a single row */
+    .audio-player-container.skin-two-playlist .audio-player-progress-and-time {
+        flex-direction: row; /* Explicitly keep as row */
+        justify-content: space-between; /* Distribute items */
+        gap: 5px; /* Adjust gap for tighter fit */
+    }
+    .audio-player-container.skin-two-playlist .audio-player-current-time,
+    .audio-player-container.skin-two-playlist .audio-player-duration {
+        flex-shrink: 0; /* Prevent shrinking */
+        min-width: 35px; /* Maintain minimum width for smaller screens */
+        text-align: center;
+        width: auto;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-progress-bar-container {
+        flex-grow: 1; /* Allow it to take remaining space */
+    }
+
+    /* Ensure volume and mode buttons remain in a single row */
+    .audio-player-container.skin-two-playlist .audio-player-control-row-2 {
+        flex-direction: row; /* Explicitly keep as row */
+        align-items: center;
+        justify-content: center; /* Distribute items */
+        gap: 10px;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-volume-controls {
+        flex-grow: 1; /* Allow to take available space */
+        min-width: 120px; /* Adjust min-width for smaller screens */
+        justify-content: flex-start;
+        width: auto;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-volume-slider-container {
+        flex-grow: 1; /* Allow slider to grow */
+        width: auto;
+    }
+
+    .audio-player-container.skin-two-playlist .audio-player-mode-buttons {
+        flex-shrink: 0;
+        justify-content: flex-end;
+        width: auto;
+    }
+}
+
+@media (max-width: 380px) {
+    .audio-player-container.skin-two-playlist {
+        padding: 10px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-music-icon svg {
+        width: 30px;
+        height: 30px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-toggle-player svg {
+        width: 20px;
+        height: 20px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-playlist-content {
+        max-height: 450px;
+    }
+    .audio-player-container.skin-two-playlist .audio-player-playlist-content li {
+        padding: 8px 10px;
+        font-size: 0.6em;
+    }
+    /* Further reduce min-width for time on very small screens if necessary */
+    .audio-player-container.skin-two-playlist .audio-player-current-time,
+    .audio-player-container.skin-two-playlist .audio-player-duration {
+        min-width: 30px;
+    }
+}
+
+.audio-player-container.skin-two-playlist .audio-player-full-width {
+    display: block;
+}
+
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons .audio-player-play-icon:hover,
+.audio-player-container.skin-two-playlist .audio-player-main-playback-buttons .audio-player-pause-icon:hover {
+    background-color: var(--playlist-play-pause-button-hover-bg);
+    color: var(--playlist-play-pause-button-hover-color);
+}
+
+.audio-player-full-width .audio-player-main-player-section:not(.playing) .audio-player-equalizer-canvas {
+    height: 0;
+}
+
+.audio-player-track-info {
+    display: flex;
+    justify-content: space-between; /* Distribute space evenly */
+    width: 100%; /* Full width of its container */
+}
+
+.audio-player-title-info {
+    flex: 0 0 80%; /* Occupy 80% of the width */
+}
+
+.audio-player-time {
+    flex: 0 0 20%; /* Occupy 20% of the width */
+    text-align: right; /* Optionally align the time to the right */
+}
+
+.audio-player-thumbnail-image img {
+  display: block; /* Removes extra space below image */
+  width: 100%;
+  height: auto;
+}

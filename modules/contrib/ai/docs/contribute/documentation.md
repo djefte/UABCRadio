@@ -1,5 +1,7 @@
 # Contribute Documentation
 
+> Please make sure you follow the [AI module issue guidelines](issue_guidelines.md).
+
 This section covers how you can contribute documentation to the AI module. Documentation is crucial for helping users and developers understand how to use and contribute to the AI module effectively. We as maintainers are sometimes to deep into the code to see the forest for the trees, so it might be useful to have a fresh pair of eyes on the documentation.
 
 ## Where do I find this documentation

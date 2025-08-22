@@ -1,0 +1,328 @@
+.default-palette {
+  --single-audio-player-bg: #242c40;
+  --single-audio-text-color: #ffffff;
+  --single-audio-time-color: #bbbbbb;
+  --single-audio-primary-color: #4CAF50;
+  --single-audio-primary-hover-color: #4CAF50;
+  --single-audio-secondary-color: #555;
+  --single-audio-progress-bg: #3f4a5f;
+  --single-audio-progress-fill: #4CAF50;
+  --single-audio-buffered-color: rgba(140, 195, 74, 0.4);
+  --single-audio-volume-slider-bg: #3f4a5f;
+  --single-audio-volume-slider-thumb: #4CAF50;
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --single-audio-button-bg: #4CAF50;
+  --single-audio-button-hover-bg: #6dcc70;
+}
+
+.skin-six.audio-player-container {
+  width: 100%;
+  max-width: 900px;
+  /* Mapped to skin-two player background, originally #242c40 */
+  background-color: var(--single-audio-player-bg);
+  border-radius: 15px;
+  /* Mapped to skin-two box shadow, originally 0 10px 30px rgba(0, 0, 0, 0.4) */
+  box-shadow: var(--single-audio-box-shadow);
+  padding: 25px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* No direct equivalent for border, retaining original RGBA for subtle effect */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.audio-player.skin-six {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Control Buttons */
+.audio-player.skin-six .audio-player-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.audio-player.skin-six .audio-player-control-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Mapped to skin-two text color, originally #fff */
+  color: var(--single-audio-text-color);
+  transition: color 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.audio-player.skin-six .audio-player-control-btn:hover {
+  /* Mapped to skin-two primary hover color, originally #4CAF50 */
+  color: var(--single-audio-primary-hover-color);
+  transform: scale(1.1);
+}
+
+.audio-player.skin-six .audio-player-control-btn svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* Song Info */
+.audio-player.skin-six .audio-player-song-info {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: 600;
+  /* Mapped to skin-two text color, originally #ffffff */
+  color: var(--single-audio-text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 180px;
+  padding: 0 10px;
+}
+
+/* Progress Section */
+.audio-player.skin-six .audio-player-progress-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-basis: 100%;
+  order: 2;
+}
+
+.audio-player.skin-six .audio-player-progress-bar-wrapper {
+  flex-grow: 1;
+  height: 8px;
+  /* Mapped to skin-two progress background, originally #3f4a5f */
+  background-color: var(--single-audio-progress-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* NEW: Buffered Bar Styles */
+.audio-player.skin-six .audio-player-buffered-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  /* Mapped to skin-two buffered color, originally rgba(140, 195, 74, 0.4) */
+  background-color: var(--single-audio-buffered-color);
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.audio-player.skin-six .audio-player-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  /* Mapped to skin-two progress fill, originally linear-gradient(#4CAF50, #8BC34A) */
+  background: var(--single-audio-progress-fill);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+  z-index: 2;
+}
+
+.audio-player.skin-six .audio-player-time-display {
+  font-size: 0.9em;
+  /* Mapped to skin-two time color, originally #bbbbbb */
+  color: var(--single-audio-time-color);
+  flex-shrink: 0;
+}
+
+/* Volume Controls */
+.audio-player.skin-six .audio-player-volume-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  order: 1;
+}
+
+.audio-player.skin-six .audio-player-volume-slider {
+  width: 100px;
+  -webkit-appearance: none;
+  height: 8px;
+  /* Mapped to skin-two volume slider background, originally #3f4a5f */
+  background: var(--single-audio-volume-slider-bg);
+  border-radius: 4px;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+/* Custom styling for the volume slider thumb (the "bullet") */
+.audio-player.skin-six .audio-player-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  /* Mapped to skin-two volume slider thumb, originally #4CAF50 */
+  background: var(--single-audio-volume-slider-thumb);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  /* Mapped to skin-two player background, originally #242c40 */
+  border: 2px solid var(--single-audio-player-bg);
+}
+
+.audio-player.skin-six .audio-player-volume-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--single-audio-volume-slider-thumb);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--single-audio-player-bg);
+}
+
+.audio-player.skin-six .audio-player-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.audio-player.skin-six .audio-player-controls-section-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+.audio-player.skin-six .audio-player-progress-section-wrapper {
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* NEW: Styled play/pause button */
+.audio-player.skin-six .audio-player-play-pause-btn {
+  border-radius: 50%;
+  /* Mapped to skin-one button background (best fit for a primary button), originally #4CAF50 */
+  background-color: var(--single-audio-button-bg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+}
+.audio-player.skin-six .audio-player-play-pause-btn:hover {
+  /* Mapped to skin-two button hover background, originally #6dcc70 */
+  background-color: var(--single-audio-button-hover-bg);
+  transform: scale(1.05);
+}
+.audio-player.skin-six .audio-player-play-pause-btn svg {
+  /* Mapped to skin-two text color (for contrast), originally #fff */
+  fill: var(--single-audio-text-color);
+  width: 32px;
+  height: 32px;
+}
+
+/* Responsive adjustments */
+
+@media (min-width: 768px) {
+  .audio-player.skin-six {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .audio-player.skin-six .audio-player-controls {
+    order: 0;
+    flex-shrink: 0;
+  }
+
+  .audio-player.skin-six .audio-player-song-info {
+    order: 0;
+    flex-grow: 1;
+    text-align: center;
+  }
+
+  .audio-player.skin-six .audio-player-volume-controls {
+    order: 0;
+    flex-shrink: 0;
+  }
+
+  .audio-player.skin-six .audio-player-progress-section {
+    flex-basis: 100%;
+    order: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .audio-player.skin-six {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .audio-player.skin-six .audio-player-controls,
+  .audio-player.skin-six .audio-player-song-info,
+  .audio-player.skin-six .audio-player-progress-section,
+  .audio-player.skin-six .audio-player-volume-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .audio-player.skin-six .audio-player-controls {
+    display: flex;
+    justify-content: center;
+    order: 0;
+  }
+
+  .audio-player.skin-six .audio-player-song-info {
+    order: 1;
+    text-align: center;
+    white-space: inherit;
+    font-size: 16px;
+  }
+  .audio-player.skin-six .audio-player-volume-controls {
+    gap: 0;
+  }
+
+  .audio-player.skin-six .audio-player-progress-section {
+    order: 2;
+  }
+
+  .audio-player.skin-six .audio-player-volume-controls {
+    order: 3;
+    justify-content: center;
+  }
+
+  .audio-player.skin-six .audio-player-volume-slider {
+    width: 150px;
+  }
+  .audio-player.skin-six .audio-player-controls-section-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.audio-player.skin-six .audio-player-song-info.audio-player-playing {
+  width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.audio-player.skin-six .audio-player-song-info.audio-player-playing .audio-player-song-name {
+  display: inline-block;
+  padding-left: 100%;
+  animation: scroll-left 10s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}

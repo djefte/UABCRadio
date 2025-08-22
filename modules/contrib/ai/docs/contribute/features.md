@@ -1,5 +1,7 @@
 # Contribute Features
 
+> Please make sure you follow the [AI module issue guidelines](issue_guidelines.md).
+
 While we have a fairly clear roadmap set out by the maintainers and the [Drupal AI Initiative](https://new.drupal.org/ai/announcement), we are always open to new features that can enhance the AI module and its submodules
 
 ## Start by creating a feature ticket

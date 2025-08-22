@@ -1,0 +1,14 @@
+{#
+/**
+ * @file audio-player.html.twig
+ * Default theme implementation to present audios for the audio_player
+ *
+ * Available variables:
+ * - audios: Formatted audios based on the field formatter options that were set.
+ */
+ #}
+{% if template_part %}
+	{% if audios is not empty %}
+		{% include template_part with audios %}
+	{% endif %}
+{% endif %}

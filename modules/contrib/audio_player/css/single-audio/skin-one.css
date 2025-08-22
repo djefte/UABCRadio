@@ -1,0 +1,274 @@
+/* CSS variables for consistent theming */
+.default-palette {
+  --single-audio-player-bg: #282c34;
+  --single-audio-text-color: #fff;
+  --single-audio-time-color: #fff;
+  --single-audio-primary-color: #d2d9e5;
+  --single-audio-primary-hover-color: #d2d9e5;
+  --single-audio-secondary-color: #c678dd;
+  --single-audio-progress-bg: #4b5263;
+  --single-audio-progress-fill: #98c379;
+  --single-audio-buffered-color: #566075;
+  --single-audio-volume-slider-bg: #c678dd;
+  --single-audio-volume-slider-thumb: #007bff;
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --single-audio-button-bg: rgba(128, 128, 128, 0.2);
+  --single-audio-button-hover-bg: #f0f0f0;
+}
+
+/* Main audio player container styling */
+.audio-player.skin-one {
+    background-color: var(--single-audio-player-bg);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+/* Song name display */
+.audio-player.skin-one .audio-player-song-name {
+    text-align: left; /* Aligned left within its container */
+    font-size: 0.9em; /* Slightly smaller title font */
+    font-weight: 600;
+    color: var(--single-audio-primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Controls container for new layout */
+.audio-player.skin-one .audio-player-controls-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Controls | Progress/Time/Title | Volume */
+    gap: 15px;
+    align-items: center;
+}
+
+/* Main controls (rewind, play/pause, forward) */
+.audio-player.skin-one .audio-player-main-controls {
+    display: flex;
+    /* gap: 10px; */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Middle section for title, time, and progress */
+.audio-player.skin-one .audio-player-middle-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0; /* Allow content to shrink */
+}
+
+.audio-player.skin-one .audio-player-title-time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.audio-player.skin-one .audio-player-time-display {
+    font-size: 0.9em;
+    color: var(--single-audio-time-color);
+    white-space: nowrap;
+    flex-shrink: 0; /* Prevent time from shrinking */
+}
+
+/* Volume controls */
+.audio-player.skin-one .audio-player-volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end; /* Align to the right */
+}
+
+/* Mobile Layout */
+@media (max-width: 767px) {
+    .audio-player {
+        padding: 15px;
+    }
+
+   .audio-player.skin-one .audio-player-controls-grid {
+        grid-template-columns: 1fr; /* Stack all columns */
+        grid-template-rows: auto auto auto; /* Controls | Middle Section | Volume */
+        gap: 20px;
+    }
+
+   .audio-player.skin-one .audio-player-main-controls,
+   .audio-player.skin-one .audio-player-volume-controls {
+        justify-content: center; /* Center controls */
+        width: 100%;
+    }
+
+   .audio-player.skin-one .audio-player-middle-section {
+        width: 100%; /* Take full width */
+        align-items: center; /* Center content in the middle section */
+    }
+
+   .audio-player.skin-one .audio-player-song-name {
+        text-align: center;
+        font-size: 1em; /* Even smaller on mobile */
+        white-space: break-spaces;
+    }
+
+   .audio-player.skin-one .audio-player-title-time-row {
+        flex-direction: column; /* Stack title and time on mobile */
+        text-align: center;
+        gap: 5px;
+    }
+
+    /* --- Mobile Progress Bar Specific Styles --- */
+   .audio-player.skin-one .audio-player-progress-bar-container {
+        width: 100%; /* Ensure it takes full width on mobile */
+        height: 8px; /* Make it a bit taller for better visibility/touch */
+    }
+   .audio-player.skin-one .audio-player-progress-bar, .audio-player-buffered-bar {
+        height: 100%; /* Ensure these fill the new container height */
+    }
+    /* --- End Mobile Progress Bar Specific Styles --- */
+}
+
+
+/* Styling for control buttons */
+.audio-player.skin-one .audio-player-control-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.audio-player.skin-one .audio-player-control-button svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--single-audio-text-color);
+    transition: fill 0.2s ease;
+}
+
+.audio-player.skin-one .audio-player-control-button:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+    transform: translateY(-2px);
+}
+
+.audio-player.skin-one .audio-player-control-button:hover svg {
+    fill: var(--single-audio-primary-hover-color);
+}
+
+.audio-player.skin-one .audio-player-control-button:active {
+    transform: translateY(0);
+}
+
+/* Larger icons for play/pause button */
+.audio-player.skin-one .audio-player-play-pause-button {
+    padding: 12px; /* Larger padding for a larger button area */
+}
+
+.audio-player.skin-one .audio-player-play-pause-button svg {
+    width: 38px; /* Even larger icon size */
+    height: 38px;
+}
+
+/* Ensure rewind and forward buttons match play/pause size */
+.audio-player.skin-one .audio-player-rewind-button, .audio-player-forward-button {
+    width: 38px;
+    height: 38px;
+}
+
+/* --- Progress Bar Styles with Draggable Thumb --- */
+.audio-player.skin-one .audio-player-progress-bar-container {
+    flex-grow: 1;
+    height: 5px; /* Default desktop thickness */
+    background-color: var(--single-audio-progress-bg); /* Background color for the unfilled part */
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative; /* Needed for positioning the inner bars and pseudo-element thumb */
+    overflow: hidden; /* Hide the thumb if it extends outside */
+    display: flex; /* Make it a flex container for the progress bar itself */
+    align-items: center; /* Vertically center the progress bar and thumb */
+    padding: 0; /* Remove margin as thumb is hidden */
+}
+
+.audio-player.skin-one .audio-player-buffered-bar { /* NEW: Buffered bar styling */
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%; /* Initial width */
+    background-color: var(--single-audio-buffered-color); /* Light blue-grey for buffer */
+    border-radius: 4px;
+    z-index: 1; /* Ensure it's behind the progress bar */
+}
+
+.audio-player.skin-one .audio-player-progress-bar {
+    height: 100%; /* Match container height */
+    width: 0%;
+    background-color: var(--single-audio-progress-fill); /* Color for the filled part */
+    border-radius: 4px;
+    /* Smooth transition for width changes */
+    transition: width 0.15s ease-out;
+    position: relative; /* Needed for positioning the pseudo-element thumb */
+    z-index: 2; /* On top of the buffered bar */
+}
+
+/* Hide pseudo-element for the draggable thumb */
+.audio-player.skin-one .audio-player-progress-bar::after {
+    content: none; /* Do not display the pseudo-element */
+}
+
+/* --- End Progress Bar Styles with Draggable Thumb --- */
+
+/* Volume slider styling - now mimicking progress bar */
+.audio-player.skin-one .audio-player-volume-slider {
+    -webkit-appearance: none; /* Remove default WebKit styles */
+    appearance: none; /* Standard property for cross-browser compatibility */
+    width: 80px; /* Adjust width as needed */
+    height: 5px; /* Match progress bar thickness */
+    background: var(--single-audio-progress-bg); /* Unfilled part */
+    outline: none;
+    border-radius: 3px;
+    transition: background 0.2s ease; /* Transition for filled background */
+    cursor: pointer;
+    /* Using a linear gradient to simulate the filled portion */
+    background: linear-gradient(to right, var(--single-audio-progress-fill) 0%, var(--single-audio-progress-fill) var(--value), var(--single-audio-progress-bg) var(--value), var(--single-audio-progress-bg) 100%)
+/*     background: linear-gradient(to right, var(--single-audio-volume-slider-bg) 0%, var(--single-audio-volume-slider-bg) var(--value), var(--single-audio-progress-bg) var(--value), var(--single-audio-progress-bg) 100%); */
+}
+
+/* Hide the default thumb for WebKit browsers */
+.audio-player.skin-one .audio-player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0px; /* Hide thumb */
+    height: 0px; /* Hide thumb */
+    background: transparent; /* Make sure it's invisible */
+    cursor: pointer;
+}
+
+/* For Firefox (though we removed -moz-range-thumb, this is good practice) */
+.audio-player.skin-one .audio-player-volume-slider::-moz-range-thumb {
+    width: 0px; /* Hide thumb */
+    height: 0px; /* Hide thumb */
+    background: transparent; /* Make sure it's invisible */
+    cursor: pointer;
+}
+/* Style the filled portion for Firefox, if needed, though linear-gradient handles most */
+.audio-player.skin-one .audio-player-volume-slider::-moz-range-progress {
+    background-color: var(--single-audio-volume-slider-bg);
+    border-radius: 3px;
+}
+
+.audio-player.skin-one .audio-player-volume-icon-button {
+    display: none;
+}
+
+.audio-player.skin-one .audio-player-play-pause-button-active {
+    background: var(--single-audio-button-bg);
+}

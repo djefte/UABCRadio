@@ -453,29 +453,19 @@ abstract class ModelOwnerBase extends PluginBase implements ModelOwnerInterface 
    * {@inheritdoc}
    */
   final public function getModelData(ConfigEntityInterface $model): string {
-    switch ($this->storageMethod($model)) {
-      case Settings::STORAGE_OPTION_SEPARATE:
+    $data = $model->getThirdPartySetting('modeler_api', 'data', '');
+    if ($data !== '') {
+      if (is_string($data) && strlen($data) === 37 && str_starts_with($data, 'hash:')) {
+        $hash = substr($data, 5);
         $dataModel = $this->dataModelEntity($model);
         $data = $dataModel->get('data');
-        $hash = $model->getThirdPartySetting('modeler_api', 'data', '');
-        if (is_string($hash) && strlen($hash) === 37 && str_starts_with($hash, 'hash:')) {
-          $hash = substr($hash, 5);
-          hash_equals($hash, hash('md5', $data)) ?: $data = '';
-        }
-        else {
-          $data = '';
-        }
+        hash_equals($hash, hash('md5', $data)) ?: $data = '';
         if ($data === '') {
           $dataModel->delete();
         }
-        return $data;
-
-      case Settings::STORAGE_OPTION_THIRD_PARTY:
-        return $model->getThirdPartySetting('modeler_api', 'data', '');
-
-      default:
-        return '';
+      }
     }
+    return $data;
   }
 
   /**

@@ -1,5 +1,7 @@
 # Contribute Bug Reports
 
+> Please make sure you follow the [AI module issue guidelines](issue_guidelines.md).
+
 This section covers how you can contribute by finding bugs in the AI module. Finding and reporting bugs is essential for maintaining the quality and stability of the AI module, especially given its complexity and the rapid pace of development in the AI field.
 
 ## Reporting Bugs

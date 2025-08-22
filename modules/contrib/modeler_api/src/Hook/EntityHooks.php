@@ -49,6 +49,8 @@ class EntityHooks {
    *
    * @param array $entity_types
    *   The entity type definitions.
+   *
+   * @phpstan-ignore-next-line
    */
   #[Hook('entity_type_build')]
   public function entityTypeBuild(array &$entity_types): void {
@@ -85,6 +87,8 @@ class EntityHooks {
    *
    * @return array
    *   An array of operations.
+   *
+   * @phpstan-ignore-next-line
    */
   #[Hook('entity_operation')]
   public function entityOperation(EntityInterface $entity): array {
@@ -197,6 +201,8 @@ class EntityHooks {
    *
    * @param array $definitions
    *   The schema definitions.
+   *
+   * @phpstan-ignore-next-line
    */
   #[Hook('config_schema_info_alter')]
   public function configSchemaInfoAlter(array &$definitions): void {
@@ -219,7 +225,7 @@ class EntityHooks {
                 'label' => 'Raw data, or an md5 hash of the raw data if that is stored externally',
               ],
               'changelog' => [
-                'type' => 'label',
+                'type' => 'text',
                 'label' => 'Changelog',
               ],
               'label' => [
@@ -227,7 +233,7 @@ class EntityHooks {
                 'label' => 'Label',
               ],
               'documentation' => [
-                'type' => 'label',
+                'type' => 'text',
                 'label' => 'Documentation',
               ],
               'tags' => [
@@ -317,6 +323,8 @@ class EntityHooks {
    * @param string $type
    *   Either 'module' or 'theme', depending on the type of .info.yml file that
    *   was passed.
+   *
+   * @phpstan-ignore-next-line
    */
   #[Hook('system_info_alter')]
   public function systemInfoAlter(array &$info, Extension $file, string $type): void {
@@ -335,6 +343,8 @@ class EntityHooks {
 
   /**
    * Implements hook_modules_installed().
+   *
+   * @phpstan-ignore-next-line
    */
   #[Hook('modules_installed')]
   public function modulesInstalled(array $modules, bool $is_syncing): void {

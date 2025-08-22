@@ -3,6 +3,7 @@
 namespace Drupal\sitemap\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Block\Attribute\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -10,18 +11,17 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a 'Syndicate (sitemap)' block.
- *
- * @Block(
- *   id = "sitemap_syndicate",
- *   label = @Translation("Syndicate"),
- *   admin_label = @Translation("Syndicate (sitemap)")
- * )
  */
+#[Block(
+  id: "sitemap_syndicate",
+  admin_label: new TranslatableMarkup("Syndicate (sitemap)")
+)]
 class SitemapSyndicateBlock extends BlockBase implements ContainerFactoryPluginInterface {
   use StringTranslationTrait;
 

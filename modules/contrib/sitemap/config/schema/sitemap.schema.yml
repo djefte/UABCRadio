@@ -72,6 +72,9 @@ sitemap_plugin_settings.menu:
       type: boolean
       label: 'Show disabled'
       nullable: true
+    menu_depth:
+      type: integer
+      label: 'Menu depth'
 
 # Schema for Vocabulary plugin settings.
 sitemap_plugin_settings.vocabulary:

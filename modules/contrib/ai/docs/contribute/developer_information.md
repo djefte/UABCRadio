@@ -1,5 +1,7 @@
 # Developer Information
 
+> Please make sure you follow the [AI module issue guidelines](issue_guidelines.md).
+
 If you have decided to contribute a bug, task or a feature to the AI module, you will need to follow some guidelines to ensure that your contribution is consistent with the project's standards and practices.
 
 ## Issue Tracking

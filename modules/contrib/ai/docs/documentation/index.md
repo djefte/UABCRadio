@@ -10,11 +10,12 @@ You can simply create an issue, under the [AI Issue queue](https://www.drupal.or
 
 For exact instructions see [Contribute Documentation](../contribute/documentation.md).
 
-## How do I test the changes locally.
-Use pip to get the mkdocs package and then you can just run `mkdocs serve` in the root directory of the AI module and it will be available under http://localhost:8000 by default.
+## How do I test the changes locally
+The documentation uses `mkdocs` and the `material` theme, so you can install with:
 
-## How do I install mkdocs
-Install MkDocs: `pip install mkdocs mkdocs-material`
+`pip install mkdocs mkdocs-material`
+
+Then you can run `mkdocs serve` in the root directory of the AI module and it will be available under `http://localhost:8000` by default.
 
 ## My changes only apply for specific versions
 Just make the MR to latest version it applied to it, and they you can tag the issue as "Backport to version x.x.x" and the maintainer that merges it will make sure it shows up on all the different documentations.
@@ -29,7 +30,7 @@ This can only be done by maintainers that has the right to push to the repo. Whe
 
 In this case we do 3.1.x for instance.
 
-1. Get mkdocs and mike - `pip install mike mkdocs`
+1. Get mkdocs and mike - `pip install mike mkdocs mkdocs-material`
 2. Checkout that version in git - `git checkout 3.1.x`
 3. Change in mkdocs.yml the canonical_version, this is for SEO reasons. Make sure to push this also.
 4. Run `mike alias 3.1.x latest -u` to set 3.1.x to the latest.

@@ -22,17 +22,13 @@ modeler_api.settings:
                 Choice:
                   callback: '\Drupal\modeler_api\Form\Settings::validStorageOptions'
 
-modeler_api.modeler_api_model.*:
+modeler_api.data_model.*:
   type: config_entity
   label: Model
   mapping:
     id:
       type: string
       label: ID
-    label:
-      type: label
-      label: Label
-    uuid:
+    data:
       type: string
-    description:
-      type: string
+      label: Data

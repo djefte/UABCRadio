@@ -1,0 +1,441 @@
+.default-palette {
+    --single-audio-player-bg: #fff;
+    --single-audio-text-color: #333;
+    --single-audio-time-color: #555;
+    --single-audio-primary-color: #007bff;
+    --single-audio-primary-hover-color: #0056b3;
+    --single-audio-secondary-color: #555;
+    --single-audio-progress-bg: #e0e0e0;
+    --single-audio-progress-fill: #007bff;
+    --single-audio-buffered-color: #a0c4e4;
+    --single-audio-volume-slider-bg: #ddd;
+    --single-audio-volume-slider-thumb: #007bff;
+    --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --single-audio-button-bg: #007bff;
+    --single-audio-button-hover-bg: #f0f0f0;
+}
+
+.audio-player.skin-ten.audio-player-attractive-layout {
+    background-color: var(--single-audio-player-bg);
+    border-radius: 16px; /* Slightly more rounded */
+    box-shadow: var(--single-audio-box-shadow); /* More pronounced, softer shadow */
+    padding: 30px;
+    width: 100%;
+    max-width: 580px; /* A bit wider for a spacious feel */
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Consistent spacing between sections */
+    box-sizing: border-box;
+    overflow: hidden; /* Ensure no overflow from rounded corners */
+}
+
+/* Song Metadata (Thumbnail + Details) */
+.audio-player-song-metadata {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--single-audio-progress-bg); /* Using progress-bg as a border color */
+}
+
+.audio-player-song-thumbnail {
+    width: 80px; /* Size of the thumbnail */
+    height: 80px;
+    background-color: var(--single-audio-progress-bg); /* Using progress-bg for mid-tone background */
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* Prevent shrinking */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+}
+
+.audio-player-song-thumbnail svg {
+    width: 50px;
+    height: 50px;
+    color: var(--single-audio-secondary-color); /* Icon color */
+}
+
+.audio-player-song-details {
+    flex-grow: 1; /* Allows details to take remaining space */
+    min-width: 0; /* Ensures content can shrink */
+}
+
+.audio-player-song-name {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--single-audio-text-color);
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.audio-player-artist-name {
+    font-size: 1.1em;
+    color: var(--single-audio-time-color); /* Using time-color for light text */
+}
+
+/* Progress Section */
+.audio-player-progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.audio-player-progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: var(--single-audio-progress-bg);
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative; /* NEW: Added for absolute positioning of children */
+}
+
+/* NEW: Buffered Bar Styles */
+.audio-player-buffered-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%; /* Will be updated by JS */
+    background-color: var(--single-audio-buffered-color); /* Buffered color */
+    border-radius: 4px;
+    z-index: 1; /* Behind the main progress bar */
+}
+
+.audio-player-progress-bar {
+    position: absolute; /* NEW: Position within container */
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: var(--single-audio-progress-fill);
+    border-radius: 4px;
+    transition: width 0.1s linear;
+    z-index: 2; /* On top of the buffered bar */
+}
+
+.audio-player-time-display {
+    font-size: 0.9em;
+    color: var(--single-audio-time-color);
+    display: flex;
+    justify-content: center;
+}
+
+/* Playback Controls (Main Buttons) */
+.audio-player-playback-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Spacing between main buttons */
+}
+
+.audio-player-control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0; /* Handled by icon-wrapper if using */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+    color: var(--single-audio-time-color); /* Default icon color */
+}
+
+/* Attractive button common styles */
+.audio-player-attractive-btn {
+    width: 55px; /* Default button size */
+    height: 55px;
+    border-radius: 50%;
+    background-color: var(--single-audio-player-bg); /* Using player-bg as a light background */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.audio-player-attractive-btn:hover {
+    background-color: var(--single-audio-button-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Re-using skin-two-box-shadow opacity */
+}
+
+.audio-player-attractive-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+}
+
+.audio-player-attractive-btn svg {
+    width: 28px;
+    height: 28px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.audio-player-attractive-btn:hover svg {
+    color: var(--single-audio-text-color); /* Darker icon on hover */
+}
+
+/* Primary Play/Pause Button */
+.audio-player-play-pause-btn.audio-player-primary-btn {
+    width: 70px; /* Larger */
+    height: 70px;
+    background-color: var(--single-audio-primary-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Using a custom rgba for a similar effect */
+}
+
+.audio-player-play-pause-btn.audio-player-primary-btn:hover {
+    background-color: var(--single-audio-primary-hover-color);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Using a custom rgba for a similar effect */
+    transform: translateY(-3px);
+}
+
+.audio-player-play-pause-btn.audio-player-primary-btn:active {
+    background-color: var(--single-audio-primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Using a custom rgba for a similar effect */
+    transform: translateY(0);
+}
+
+.audio-player-play-pause-btn.audio-player-primary-btn svg {
+    width: 38px; /* Larger icon for primary button */
+    height: 38px;
+    color: var(--single-audio-player-bg); /* White icon for primary button */
+}
+
+/* Subtle Mute/Unmute Button (smaller) */
+.audio-player-mute-unmute-btn.audio-player-subtle-btn {
+    width: 45px;
+    height: 45px;
+    box-shadow: none; /* No shadow by default */
+    background: none; /* Transparent background by default */
+}
+
+.audio-player-mute-unmute-btn.audio-player-subtle-btn:hover {
+    background-color: var(--single-audio-button-hover-bg); /* Background only on hover */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+    transform: translateY(-1px);
+}
+.audio-player-mute-unmute-btn.audio-player-subtle-btn:active {
+    background-color: var(--single-audio-button-hover-bg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+    transform: translateY(0);
+}
+
+.audio-player-mute-unmute-btn.audio-player-subtle-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+
+/* Utility Controls (Volume & Playback Speed) */
+.audio-player-utility-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allows wrapping for responsiveness */
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 1px solid var(--single-audio-progress-bg); /* Using progress-bg as a border color */
+}
+
+.audio-player-volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.audio-player-volume-slider {
+    width: 150px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background-color: var(--single-audio-volume-slider-bg);
+    border-radius: 3px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.audio-player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background-color: var(--single-audio-volume-slider-thumb);
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 0 0 3px var(--single-audio-player-bg), 0 2px 5px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+    transition: all 0.2s ease;
+}
+
+.audio-player-volume-slider::-webkit-slider-thumb:active {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px var(--single-audio-player-bg), 0 3px 8px rgba(0, 0, 0, 0.15); /* Re-using skin-two-box-shadow opacity */
+}
+
+.audio-player-volume-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background-color: var(--single-audio-volume-slider-thumb);
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 0 0 3px var(--single-audio-player-bg), 0 2px 5px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+    transition: all 0.2s ease;
+}
+.audio-player-volume-slider::-moz-range-thumb:active {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px var(--single-audio-player-bg), 0 3px 8px rgba(0, 0, 0, 0.15); /* Re-using skin-two-box-shadow opacity */
+}
+
+
+/* Playback Speed Select */
+.audio-player-playback-speed-controls {
+    display: flex;
+    align-items: center;
+}
+
+.audio-player-attractive-select {
+    background-color: var(--single-audio-player-bg); /* Using player-bg as a light background */
+    border: 1px solid var(--single-audio-progress-bg); /* Using progress-bg as a border color */
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 0.95em;
+    cursor: pointer;
+    outline: none;
+    color: var(--single-audio-text-color);
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23666666" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    transition: all 0.2s ease;
+}
+
+.audio-player-attractive-select:hover {
+    border-color: var(--single-audio-primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Re-using skin-two-box-shadow opacity */
+}
+
+.audio-player-attractive-select option {
+    background: var(--single-audio-player-bg);
+    color: var(--single-audio-text-color);
+}
+
+/* Responsive adjustments for attractive layout */
+@media (max-width: 768px) {
+    .audio-player.skin-ten.audio-player-attractive-layout {
+        padding: 25px;
+        gap: 20px;
+        max-width: 400px;
+    }
+
+    .audio-player.skin-ten .audio-player-song-metadata {
+        flex-direction: column; /* Stack thumbnail and details */
+        text-align: center;
+        gap: 15px;
+    }
+
+    .audio-player.skin-ten .audio-player-song-thumbnail {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+    }
+    .audio-player.skin-ten .audio-player-song-thumbnail svg {
+        width: 45px;
+        height: 45px;
+    }
+
+    .audio-player.skin-ten .audio-player-song-name {
+        font-size: 1.4em;
+    }
+    .audio-player.skin-ten .audio-player-artist-name {
+        font-size: 1em;
+    }
+
+    .audio-player.skin-ten .audio-player-playback-controls {
+        gap: 15px;
+    }
+
+    .audio-player.skin-ten .audio-player-attractive-btn {
+        width: 50px;
+        height: 50px;
+    }
+    .audio-player.skin-ten .audio-player-attractive-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+    .audio-player.skin-ten .audio-player-play-pause-btn.audio-player-primary-btn {
+        width: 65px;
+        height: 65px;
+    }
+    .audio-player.skin-ten .audio-player-play-pause-btn.audio-player-primary-btn svg {
+        width: 35px;
+        height: 35px;
+    }
+
+    .audio-player.skin-ten .audio-player-utility-controls {
+        flex-direction: column; /* Stack volume and speed */
+        gap: 20px;
+        padding-top: 15px;
+    }
+    .audio-player.skin-ten .audio-player-volume-controls, .audio-player-playback-speed-controls {
+        width: 100%;
+        justify-content: center; /* Center them when stacked */
+    }
+
+    .audio-player.skin-ten .audio-player-volume-slider {
+        width: 180px; /* Wider for easier touch */
+    }
+
+    .audio-player.skin-ten .audio-player-attractive-select {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .audio-player.skin-ten.audio-player-attractive-layout {
+        padding: 20px;
+        gap: 18px;
+    }
+
+    .audio-player.skin-ten .audio-player-song-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
+    .audio-player.skin-ten .audio-player-song-thumbnail svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .audio-player.skin-ten .audio-player-song-name {
+        font-size: 1.2em;
+        white-space: normal;
+    }
+    .audio-player.skin-ten .audio-player-artist-name {
+        font-size: 0.9em;
+    }
+
+    .audio-player.skin-ten .audio-player-attractive-btn {
+        width: 45px;
+        height: 45px;
+    }
+    .audio-player.skin-ten .audio-player-attractive-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    .audio-player.skin-ten .audio-player-play-pause-btn.audio-player-primary-btn {
+        width: 55px;
+        height: 55px;
+    }
+    .audio-player.skin-ten .audio-player-play-pause-btn.audio-player-primary-btn svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .audio-player.skin-ten .audio-player-volume-slider {
+        width: 150px;
+    }
+}

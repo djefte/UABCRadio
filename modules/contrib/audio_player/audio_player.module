@@ -1,0 +1,364 @@
+<?php
+
+/**
+ * @file
+ * Audio player module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\audio_player\Plugin\views\style\ViewsAudioPlayer;
+use Drupal\file\Entity\File;
+use Drupal\media\Entity\Media;
+
+/**
+ * Implements hook_help().
+ */
+function audio_player_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the audio_player module.
+    case 'help.page.audio_player':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Audio Player provides a field formatter that allows
+	  you to apply it to your image field.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function audio_player_theme() {
+  return [
+    'audio_player' => [
+      'variables' => [
+        'audios' => NULL,
+        'data_attributes' => NULL,
+        'skin' => NULL,
+        'audio_display' => NULL,
+        'template_part' => NULL,
+        'equalizer' => NULL,
+        'palette' => NULL,
+      ],
+      'template' => 'audio-player',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_audio_player().
+ */
+function template_preprocess_audio_player(&$variables) {
+  $skin = $variables['skin'] ?? '';
+  $audio_display = $variables['audio_display'] ?? '';
+  $equalizer = $variables['equalizer'] ?? '';
+
+  $variables['#attached']['library'][] = "audio_player/audio_player.base";
+
+  // Determine the library only if skin or audio_display is set.
+  if ($skin || $audio_display) {
+    $library = $audio_display && $skin ? "{$audio_display}.{$skin}" : $skin;
+
+    // Attach the library if determined.
+    $variables['#attached']['library'][] = "audio_player/audio_player.{$library}";
+  }
+
+  if ($equalizer) {
+    $variables['#attached']['library'][] = "audio_player/audio_player.equalizer";
+  }
+
+  if ($audio_display) {
+    $variables['#attached']['library'][] = "audio_player/audio_player.playlist-color-palettes";
+  }
+  else {
+    $variables['#attached']['library'][] = "audio_player/audio_player.color-palettes";
+  }
+
+}
+
+/**
+ * Returns a list of available audio player skin options for one player.
+ *
+ * This function provides a set of predefined skins for the audio player
+ * interface. Each skin has a unique identifier (e.g., 'skin-one', 'skin-two')
+ * and a human-readable label (e.g., 'Skin One', 'Skin Two') that can be used
+ * in the UI to allow users to choose a skin for the audio player.
+ *
+ * @return array
+ *   An array with skin IDs as keys and readable labels as values.
+ */
+function audio_player_single_audio_skins() {
+  return [
+    'skin-one' => 'Skin One',
+    'skin-two' => 'Skin Two',
+    'skin-three' => 'Skin Three',
+    'skin-four' => 'Skin Four',
+    'skin-five' => 'Skin Five',
+    'skin-six' => 'Skin Six',
+    'skin-seven' => 'Skin Seven',
+    'skin-eight' => 'Skin Eight',
+    'skin-nine' => 'Skin Nine',
+    'skin-ten' => 'Skin Ten',
+    'skin-eleven' => 'Skin Eleven',
+    'skin-twelve' => 'Skin Twelve',
+    'skin-thirteen' => 'Skin Thirteen',
+    'skin-fourteen' => 'Skin Fourteen',
+    'skin-fifteen' => 'Skin Fifteen',
+    'skin-sixteen' => 'Skin Sixteen',
+    'skin-seventeen' => 'Skin Seventeen',
+    'skin-eighteen' => 'Skin Eighteen',
+  ];
+}
+
+/**
+ * Returns a list of available audio player skin options for an audio playlist.
+ *
+ * This function provides a simplified set of skin options that are specific
+ * to the audio playlist interface. Similar to the single audio skins, but with
+ * fewer options for playlist displays.
+ *
+ * @return array
+ *   An array with skin IDs as keys and user-friendly labels as values.
+ */
+function audio_player_audio_playlist_skins() {
+  return [
+    'skin-one' => 'Skin One',
+    'skin-two' => 'Skin Two',
+  ];
+}
+
+/**
+ * Returns a list of available equalizer visualizations for the player.
+ *
+ * This function offers a variety of equalizer visualizations that can
+ * be applied to the audio player.
+ * The available options include different styles such as waveform,
+ * frequency, circular, and more. Each option has a unique identifier
+ * and a user-friendly label that will be displayed to the user in the UI.
+ *
+ * @return array
+ *   An array with visualization IDs as keys and readable labels as values.
+ */
+function audio_player_equalizer_options() {
+  return [
+    '' => t('None'),
+    'waveform' => t('Waveform'),
+    'frequency' => t('Frequency'),
+    'circular' => t('Circular'),
+    'dots' => t('Dots'),
+    'blob' => t('Blob'),
+    'audioSpectrumVisualizer' => t('Audio Spectrum Visualizer'),
+    'soundwave' => t('Soundwave'),
+    'visualEqualizer' => t('Visual Equalizer'),
+    'wavesurferLike' => t('Wavesurfer Like'),
+    'audioSoundGraphic' => t('Audio Sound Graphic'),
+    'verticalSymmetricalBars' => t('Vertical Symmetrical Bars'),
+    'particleCloud' => t('Particle Cloud'),
+    'rotatingRing' => t('Rotating Ring'),
+    'abstractLines' => t('Abstract Lines'),
+    'spherePulse' => t('Sphere Pulse'),
+    'lineGrid' => t('Line Grid'),
+    'growingCircles' => t('Growing Circles'),
+    'raindropEffect' => t('Raindrop Effect'),
+    'tunnelEffect' => t('Tunnel Effect'),
+    'firefliesSwarm' => t('Fireflies Swarm'),
+    'pixelGridHeatmap' => t('Pixel Grid Heatmap'),
+    'lissajousCurve' => t('Lissajous Curve'),
+    'rippleEffect' => t('Ripple Effect'),
+    'glowTrails' => t('Glow Trails'),
+    'rainAndLightning' => t('Rain and Lightning'),
+    'dataStream' => t('Data Stream'),
+    'vortexSpectrum' => t('Vortex Spectrum'),
+  ];
+}
+
+/**
+ * Returns a list of available color palette options for the audio player.
+ *
+ * This function defines a set of color schemes (palettes) that can be
+ * applied to the audio player. Each palette has a unique identifier
+ * (e.g., 'palette-1', 'palette-2') and a descriptive name
+ * (e.g., 'Deep Ocean Green', 'Warm Amber Charcoal'). These palettes can
+ * be used to customize the appearance of the audio player interface.
+ *
+ * @return array
+ *   An array with palette IDs as keys and readable palette names as values.
+ */
+function audio_player_palette_options() {
+  $palettes = [
+    'default-palette' => 'Default',
+    'palette-1' => 'Deep Ocean Green (Dark blue/grey base with vibrant green accent)',
+    'palette-2' => 'Warm Amber Charcoal (Dark, muted base with a bright amber/gold accent)',
+    'palette-3' => 'Royal Plum Pink (Deep purple/plum base with a vibrant fuchsia/pink accent)',
+    'palette-4' => 'Cadet Blue Steel (Cool blue/grey base with a bright light blue accent)',
+    'palette-5' => 'Dark Mode Orange Pop (Dark grey base with a striking amber orange accent)',
+    'palette-6' => 'Midnight Violet (Nearly black base with a deep purple accent)',
+    'palette-7' => 'Twilight Deep Orange (Dark purple-ish base with a bold deep orange accent)',
+    'palette-8' => 'Forest Sage Green (Dark green base with a muted, earthy green accent)',
+    'palette-9' => 'Urban Cyan Grey (Dark grey base with a cool cyan accent)',
+    'palette-10' => 'Nautical Blue Grey (Deep blue/grey base with a classic vibrant blue accent)',
+    'palette-11' => 'Crisp Light Gray (Very light grey/white base with a dark grey accent)',
+    'palette-12' => 'Cotton Candy Pink (White base with a vibrant pink accent)',
+    'palette-13' => 'Earthy Sepia Tone (Warm, light beige/brown base with a deeper brown accent)',
+    'palette-14' => 'Sky Blue Serenity (Light blue/green base with a bright light blue accent)',
+    'palette-15' => 'Lavender Haze (Light grey base with a deep purple accent)',
+    'palette-16' => 'Minty Fresh Green (Light green base with a standard Google Green accent)',
+    'palette-17' => 'Sandy Gold Glow (Light sandy/yellow base with a bright amber/gold accent)',
+    'palette-18' => 'Arctic Red Ember (Very light grey/white base with a strong red accent)',
+    'palette-19' => 'Porcelain Aqua Blue (Light grey base with a soft, bright blue accent)',
+    'palette-20' => 'Modern Blue & White (Classic white base with a vibrant blue accent)',
+  ];
+
+  return $palettes;
+}
+
+/**
+ * Generate a clean, human-readable audio file name.
+ *
+ * This function processes an audio file name by removing its extension,
+ * cleaning up any special characters, trimming excess spaces, and capitalizing
+ * the first letter of the first word in the name.
+ *
+ * @param string $name
+ *   string $name The original audio file name.
+ *
+ * @return string
+ *   string The cleaned audio file name.
+ */
+function audio_player_generate_name($name) {
+  $name = preg_replace('/\.(mp3|wav|flac|aac|ogg|m4a|wma)$/i', '', $name);
+
+  // Removes special characters, allows spaces.
+  $cleanString = preg_replace('/[^a-zA-Z0-9\s]/', '', $name);
+
+  $cleanString = trim($cleanString);
+
+  $cleanString = ucfirst(strtolower($cleanString));
+
+  // Return the final cleaned filename without any extension.
+  return $cleanString;
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function audio_player_preprocess_views_view(array &$variables) {
+  $view = $variables['view'];
+
+  // Check if the view uses the specific StylePluginBase.
+  if ($view->style_plugin instanceof ViewsAudioPlayer) {
+    $style_plugin = $view->style_plugin->options;
+    $audio_player_title = $style_plugin['audio_player_title'] ?? '';
+    $audio_player_subtitle = $style_plugin['audio_player_subtitle'] ?? '';
+    $audio_player_video = $style_plugin['audio_player_video'] ?? '';
+    $audio_player_thumbnail = $style_plugin['audio_player_thumbnail'] ?? '';
+
+    $file_url_generator = \Drupal::service('file_url_generator');
+    // Optimize field value and URL generation.
+    foreach ($view->result as &$row) {
+      $entity = $row->_entity;
+
+      // Get the URL for the audio or video field.
+      $video_url = audio_player_get_field_url($file_url_generator, $entity, $audio_player_video);
+      if ($video_url) {
+        $video_title = isset($entity->{$audio_player_title}) ? $entity->{$audio_player_title}->value : NULL;
+        $video_subtitle = isset($entity->{$audio_player_subtitle}) ? $entity->{$audio_player_subtitle}->value : '';
+
+        if (!$video_title) {
+          $video_title = basename($video_url);
+          $video_title = urldecode($video_title);
+        }
+        $video_title = audio_player_generate_name($video_title);
+
+        $row->video_title = $video_title;
+        $row->video_subtitle = $video_subtitle;
+        $row->video_url = $video_url;
+        $row->video_thumbnail = $audio_player_thumbnail;
+      }
+    }
+
+    // Attach style and scripts for the audio player.
+    $variables['skin'] = $style_plugin['skin'] ?? '';
+    $variables['#attached']['library'] = array_merge(
+      $variables['#attached']['library'] ?? [],
+      [
+        'audio_player/audio_player.playlist-color-palettes',
+        'audio_player/audio_player.base',
+        "audio_player/audio_player.audio-playlist.{$variables['skin']}",
+      ]
+    );
+
+    // Attach equalizer effect if needed.
+    if (!empty($style_plugin['equalizer_effect'])) {
+      $variables['#attached']['library'][] = 'audio_player/audio_player.equalizer';
+    }
+  }
+}
+
+/**
+ * Helper function to get the field URL for audio/video.
+ */
+function audio_player_get_field_url($file_url_generator, $entity, $audio_player_video) {
+  // Get the field value.
+  $field_value = $entity->get($audio_player_video)->first();
+
+  if (isset($field_value->entity)) {
+    // If the field is a file (direct file upload)
+    if ($field_value->entity instanceof File) {
+      return audio_player_generate_file_url($file_url_generator, $field_value->entity);
+    }
+    elseif ($field_value->entity instanceof Media) {
+      // If the field is a media entity (media reference)
+      $media = $field_value->entity;
+      $fid = $media->getSource()->getSourceFieldValue($media);
+      return audio_player_generate_file_url($file_url_generator, File::load($fid));
+    }
+  }
+
+  // Default if no valid URL found.
+  return NULL;
+}
+
+/**
+ * Helper function to generate an absolute URL from a file.
+ */
+function audio_player_generate_file_url($file_url_generator, File $file) {
+  $uri = $file->getFileUri();
+  return $file_url_generator->generateAbsoluteString($uri);
+}
+
+/**
+ * Prepares variables for the Views Timeline.
+ */
+function template_preprocess_views_audio_player(&$variables) {
+  $view = $variables['view'];
+  $style_plugin = $view->style_plugin->options;
+
+  // Extract style options with null coalescing for defaults.
+  $skin = $style_plugin['skin'] ?? '';
+  $variables['audio_player_title'] = $style_plugin['audio_player_title'] ?? '';
+  $equalizer = $style_plugin['equalizer_effect'] ?? '';
+  $variables['equalizer'] = $equalizer;
+  $variables['palette'] = $style_plugin['palette'] ?? '';
+  $variables['thumbnail'] = $style_plugin['audio_player_thumbnail'] ?? '';
+  $variables['data_attributes'] = ['equalizer' => $equalizer];
+
+  // Template layout base path.
+  $audio_player_layout = 'audio-playlist/' . $skin;
+  $layout = $audio_player_layout . '.html.twig';
+
+  // Get theme and module paths.
+  $theme = \Drupal::theme()->getActiveTheme();
+  $theme_path = $theme->getPath() . '/templates/' . $layout;
+  $module_path = \Drupal::moduleHandler()->getModule('audio_player')->getPath() . '/templates/' . $layout;
+
+  // Set template part based on the existence of the theme or module template.
+  if (file_exists($theme_path)) {
+    $variables['template_part'] = '@' . $theme->getName() . '/' . $audio_player_layout . '.html.twig';
+  }
+  elseif (file_exists($module_path)) {
+    $variables['template_part'] = '@audio_player/' . $audio_player_layout . '.html.twig';
+  }
+}

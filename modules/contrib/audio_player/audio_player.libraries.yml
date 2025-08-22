@@ -1,0 +1,282 @@
+audio_player.base:
+  css:
+    theme:
+      css/base.css: {}
+  js:
+    js/base.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-one:
+  css:
+    theme:
+      css/single-audio/skin-one.css: {}
+  js:
+    js/single-audio/skin-one.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-two:
+  css:
+    theme:
+      css/single-audio/skin-two.css: {}
+  js:
+    js/single-audio/skin-two.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-three:
+  css:
+    theme:
+      css/single-audio/skin-three.css: {}
+  js:
+    js/single-audio/skin-three.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-four:
+  css:
+    theme:
+      css/single-audio/skin-four.css: {}
+  js:
+    js/single-audio/skin-four.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-five:
+  css:
+    theme:
+      css/single-audio/skin-five.css: {}
+  js:
+    js/single-audio/skin-five.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-six:
+  css:
+    theme:
+      css/single-audio/skin-six.css: {}
+  js:
+    js/single-audio/skin-six.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-seven:
+  css:
+    theme:
+      css/single-audio/skin-seven.css: {}
+  js:
+    js/single-audio/skin-seven.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-eight:
+  css:
+    theme:
+      css/single-audio/skin-eight.css: {}
+  js:
+    js/single-audio/skin-eight.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-nine:
+  css:
+    theme:
+      css/single-audio/skin-nine.css: {}
+  js:
+    js/single-audio/skin-nine.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-ten:
+  css:
+    theme:
+      css/single-audio/skin-ten.css: {}
+  js:
+    js/single-audio/skin-ten.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-eleven:
+  css:
+    theme:
+      css/single-audio/skin-eleven.css: {}
+  js:
+    js/single-audio/skin-eleven.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-twelve:
+  css:
+    theme:
+      css/single-audio/skin-twelve.css: {}
+  js:
+    js/single-audio/skin-twelve.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-thirteen:
+  css:
+    theme:
+      css/single-audio/skin-thirteen.css: {}
+  js:
+    js/single-audio/skin-thirteen.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-fourteen:
+  css:
+    theme:
+      css/single-audio/skin-fourteen.css: {}
+  js:
+    js/single-audio/skin-fourteen.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-fifteen:
+  css:
+    theme:
+      css/single-audio/skin-fifteen.css: {}
+  js:
+    js/single-audio/skin-fifteen.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-sixteen:
+  css:
+    theme:
+      css/single-audio/skin-sixteen.css: {}
+  js:
+    js/single-audio/skin-sixteen.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-seventeen:
+  css:
+    theme:
+      css/single-audio/skin-seventeen.css: {}
+  js:
+    js/single-audio/skin-seventeen.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.skin-eighteen:
+  css:
+    theme:
+      css/single-audio/skin-eighteen.css: {}
+  js:
+    js/single-audio/skin-eighteen.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.audio-playlist.skin-one:
+  css:
+    theme:
+      css/audio-playlist/skin-one.css: {}
+  js:
+    js/audio-playlist/skin-one.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.audio-playlist.skin-two:
+  css:
+    theme:
+      css/audio-playlist/skin-two.css: {}
+  js:
+    js/audio-playlist/skin-one.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.audio-playlist.skin_three:
+  css:
+    theme:
+      css/audio-playlist/skin-three.css: {}
+  js:
+    js/audio-playlist/skin-three.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.equalizer:
+  js:
+    js/equalizer-effects.js: { weight: -10 }
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+audio_player.color-palettes:
+  css:
+    theme:
+      css/single-audio/color-palettes.css: { weight: -10 }
+
+audio_player.playlist-color-palettes:
+  css:
+    theme:
+      css/audio-playlist/color-palettes.css: { weight: -10 }

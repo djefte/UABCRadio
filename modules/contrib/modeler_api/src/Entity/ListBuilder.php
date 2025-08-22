@@ -111,7 +111,7 @@ class ListBuilder extends DraggableListBuilder {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     parent::submitForm($form, $form_state);
-    $this->messenger->addStatus($this->t('The ordering has been saved.'));
+    $this->messenger()->addStatus($this->t('The ordering has been saved.'));
   }
 
   /**

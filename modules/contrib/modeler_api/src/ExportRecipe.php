@@ -21,8 +21,8 @@ class ExportRecipe {
 
   use StringTranslationTrait;
 
-  public const string DEFAULT_NAMESPACE = 'drupal';
-  public const string DEFAULT_DESTINATION = 'temporary://recipe';
+  public const DEFAULT_NAMESPACE = 'drupal';
+  public const DEFAULT_DESTINATION = 'temporary://recipe';
 
   /**
    * Constructs the recipe export service.
@@ -242,6 +242,9 @@ class ExportRecipe {
     if ($imports) {
       $recipe['config']['import'] = $imports;
     }
+    if (isset($recipe['config'])) {
+      $recipe['config']['strict'] = FALSE;
+    }
     return $recipe;
   }
 
@@ -279,8 +282,17 @@ $description
 ### Installation
 
 ```shell
+## Import recipe
 composer require $namespace/$id
+
+# Apply recipe with Drush (requires version 13 or later):
+drush recipe ../recipes/$id
+
+# Apply recipe without Drush:
 cd web && php core/scripts/drupal recipe ../recipes/$id
+
+# Rebuilding caches is optional, sometimes required:
+drush cr
 ```
 end_of_readme;
   }

@@ -242,6 +242,24 @@ class Component {
     $errors = [];
     $messenger = self::messenger();
 
+    if ($plugin instanceof ConfigurableInterface) {
+      $pluginConfiguration = $plugin->getConfiguration();
+      $changed = FALSE;
+      foreach ($pluginConfiguration as $key => $value) {
+        if (!isset($configuration[$key])) {
+          $changed = TRUE;
+          if (is_bool($value)) {
+            $pluginConfiguration[$key] = FALSE;
+          }
+          else {
+            $pluginConfiguration[$key] = $value;
+          }
+        }
+      }
+      if ($changed) {
+        $plugin->setConfiguration($pluginConfiguration);
+      }
+    }
     if ($plugin instanceof PluginFormInterface) {
       // Identify number or email fields and replace them with a valid value if
       // the field is configured with a token. This is important to get those

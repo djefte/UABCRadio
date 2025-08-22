@@ -1,0 +1,359 @@
+/* Palette 1: Deep Ocean Green (Dark blue/grey base with vibrant green accent) */
+.palette-1 {
+  --single-audio-player-bg: #2C3E50; /* Dark Blue/Grey */
+  --single-audio-text-color: #ECF0F1; /* Light Grey */
+  --single-audio-time-color: #BDC3C7; /* Muted Light Grey */
+  --single-audio-primary-color: #27AE60; /* Vibrant Green */
+  --single-audio-primary-hover-color: #229954; /* Darker Green */
+  --single-audio-secondary-color: #95A5A6; /* Grey */
+  --single-audio-progress-bg: #34495E; /* Slightly Lighter Dark Blue/Grey */
+  --single-audio-progress-fill: #27AE60; /* Vibrant Green */
+  --single-audio-buffered-color: #4CAF50; /* Medium Green */
+  --single-audio-volume-slider-bg: #4A6572; /* Muted Blue-Grey */
+  --single-audio-volume-slider-thumb: #27AE60; /* Vibrant Green */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --single-audio-button-bg: #27AE60; /* Vibrant Green */
+  --single-audio-button-hover-bg: #34495E; /* Dark Blue/Grey */
+}
+
+/* Palette 2: Warm Amber Charcoal (Dark, muted base with a bright amber/gold accent) */
+.palette-2 {
+  --single-audio-player-bg: #212121; /* Charcoal */
+  --single-audio-text-color: #EEEEEE; /* Light Grey */
+  --single-audio-time-color: #BDBDBD; /* Muted Grey */
+  --single-audio-primary-color: #FFA000; /* Bright Amber */
+  --single-audio-primary-hover-color: #FF8F00; /* Darker Amber */
+  --single-audio-secondary-color: #757575; /* Dark Grey */
+  --single-audio-progress-bg: #303030; /* Slightly Lighter Charcoal */
+  --single-audio-progress-fill: #FFA000; /* Bright Amber */
+  --single-audio-buffered-color: #424242; /* Gold */
+  --single-audio-volume-slider-bg: #303030; /* Medium Charcoal */
+  --single-audio-volume-slider-thumb: #FFA000; /* Bright Amber */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --single-audio-button-bg: #FFA000; /* Bright Amber */
+  --single-audio-button-hover-bg: #303030; /* Charcoal */
+}
+
+/* Palette 3: Royal Plum Pink (Deep purple/plum base with a vibrant fuchsia/pink accent) */
+.palette-3 {
+  --single-audio-player-bg: #4A148C; /* Deep Plum */
+  --single-audio-text-color: #F3E5F5; /* Light Pink/White */
+  --single-audio-time-color: #E1BEE7; /* Muted Pink */
+  --single-audio-primary-color: #E91E63; /* Vibrant Fuchsia */
+  --single-audio-primary-hover-color: #C2185B; /* Darker Fuchsia */
+  --single-audio-secondary-color: #9C27B0; /* Medium Purple */
+  --single-audio-progress-bg: #6A1B9A; /* Slightly Lighter Plum */
+  --single-audio-progress-fill: #E91E63; /* Vibrant Fuchsia */
+  --single-audio-buffered-color: #8E24AA; /* Light Pink */
+  --single-audio-volume-slider-bg: #F06292; /* Medium Dark Purple */
+  --single-audio-volume-slider-thumb: #E91E63; /* Vibrant Fuchsia */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --single-audio-button-bg: #E91E63; /* Vibrant Fuchsia */
+  --single-audio-button-hover-bg: #6A1B9A; /* Plum */
+}
+
+/* Palette 4: Cadet Blue Steel (Cool blue/grey base with a bright light blue accent) */
+.palette-4 {
+  --single-audio-player-bg: #455A64; /* Cool Blue-Grey */
+  --single-audio-text-color: #ECEFF1; /* Light Blue-Grey */
+  --single-audio-time-color: #CFD8DC; /* Muted Light Blue-Grey */
+  --single-audio-primary-color: #03A9F4; /* Bright Light Blue */
+  --single-audio-primary-hover-color: #0288D1; /* Darker Light Blue */
+  --single-audio-secondary-color: #78909C; /* Medium Blue-Grey */
+  --single-audio-progress-bg: #607D8B; /* Slightly Lighter Blue-Grey */
+  --single-audio-progress-fill: #03A9F4; /* Bright Light Blue */
+  --single-audio-buffered-color: #90A4AE; /* Lighter Blue */
+  --single-audio-volume-slider-bg: #4FC3F7; /* Light Blue-Grey */
+  --single-audio-volume-slider-thumb: #03A9F4; /* Bright Light Blue */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --single-audio-button-bg: #03A9F4; /* Bright Light Blue */
+  --single-audio-button-hover-bg: #607D8B; /* Blue-Grey */
+}
+
+/* Palette 5: Dark Mode Orange Pop (Dark grey base with a striking amber orange accent) */
+.palette-5 {
+  --single-audio-player-bg: #263238; /* Dark Grey */
+  --single-audio-text-color: #ECEFF1; /* Light Grey */
+  --single-audio-time-color: #B0BEC5; /* Muted Light Grey */
+  --single-audio-primary-color: #FF5722; /* Striking Amber Orange */
+  --single-audio-primary-hover-color: #E64A19; /* Darker Amber Orange */
+  --single-audio-secondary-color: #607D8B; /* Medium Dark Grey */
+  --single-audio-progress-bg: #37474F; /* Slightly Lighter Dark Grey */
+  --single-audio-progress-fill: #FF5722; /* Striking Amber Orange */
+  --single-audio-buffered-color: #455A64; /* Lighter Orange */
+  --single-audio-volume-slider-bg: #FFAB91; /* Medium Grey */
+  --single-audio-volume-slider-thumb: #FF5722; /* Striking Amber Orange */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --single-audio-button-bg: #FF5722; /* Striking Amber Orange */
+  --single-audio-button-hover-bg: #37474F; /* Dark Grey */
+}
+
+/* Palette 6: Midnight Violet (Nearly black base with a deep purple accent) */
+.palette-6 {
+  --single-audio-player-bg: #1A1A2E; /* Nearly Black */
+  --single-audio-text-color: #E0E0E0; /* Light Grey */
+  --single-audio-time-color: #BDBDBD; /* Muted Grey */
+  --single-audio-primary-color: #7C4DFF; /* Deep Purple */
+  --single-audio-primary-hover-color: #651FFF; /* Darker Deep Purple */
+  --single-audio-secondary-color: #533483; /* Darker Purple */
+  --single-audio-progress-bg: #27273F; /* Slightly Lighter Nearly Black */
+  --single-audio-progress-fill: #7C4DFF; /* Deep Purple */
+  --single-audio-buffered-color: #3D3D5C; /* Light Purple */
+  --single-audio-volume-slider-bg: #B39DDB; /* Medium Dark Purple */
+  --single-audio-volume-slider-thumb: #7C4DFF; /* Deep Purple */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --single-audio-button-bg: #7C4DFF; /* Deep Purple */
+  --single-audio-button-hover-bg: #27273F; /* Nearly Black */
+}
+
+/* Palette 7: Twilight Deep Orange (Dark purple-ish base with a bold deep orange accent) */
+.palette-7 {
+  --single-audio-player-bg: #2D0B3D; /* Dark Purple-ish */
+  --single-audio-text-color: #F8F8F8; /* Nearly White */
+  --single-audio-time-color: #E0E0E0; /* Light Grey */
+  --single-audio-primary-color: #FF5722; /* Bold Deep Orange */
+  --single-audio-primary-hover-color: #E64A19; /* Darker Deep Orange */
+  --single-audio-secondary-color: #4A148C; /* Darker Purple */
+  --single-audio-progress-bg: #3C0E51; /* Slightly Lighter Dark Purple-ish */
+  --single-audio-progress-fill: #FF5722; /* Bold Deep Orange */
+  --single-audio-buffered-color: #5D1A7C; /* Lighter Orange */
+  --single-audio-volume-slider-bg: #FFAB91; /* Medium Purple */
+  --single-audio-volume-slider-thumb: #FF5722; /* Bold Deep Orange */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --single-audio-button-bg: #FF5722; /* Bold Deep Orange */
+  --single-audio-button-hover-bg: #3C0E51; /* Dark Purple-ish */
+}
+
+/* Palette 8: Forest Sage Green (Dark green base with a muted, earthy green accent) */
+.palette-8 {
+  --single-audio-player-bg: #2E402F; /* Dark Green */
+  --single-audio-text-color: #E8F5E9; /* Very Light Green */
+  --single-audio-time-color: #C8E6C9; /* Muted Light Green */
+  --single-audio-primary-color: #8BC34A; /* Muted Earthy Green */
+  --single-audio-primary-hover-color: #689F38; /* Darker Earthy Green */
+  --single-audio-secondary-color: #4CAF50; /* Medium Green */
+  --single-audio-progress-bg: #384E39; /* Slightly Lighter Dark Green */
+  --single-audio-progress-fill: #8BC34A; /* Muted Earthy Green */
+  --single-audio-buffered-color: #5A705B; /* Light Earthy Green */
+  --single-audio-volume-slider-bg: #A5D6A7; /* Medium Dark Green */
+  --single-audio-volume-slider-thumb: #8BC34A; /* Muted Earthy Green */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --single-audio-button-bg: #8BC34A; /* Muted Earthy Green */
+  --single-audio-button-hover-bg: #384E39; /* Dark Green */
+}
+
+/* Palette 9: Urban Cyan Grey (Dark grey base with a cool cyan accent) */
+.palette-9 {
+  --single-audio-player-bg: #37474F; /* Dark Grey */
+  --single-audio-text-color: #ECEFF1; /* Light Grey */
+  --single-audio-time-color: #B0BEC5; /* Muted Light Grey */
+  --single-audio-primary-color: #00BCD4; /* Cool Cyan */
+  --single-audio-primary-hover-color: #0097A7; /* Darker Cyan */
+  --single-audio-secondary-color: #607D8B; /* Medium Grey */
+  --single-audio-progress-bg: #455A64; /* Slightly Lighter Dark Grey */
+  --single-audio-progress-fill: #00BCD4; /* Cool Cyan */
+  --single-audio-buffered-color: #546E7A; /* Lighter Cyan */
+  --single-audio-volume-slider-bg: #80DEEA; /* Medium Dark Grey */
+  --single-audio-volume-slider-thumb: #00BCD4; /* Cool Cyan */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --single-audio-button-bg: #00BCD4; /* Cool Cyan */
+  --single-audio-button-hover-bg: #455A64; /* Dark Grey */
+}
+
+/* Palette 10: Nautical Blue Grey (Deep blue/grey base with a classic vibrant blue accent) */
+.palette-10 {
+  --single-audio-player-bg: #2C3E50; /* Deep Blue/Grey */
+  --single-audio-text-color: #ECF0F1; /* Light Grey */
+  --single-audio-time-color: #BDC3C7; /* Muted Light Grey */
+  --single-audio-primary-color: #3498DB; /* Classic Vibrant Blue */
+  --single-audio-primary-hover-color: #2980B9; /* Darker Vibrant Blue */
+  --single-audio-secondary-color: #95A5A6; /* Grey */
+  --single-audio-progress-bg: #34495E; /* Slightly Lighter Deep Blue/Grey */
+  --single-audio-progress-fill: #3498DB; /* Classic Vibrant Blue */
+  --single-audio-buffered-color: #4A6572; /* Lighter Blue */
+  --single-audio-volume-slider-bg: #85C1E9; /* Muted Blue-Grey */
+  --single-audio-volume-slider-thumb: #3498DB; /* Classic Vibrant Blue */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  --single-audio-button-bg: #3498DB; /* Classic Vibrant Blue */
+  --single-audio-button-hover-bg: #34495E; /* Deep Blue/Grey */
+}
+
+/* Palette 11: Crisp Light Gray (Very light grey/white base with a dark grey accent) */
+.palette-11 {
+  --single-audio-player-bg: #F5F5F5; /* Very Light Grey/White */
+  --single-audio-text-color: #333333; /* Dark Grey */
+  --single-audio-time-color: #666666; /* Medium Dark Grey */
+  --single-audio-primary-color: #424242; /* Dark Grey Accent */
+  --single-audio-primary-hover-color: #212121; /* Darker Grey Accent */
+  --single-audio-secondary-color: #9E9E9E; /* Medium Grey */
+  --single-audio-progress-bg: #E0E0E0; /* Light Grey */
+  --single-audio-progress-fill: #424242; /* Dark Grey Accent */
+  --single-audio-buffered-color: #CCCCCC; /* Muted Light Grey */
+  --single-audio-volume-slider-bg: #BDBDBD; /* Light Grey */
+  --single-audio-volume-slider-thumb: #424242; /* Dark Grey Accent */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --single-audio-button-bg: #424242; /* Dark Grey Accent */
+  --single-audio-button-hover-bg: #E0E0E0; /* Light Grey */
+}
+
+/* Palette 12: Cotton Candy Pink (White base with a vibrant pink accent) */
+.palette-12 {
+  --single-audio-player-bg: #FFFFFF; /* White */
+  --single-audio-text-color: #424242; /* Dark Grey */
+  --single-audio-time-color: #757575; /* Medium Grey */
+  --single-audio-primary-color: #FF4081; /* Vibrant Pink */
+  --single-audio-primary-hover-color: #F50057; /* Darker Vibrant Pink */
+  --single-audio-secondary-color: #9C27B0; /* Medium Purple */
+  --single-audio-progress-bg: #F8BBD0; /* Light Pink */
+  --single-audio-progress-fill: #FF4081; /* Vibrant Pink */
+  --single-audio-buffered-color: #FCE4EC; /* Lighter Pink */
+  --single-audio-volume-slider-bg: #FFCDD2; /* Very Light Pink */
+  --single-audio-volume-slider-thumb: #FF4081; /* Vibrant Pink */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  --single-audio-button-bg: #FF4081; /* Vibrant Pink */
+  --single-audio-button-hover-bg: #F8BBD0; /* Light Pink */
+}
+
+/* Palette 13: Earthy Sepia Tone (Warm, light beige/brown base with a deeper brown accent) */
+.palette-13 {
+  --single-audio-player-bg: #F5F5DC; /* Light Beige */
+  --single-audio-text-color: #5D4037; /* Dark Brown */
+  --single-audio-time-color: #8D6E63; /* Medium Brown */
+  --single-audio-primary-color: #795548; /* Deeper Brown */
+  --single-audio-primary-hover-color: #5D4037; /* Darker Deeper Brown */
+  --single-audio-secondary-color: #A1887F; /* Lighter Brown */
+  --single-audio-progress-bg: #D7CCC8; /* Light Tan */
+  --single-audio-progress-fill: #795548; /* Deeper Brown */
+  --single-audio-buffered-color: #EFEBE9; /* Muted Tan */
+  --single-audio-volume-slider-bg: #BCAAA4; /* Very Light Tan */
+  --single-audio-volume-slider-thumb: #795548; /* Deeper Brown */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --single-audio-button-bg: #795548; /* Deeper Brown */
+  --single-audio-button-hover-bg: #D7CCC8; /* Light Tan */
+}
+
+/* Palette 14: Sky Blue Serenity (Light blue/green base with a bright light blue accent) */
+.palette-14 {
+  --single-audio-player-bg: #E1F5FE; /* Very Light Blue */
+  --single-audio-text-color: #212121; /* Dark Grey */
+  --single-audio-time-color: #616161; /* Medium Grey */
+  --single-audio-primary-color: #2196F3; /* Bright Light Blue */
+  --single-audio-primary-hover-color: #1976D2; /* Darker Bright Blue */
+  --single-audio-secondary-color: #90CAF9; /* Muted Light Blue */
+  --single-audio-progress-bg: #BBDEFB; /* Light Blue */
+  --single-audio-progress-fill: #2196F3; /* Bright Light Blue */
+  --single-audio-buffered-color: #E3F2FD; /* Light Blue */
+  --single-audio-volume-slider-bg: #90CAF9; /* Very Light Blue */
+  --single-audio-volume-slider-thumb: #2196F3; /* Bright Light Blue */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  --single-audio-button-bg: #2196F3; /* Bright Light Blue */
+  --single-audio-button-hover-bg: #BBDEFB; /* Light Blue */
+}
+
+/* Palette 15: Lavender Haze (Light grey base with a deep purple accent) */
+.palette-15 {
+  --single-audio-player-bg: #F0F4F7; /* Light Grey */
+  --single-audio-text-color: #424242; /* Dark Grey */
+  --single-audio-time-color: #757575; /* Medium Grey */
+  --single-audio-primary-color: #673AB7; /* Deep Purple */
+  --single-audio-primary-hover-color: #512DA8; /* Darker Deep Purple */
+  --single-audio-secondary-color: #9575CD; /* Medium Purple */
+  --single-audio-progress-bg: #D1C4E9; /* Light Purple */
+  --single-audio-progress-fill: #673AB7; /* Deep Purple */
+  --single-audio-buffered-color: #EDE7F6; /* Muted Purple */
+  --single-audio-volume-slider-bg: #B39DDB; /* Very Light Purple */
+  --single-audio-volume-slider-thumb: #673AB7; /* Deep Purple */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.09);
+  --single-audio-button-bg: #673AB7; /* Deep Purple */
+  --single-audio-button-hover-bg: #D1C4E9; /* Light Purple */
+}
+
+/* Palette 16: Minty Fresh Green (Light green base with a standard Google Green accent) */
+.palette-16 {
+  --single-audio-player-bg: #E8F5E9; /* Light Green */
+  --single-audio-text-color: #212121; /* Dark Grey */
+  --single-audio-time-color: #616161; /* Medium Grey */
+  --single-audio-primary-color: #4CAF50; /* Google Green */
+  --single-audio-primary-hover-color: #388E3C; /* Darker Google Green */
+  --single-audio-secondary-color: #A5D6A7; /* Muted Light Green */
+  --single-audio-progress-bg: #C8E6C9; /* Light Green */
+  --single-audio-progress-fill: #4CAF50; /* Google Green */
+  --single-audio-buffered-color: #E8F5E9; /* Muted Light Green */
+  --single-audio-volume-slider-bg: #D1C4E9; /* Very Light Green */
+  --single-audio-volume-slider-thumb: #4CAF50; /* Google Green */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  --single-audio-button-bg: #4CAF50; /* Google Green */
+  --single-audio-button-hover-bg: #C8E6C9; /* Light Green */
+}
+
+/* Palette 17: Sandy Gold Glow (Light sandy/yellow base with a bright amber/gold accent) */
+.palette-17 {
+  --single-audio-player-bg: #FFF8E1; /* Light Sandy/Yellow */
+  --single-audio-text-color: #333333; /* Dark Grey */
+  --single-audio-time-color: #666666; /* Medium Grey */
+  --single-audio-primary-color: #FFC107; /* Bright Amber/Gold */
+  --single-audio-primary-hover-color: #FFB300; /* Darker Amber/Gold */
+  --single-audio-secondary-color: #FFECB3; /* Lighter Amber */
+  --single-audio-progress-bg: #FFEE58; /* Medium Yellow */
+  --single-audio-progress-fill: #FFC107; /* Bright Amber/Gold */
+  --single-audio-buffered-color: #FFFDE7; /* Light Yellow */
+  --single-audio-volume-slider-bg: #FFEB3B; /* Very Light Yellow */
+  --single-audio-volume-slider-thumb: #FFC107; /* Bright Amber/Gold */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --single-audio-button-bg: #FFC107; /* Bright Amber/Gold */
+  --single-audio-button-hover-bg: #FFEE58; /* Medium Yellow */
+}
+
+/* Palette 18: Arctic Red Ember (Very light grey/white base with a strong red accent) */
+.palette-18 {
+  --single-audio-player-bg: #F8F9FA; /* Very Light Grey/White */
+  --single-audio-text-color: #343A40; /* Dark Grey */
+  --single-audio-time-color: #6C757D; /* Medium Grey */
+  --single-audio-primary-color: #DC3545; /* Strong Red */
+  --single-audio-primary-hover-color: #C82333; /* Darker Strong Red */
+  --single-audio-secondary-color: #ADB5BD; /* Muted Grey */
+  --single-audio-progress-bg: #FADBD8; /* Light Red */
+  --single-audio-progress-fill: #DC3545; /* Strong Red */
+  --single-audio-buffered-color: #FDFEFE; /* Lighter Red */
+  --single-audio-volume-slider-bg: #F5C6CB; /* Pure White */
+  --single-audio-volume-slider-thumb: #DC3545; /* Strong Red */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --single-audio-button-bg: #DC3545; /* Strong Red */
+  --single-audio-button-hover-bg: #FADBD8; /* Light Red */
+}
+
+/* Palette 19: Porcelain Aqua Blue (Light grey base with a soft, bright blue accent) */
+.palette-19 {
+  --single-audio-player-bg: #F5F7FA; /* Light Grey */
+  --single-audio-text-color: #34495E; /* Dark Blue-Grey */
+  --single-audio-time-color: #607D8B; /* Medium Blue-Grey */
+  --single-audio-primary-color: #5DBCD2; /* Soft, Bright Blue */
+  --single-audio-primary-hover-color: #4CB0C8; /* Darker Soft Blue */
+  --single-audio-secondary-color: #9FC1CC; /* Muted Blue */
+  --single-audio-progress-bg: #C5E5EB; /* Light Aqua */
+  --single-audio-progress-fill: #5DBCD2; /* Soft, Bright Blue */
+  --single-audio-buffered-color: #E0F2F7; /* Light Green-Blue */
+  --single-audio-volume-slider-bg: #B2DFDB; /* Very Light Aqua */
+  --single-audio-volume-slider-thumb: #5DBCD2; /* Soft, Bright Blue */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --single-audio-button-bg: #5DBCD2; /* Soft, Bright Blue */
+  --single-audio-button-hover-bg: #C5E5EB; /* Light Aqua */
+}
+
+/* Palette 20: Modern Blue & White (Classic white base with a vibrant blue accent) */
+.palette-20 {
+  --single-audio-player-bg: #FFFFFF; /* Classic White */
+  --single-audio-text-color: #212121; /* Dark Grey */
+  --single-audio-time-color: #616161; /* Medium Grey */
+  --single-audio-primary-color: #1A73E8; /* Vibrant Blue */
+  --single-audio-primary-hover-color: #1760CF; /* Darker Vibrant Blue */
+  --single-audio-secondary-color: #BBDEFB; /* Muted Light Blue */
+  --single-audio-progress-bg: #E3F2FD; /* Very Light Blue */
+  --single-audio-progress-fill: #1A73E8; /* Vibrant Blue */
+  --single-audio-buffered-color: #E0E0E0; /* Light Blue */
+  --single-audio-volume-slider-bg: #90CAF9; /* Light Grey */
+  --single-audio-volume-slider-thumb: #1A73E8; /* Vibrant Blue */
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  --single-audio-button-bg: #1A73E8; /* Vibrant Blue */
+  --single-audio-button-hover-bg: #E3F2FD; /* Very Light Blue */
+}

@@ -6,6 +6,12 @@ We believe that an thriving AI community is vital for the success of Drupal and 
 
 There are a lot of ways to contribute to the AI module, and we are grateful for any help we can get. If your company has greater goals with the contribution, please be aware of the [Drupal AI Initiative Strategy](https://new.drupal.org/ai/announcement).
 
+## Before Contributing
+
+When creating new issues or updating existing ones, it's important to use good content and metadata such as a clear title, steps to reproduce, component, etc.
+
+Please make sure you follow the [AI module issue guidelines](issue_guidelines.md).
+
 ## How to Contribute
 
 The AI module is a complex module with many moving parts, and we need help in various areas to keep it running smoothly. Here are some ways you can contribute:
@@ -15,4 +21,5 @@ The AI module is a complex module with many moving parts, and we need help in va
 - **Testing**: Help us test the AI module and its submodules, either manually or by writing testing scripts. This is crucial for ensuring that the module works as expected across different environments and use cases. Read more in the [Contribute Testing](testing.md) section.
 - **Documentation**: Help us improve the documentation for the AI module. This is crucial for helping users and developers understand how to use and contribute to the AI module effectively. Read more in the [Contribute Documentation](documentation.md) section.
 - **Code contributions**: If you are a developer, you can contribute code to the AI module. This includes writing new features, fixing bugs, and improving existing code. Read more in the [Developer Information](developer_information.md) section.
+- **Issue triage**: Issue metadata (such as status, component, priority, and tags) are very important to help with efficient issue management. You can help by reviewing issues and updating the metadata when you see mistakes. Read more in the [Issue Guidelines](issue_guidelines.md) section.
 

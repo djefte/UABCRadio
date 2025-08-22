@@ -11,6 +11,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\modeler_api\Api;
+use Drupal\modeler_api\EntityOriginalTrait;
 use Drupal\modeler_api\Form\Settings;
 use Drupal\modeler_api\Plugin\ModelerPluginManager;
 use Drupal\modeler_api\Plugin\ModelOwnerPluginManager;
@@ -25,6 +26,8 @@ use Symfony\Component\HttpFoundation\Response;
  * @package Drupal\modeler_api\Controller
  */
 final class ModelerApi extends ControllerBase {
+
+  use EntityOriginalTrait;
 
   /**
    * Modeler API controller constructor.
@@ -241,7 +244,7 @@ final class ModelerApi extends ControllerBase {
       $model = $this->api->prepareModelFromData($data, $model_owner_id, $modeler_id, $isNew);
       if ($model !== NULL) {
         $isNew = $model->isNew();
-        $originalModel = $model->getOriginal();
+        $originalModel = $this->getOriginal($model);
         $model->save();
         if ($isNew) {
           /** @var \Drupal\modeler_api\Plugin\ModelerApiModelOwner\ModelOwnerInterface $owner */

@@ -30,6 +30,7 @@ use Symfony\Component\Routing\Route;
  */
 class Api {
 
+  use EntityOriginalTrait;
   use StringTranslationTrait;
 
   /**
@@ -49,15 +50,15 @@ class Api {
     return \Drupal::service('modeler_api.service');
   }
 
-  public const int COMPONENT_TYPE_START = 1;
-  public const int COMPONENT_TYPE_SUBPROCESS = 2;
-  public const int COMPONENT_TYPE_SWIMLANE = 3;
-  public const int COMPONENT_TYPE_ELEMENT = 4;
-  public const int COMPONENT_TYPE_LINK = 5;
-  public const int COMPONENT_TYPE_GATEWAY = 6;
-  public const int COMPONENT_TYPE_ANNOTATION = 7;
+  public const COMPONENT_TYPE_START = 1;
+  public const COMPONENT_TYPE_SUBPROCESS = 2;
+  public const COMPONENT_TYPE_SWIMLANE = 3;
+  public const COMPONENT_TYPE_ELEMENT = 4;
+  public const COMPONENT_TYPE_LINK = 5;
+  public const COMPONENT_TYPE_GATEWAY = 6;
+  public const COMPONENT_TYPE_ANNOTATION = 7;
 
-  public const array AVAILABLE_COMPONENT_TYPES = [
+  public const AVAILABLE_COMPONENT_TYPES = [
     self::COMPONENT_TYPE_START,
     self::COMPONENT_TYPE_SUBPROCESS,
     self::COMPONENT_TYPE_SWIMLANE,
@@ -334,7 +335,7 @@ class Api {
     }
 
     if ($model !== NULL) {
-      $model->setOriginal(clone $model);
+      $this->setOriginal($model, clone $model);
       $owner->resetComponents($model);
     }
     else {
@@ -347,7 +348,7 @@ class Api {
         /** @var \Drupal\Core\Config\Entity\ConfigEntityInterface|null $model */
         $model = $storage->load($modelId);
         if ($model) {
-          $model->setOriginal(clone $model);
+          $this->setOriginal($model, clone $model);
           $owner->resetComponents($model);
         }
         else {
@@ -420,14 +421,15 @@ class Api {
    *   The model owner.
    * @param \Drupal\Core\Config\Entity\ConfigEntityInterface $entity
    *   The model owner's config entity.
-   * @param string $archiveFileName
-   *   The fully qualified filename for the archive.
+   * @param string|null $archiveFileName
+   *   The fully qualified filename for the archive. If NULL, this only
+   *   calculates and returns the dependencies but doesn't write an archive.
    *
    * @return array
    *   An array with "config" and "module" keys, each containing the list of
    *   dependencies.
    */
-  public function exportArchive(ModelOwnerInterface $owner, ConfigEntityInterface $entity, string $archiveFileName): array {
+  public function exportArchive(ModelOwnerInterface $owner, ConfigEntityInterface $entity, ?string $archiveFileName = NULL): array {
     $dependencies = [
       'config' => [
         $owner->configEntityProviderId() . '.' . $owner->configEntityTypeId() . '.' . $entity->id(),
@@ -438,23 +440,25 @@ class Api {
       $dependencies['config'][] = 'modeler_api.data_model.' . $owner->storageId($entity);
     }
     $this->getNestedDependencies($dependencies, $entity->getDependencies());
-    if (file_exists($archiveFileName)) {
-      try {
-        @$this->fileSystem->delete($archiveFileName);
+    if ($archiveFileName !== NULL) {
+      if (file_exists($archiveFileName)) {
+        try {
+          @$this->fileSystem->delete($archiveFileName);
+        }
+        catch (FileException) {
+          // Ignore failed deletes.
+        }
       }
-      catch (FileException) {
-        // Ignore failed deletes.
+      $archiver = new ArchiveTar($archiveFileName, 'gz');
+      foreach ($dependencies['config'] as $name) {
+        $config = $this->configStorage->read($name);
+        if ($config) {
+          unset($config['uuid'], $config['_core']);
+          $archiver->addString("$name.yml", Yaml::encode($config));
+        }
       }
+      $archiver->addString('dependencies.yml', Yaml::encode($dependencies));
     }
-    $archiver = new ArchiveTar($archiveFileName, 'gz');
-    foreach ($dependencies['config'] as $name) {
-      $config = $this->configStorage->read($name);
-      if ($config) {
-        unset($config['uuid'], $config['_core']);
-        $archiver->addString("$name.yml", Yaml::encode($config));
-      }
-    }
-    $archiver->addString('dependencies.yml', Yaml::encode($dependencies));
 
     // Remove model from the config dependencies.
     array_shift($dependencies['config']);

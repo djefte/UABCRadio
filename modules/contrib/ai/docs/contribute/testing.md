@@ -1,5 +1,7 @@
 # Contribute Testing
 
+> Please make sure you follow the [AI module issue guidelines](issue_guidelines.md).
+
 This section covers how you can contribute by testing the AI module. Testing is crucial for ensuring the quality and stability of the AI module, especially close to a new release. It helps identify bugs, verify fixes, and ensure that new features work as intended.
 
 ## Manual Testing

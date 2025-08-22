@@ -18,9 +18,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 final class Settings extends ConfigFormBase {
 
-  public const string STORAGE_OPTION_NONE = 'none';
-  public const string STORAGE_OPTION_THIRD_PARTY = 'third-party';
-  public const string STORAGE_OPTION_SEPARATE = 'separate';
+  public const STORAGE_OPTION_NONE = 'none';
+  public const STORAGE_OPTION_THIRD_PARTY = 'third-party';
+  public const STORAGE_OPTION_SEPARATE = 'separate';
 
   /**
    * Provides a list of valid storage options.
@@ -38,7 +38,7 @@ final class Settings extends ConfigFormBase {
     ];
   }
 
-  public const bool DEFAULT_PROPERTY_PANEL = TRUE;
+  public const DEFAULT_PROPERTY_PANEL = TRUE;
 
   /**
    * The model owner plugin manager.

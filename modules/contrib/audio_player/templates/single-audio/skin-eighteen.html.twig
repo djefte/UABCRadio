@@ -1,0 +1,45 @@
+<div class="audio-main-container">
+ {% for audio in audios %}
+  {% set original_url = audio.original_url %}
+
+  <div class="audio-player skin-eighteen audio-player-container {{ palette }}">
+    <audio class="audio-player-audio-element" src="{{ original_url }}"></audio>
+
+    <div class="audio-player-controls">
+                  <div class="audio-player-top-row">
+        <button class="audio-player-play-pause audio-player-button" aria-label="Play/Pause">
+          <svg class="audio-player-icon audio-player-icon-play" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg class="audio-player-icon audio-player-icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+            <path d="M6 6h4v12H6zm8 0h4v12h-4z"/>
+          </svg>
+        </button>
+
+        <div class="audio-player-progress-bar">
+          <div class="audio-player-buffer-bar"></div>
+          <div class="audio-player-progress"></div>
+          <div class="audio-player-progress-slider"></div>
+        </div>
+
+        <div class="audio-player-time">
+          <span class="audio-player-current-time">0:00</span> / <span class="audio-player-duration">0:00</span>
+        </div>
+            </div>
+            <div class="audio-player-volume-control">
+        <button class="audio-player-mute-unmute audio-player-button" aria-label="Mute/Unmute">
+          <svg class="audio-player-icon audio-player-icon-volume-on" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          <svg class="audio-player-icon audio-player-icon-volume-off" style="display: none;" fill="currentColor" class="icon volume-mute-icon" viewBox="0 0 24 24">
+            <path d="M7 9v6h4l5 5V4l-5 5H7zm12.5-3.24L17.74 5 15 7.74 12.26 5 11 6.26 13.74 9 11 11.74 12.26 13 15 10.26 17.74 13 19 11.74 16.26 9 19 6.26z"></path>
+          </svg>
+        </button>
+        <div class="audio-player-volume-slider">
+          <div class="audio-player-volume-fill"></div>
+          <div class="audio-player-volume-handle"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ {% endfor %}
+</div>

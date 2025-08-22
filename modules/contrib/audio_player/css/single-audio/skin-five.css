@@ -1,0 +1,229 @@
+.default-palette {
+  --single-audio-player-bg: #fff;
+  --single-audio-text-color: #333;
+  --single-audio-time-color: #555;
+  --single-audio-primary-color: #007bff;
+  --single-audio-primary-hover-color: #0056b3;
+  --single-audio-secondary-color: #555;
+  --single-audio-progress-bg: #e0e0e0;
+  --single-audio-progress-fill: #007bff;
+  --single-audio-buffered-color: #a0c4e4;
+  --single-audio-volume-slider-bg: #ddd;
+  --single-audio-volume-slider-thumb: #007bff;
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --single-audio-button-bg: #007bff;
+  --single-audio-button-hover-bg: #f0f0f0;
+}
+
+.skin-five.audio-player-container {
+  width: 100%;
+  max-width: 900px; /* Max width for larger screens */
+  background-color: var(--single-audio-player-bg);
+  border-radius: 12px;
+  box-shadow: var(--single-audio-box-shadow);
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.audio-player.skin-five {
+  display: flex;
+  flex-wrap: wrap; /* Allows wrapping on smaller screens */
+  align-items: center;
+  gap: 15px; /* Spacing between elements */
+  width: 100%;
+}
+
+/* Control Buttons */
+.audio-player.skin-five .audio-player-control-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--single-audio-text-color);
+  transition: color 0.2s ease-in-out;
+}
+
+.audio-player.skin-five .audio-player-control-btn:hover {
+  color: var(--single-audio-primary-color);
+}
+
+.audio-player.skin-five .audio-player-control-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Song Info */
+.audio-player.skin-five .audio-player-song-info {
+  flex-grow: 1; /* Takes up available space */
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--single-audio-text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px; /* Ensure some space for song name */
+}
+
+/* Progress Section */
+.audio-player.skin-five .audio-player-progress-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-basis: 100%; /* Takes full width in two-row layout */
+  order: 1; /* Move to the second row for mobile */
+}
+
+.audio-player.skin-five .audio-player-progress-bar-wrapper {
+  flex-grow: 1;
+  height: 6px;
+  background-color: var(--single-audio-progress-bg); /* Background for the track */
+  border-radius: 3px;
+  overflow: hidden; /* Important for inner bars */
+  cursor: pointer;
+  position: relative; /* Needed for absolute positioning of buffered/progress bars */
+}
+
+/* NEW: Buffered Bar Styles */
+.audio-player.skin-five .audio-player-buffered-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%; /* Will be updated by JS */
+  background-color: var(--single-audio-buffered-color); /* A lighter blue for buffered portion */
+  border-radius: 3px;
+  z-index: 1; /* Ensure it's behind the main progress bar */
+}
+
+.audio-player.skin-five .audio-player-progress-bar {
+  position: absolute; /* Position within wrapper */
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%; /* Will be updated by JS */
+  background-color: var(--single-audio-progress-fill); /* Main progress color */
+  border-radius: 3px;
+  transition: width 0.1s linear; /* Smooth progress update */
+  z-index: 2; /* Ensure it's on top of the buffered bar */
+}
+
+.audio-player.skin-five .audio-player-time-display {
+  font-size: 0.85em;
+  color: var(--single-audio-time-color);
+}
+
+/* Volume Controls */
+.audio-player.skin-five .audio-player-volume-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.audio-player.skin-five .audio-player-volume-slider {
+  width: 80px;
+  -webkit-appearance: none;
+  height: 6px;
+  background: var(--single-audio-volume-slider-bg);
+  border-radius: 3px;
+  outline: none;
+  transition: opacity .2s;
+}
+
+.audio-player.skin-five .audio-player-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--single-audio-volume-slider-thumb);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Using a static shadow here as there's no specific variable for it */
+}
+
+.audio-player.skin-five .audio-player-volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--single-audio-volume-slider-thumb);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Using a static shadow here as there's no specific variable for it */
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .audio-player.skin-five {
+    flex-wrap: nowrap; /* Keep in one row on larger screens */
+    justify-content: space-between; /* Distribute items */
+  }
+
+  .audio-player.skin-five .audio-player-song-info {
+    flex-grow: 0; /* Don't take extra space */
+    order: 0; /* Reset order for one-row layout */
+  }
+
+  .audio-player.skin-five .audio-player-controls,
+  .audio-player.skin-five .audio-player-volume-controls {
+    flex-shrink: 0; /* Don't shrink */
+  }
+
+  .audio-player.skin-five .audio-player-progress-section {
+    order: 0; /* Reset order */
+    flex-basis: auto; /* Allow natural sizing */
+    flex-grow: 1; /* Take remaining space */
+  }
+}
+
+/* Specific styling for smaller mobile screens (two rows) */
+@media (max-width: 767px) {
+  .audio-player.skin-five {
+    flex-direction: column;
+    align-items: stretch; /* Stretch items to full width */
+    gap: 15px;
+  }
+
+  .audio-player.skin-five .audio-player-controls,
+  .audio-player.skin-five .audio-player-song-info,
+  .audio-player.skin-five .audio-player-progress-section,
+  .audio-player.skin-five .audio-player-volume-controls {
+    width: 100%; /* Make them full width */
+    justify-content: center; /* Center content within their full width */
+  }
+
+  .audio-player.skin-five .audio-player-controls {
+    display: flex;
+    justify-content: space-around;
+    order: 0; /* First row */
+  }
+
+  .audio-player.skin-five .audio-player-song-info {
+    order: 1; /* Second element in the first row */
+    text-align: center;
+  }
+
+  .audio-player.skin-five .audio-player-progress-section {
+    order: 2; /* Full width second row */
+  }
+
+  .audio-player.skin-five .audio-player-volume-controls {
+    order: 3; /* Full width third row */
+    justify-content: center;
+  }
+
+  .audio-player.skin-five .audio-player-volume-slider {
+    width: 120px; /* Make volume slider a bit wider on mobile */
+  }
+}
+
+.audio-player.skin-five .audio-player-controls {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}

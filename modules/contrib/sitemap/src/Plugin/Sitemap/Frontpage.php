@@ -4,24 +4,25 @@ namespace Drupal\sitemap\Plugin\Sitemap;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+use Drupal\sitemap\Attribute\Sitemap;
 use Drupal\sitemap\SitemapBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a link to the front page for the sitemap.
- *
- * @Sitemap(
- *   id = "frontpage",
- *   title = @Translation("Site front page"),
- *   description = @Translation("Displays a sitemap link for the site front page."),
- *   settings = {
- *     "title" = @Translation("Front page"),
- *     "rss" = "/rss.xml",
- *   },
- *   enabled = TRUE,
- * )
  */
+#[Sitemap(
+  id: 'frontpage',
+  title: new TranslatableMarkup('Site front page'),
+  description: new TranslatableMarkup('Displays a sitemap link for the site front page.'),
+  enabled: TRUE,
+  settings: [
+    'title' => new TranslatableMarkup('Front page'),
+    'rss' => '/rss.xml',
+  ],
+)]
 class Frontpage extends SitemapBase {
 
   /**

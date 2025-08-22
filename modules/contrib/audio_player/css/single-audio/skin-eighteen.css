@@ -1,0 +1,235 @@
+.default-palette {
+  --single-audio-player-bg: #fff;
+  --single-audio-text-color: #333;
+  --single-audio-time-color: #555;
+  --single-audio-primary-color: #007bff;
+  --single-audio-primary-hover-color: #0056b3;
+  --single-audio-secondary-color: #555;
+  --single-audio-progress-bg: #e0e0e0;
+  --single-audio-progress-fill: #007bff;
+  --single-audio-buffered-color: #a0c4e4;
+  --single-audio-volume-slider-bg: #ddd;
+  --single-audio-volume-slider-thumb: #007bff;
+  --single-audio-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --single-audio-button-bg: #007bff;
+  --single-audio-button-hover-bg: #f0f0f0;
+}
+
+/* Audio Player Container */
+.audio-player.skin-eighteen.audio-player-container {
+    background-color: var(--single-audio-player-bg);
+    border-radius: 10px;
+    box-shadow: var(--single-audio-box-shadow);
+    padding: 15px;
+    display: flex;
+    flex-direction: column; /* Overall player container stacks content vertically */
+    align-items: center;
+    width: 90%;
+    max-width: 800px;
+    gap: 15px; /* Space between overall player elements */
+}
+
+/* Controls Wrapper (Now holds the two rows) */
+.audio-player.skin-eighteen .audio-player-controls {
+    display: flex;
+    flex-direction: column; /* Default to column to stack the two "rows" */
+    align-items: end; /* Center the two "rows" horizontally */
+    width: 100%;
+    gap: 15px; /* Space between the top row and the volume row */
+}
+
+/* NEW: Wrapper for the first row of controls (Play/Pause, Progress, Time) */
+.audio-player.skin-eighteen .audio-player-top-row {
+    display: flex; /* Make its children lay out horizontally */
+    align-items: center;
+    width: 100%; /* Ensure it spans the full width of its parent (.audio-player-controls) */
+    gap: 15px; /* Space between play/pause, progress, time */
+}
+
+/* Audio Element (Hidden) */
+.audio-player.skin-eighteen .audio-player-audio-element {
+    display: none; /* Hide the default audio controls */
+}
+
+/* Buttons */
+.audio-player.skin-eighteen .audio-player-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--single-audio-text-color); /* Default color for icons */
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out; /* Add color transition */
+    flex-shrink: 0; /* Prevent shrinking on smaller screens */
+}
+
+.audio-player.skin-eighteen .audio-player-button:hover {
+    transform: scale(1.1);
+}
+
+/* Mute button specific styling */
+.audio-player.skin-eighteen .audio-player-mute-unmute.audio-player-muted-icon {
+    color: #dc3545; /* Red color when muted */
+}
+
+.audio-player.skin-eighteen .audio-player-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.audio-player.skin-eighteen .audio-player-icon-play,
+.audio-player.skin-eighteen .audio-player-icon-pause {
+    width: 24px;
+    height: 24px;
+}
+
+/* Progress Bar */
+.audio-player.skin-eighteen .audio-player-progress-bar {
+    flex-grow: 1; /* Takes up available space */
+    height: 4px;
+    background-color: var(--single-audio-progress-bg); /* Base background for the bar */
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+}
+
+.audio-player.skin-eighteen .audio-player-buffer-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--single-audio-buffered-color); /* Light blue buffer */
+    width: 0%;
+    border-radius: 4px; /* Ensure corners match the bar */
+    z-index: 1; /* Place it below the active progress */
+    transition: width 0.1s linear; /* Smooth buffer progress */
+}
+
+.audio-player.skin-eighteen .audio-player-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--single-audio-progress-fill); /* Primary progress color */
+    width: 0%;
+    border-radius: 4px; /* Ensure corners match the bar */
+    z-index: 2; /* Place it above the buffer */
+    transition: width 0.1s linear; /* Smooth progress update */
+}
+
+/* Time Display */
+.audio-player.skin-eighteen .audio-player-time {
+    font-size: 0.9em;
+    color: var(--single-audio-time-color);
+    white-space: nowrap; /* Prevent wrapping */
+    flex-shrink: 0; /* Prevent shrinking on smaller screens */
+    min-width: 90px; /* Allocate enough space for "99:59 / 99:59" */
+    text-align: center; /* Center the time text within its fixed width */
+    font-variant-numeric: tabular-nums; /* Ensure numbers have consistent width */
+    -moz-font-feature-settings: "tnum";
+    -webkit-font-feature-settings: "tnum";
+    font-feature-settings: "tnum";
+}
+
+/* Volume Control (now the second row in mobile layout) */
+.audio-player.skin-eighteen .audio-player-volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0; /* Prevent shrinking */
+    width: 100%; /* Force it to take full width of its parent */
+    justify-content: center; /* Center volume controls within this full width */
+    max-width: 110px; /* Optional: Limit max width for better aesthetics on tablets */
+}
+
+.audio-player.skin-eighteen .audio-player-volume-slider {
+    flex-grow: 1; /* Allow slider to grow within its container */
+    height: 4px;
+    background-color: var(--single-audio-volume-slider-bg);
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.audio-player.skin-eighteen .audio-player-volume-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--single-audio-progress-fill); /* Default volume fill color */
+    width: 100%; /* Initial volume at max */
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out; /* Smooth color change */
+}
+
+/* Volume fill color when muted */
+.audio-player.skin-eighteen .audio-player-volume-slider.audio-player-muted-slider .audio-player-volume-fill {
+    background-color: #dc3545; /* Red when muted */
+}
+
+.audio-player.skin-eighteen .audio-player-volume-handle {
+    position: absolute;
+    top: -4px; /* Adjust to center vertically */
+    left: calc(100% - 8px); /* Initial position at max volume, adjust for handle width */
+    width: 16px;
+    height: 16px;
+    background-color: var(--single-audio-volume-slider-thumb); /* Default handle color */
+    border-radius: 50%;
+    transform: translateX(-50%);
+    cursor: grab;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: left 0.1s linear, background-color 0.2s ease-in-out; /* Smooth movement and color change */
+}
+
+/* Volume handle color when muted */
+.audio-player.skin-eighteen .audio-player-volume-slider.audio-player-muted-slider .audio-player-volume-handle {
+    background-color: #dc3545; /* Red when muted */
+}
+
+/* Responsive Layout (Desktop/Larger Screens) */
+@media (min-width: 768px) {
+    .audio-player.skin-eighteen.audio-player-container {
+        flex-direction: row; /* Main player container becomes a row for desktop */
+    }
+
+    /* Controls Wrapper (reverts to row for desktop, putting everything on one line) */
+    .audio-player.skin-eighteen .audio-player-controls {
+        flex-direction: row; /* Make main controls row on desktop */
+        flex-wrap: nowrap; /* Prevent wrapping on desktop */
+        align-items: center; /* Align items vertically in the row */
+        gap: 15px; /* Standard gap between elements */
+    }
+
+    /* Top Row Wrapper (now acts as a single flexible unit within the main controls row) */
+    .audio-player.skin-eighteen .audio-player-top-row {
+        width: auto; /* Let it size based on its content */
+        flex-grow: 1; /* Allow it to take up available space, pushing volume to the right */
+        justify-content: flex-start; /* Align contents to start */
+    }
+
+    /* Volume Control (reverts to compact size for desktop) */
+    .audio-player.skin-eighteen .audio-player-volume-control {
+        width: 120px; /* Revert to fixed width for desktop */
+        max-width: 120px; /* Ensure it respects its fixed width */
+        justify-content: flex-start; /* Align contents to start */
+    }
+}
+
+/* Additional styles for dragging state (optional) */
+.audio-player.skin-eighteen .audio-player-progress-slider.dragging,
+.audio-player.skin-eighteen .audio-player-volume-handle.dragging {
+    cursor: grabbing;
+}
+@media (max-width: 768px) {
+    .audio-player.skin-eighteen .audio-player-time {
+      font-size: 0.8em;
+      min-width: 70px;
+    }
+    .audio-player.skin-eighteen .audio-player-controls {
+      gap: 5px;
+    }
+}
