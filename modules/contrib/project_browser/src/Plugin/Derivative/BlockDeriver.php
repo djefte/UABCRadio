@@ -38,8 +38,8 @@ final class BlockDeriver extends DeriverBase implements ContainerDeriverInterfac
    * {@inheritdoc}
    */
   public function getDerivativeDefinitions($base_plugin_definition): array {
-    foreach ($this->sourceManager->getAllEnabledSources() as $id => $source) {
-      ['label' => $label] = $source->getPluginDefinition();
+    foreach ($this->sourceManager->getDefinitions() as $id => $definition) {
+      ['label' => $label] = $definition;
       $this->derivatives[$id] = ['admin_label' => $label] + $base_plugin_definition;
     }
     return parent::getDerivativeDefinitions($base_plugin_definition);

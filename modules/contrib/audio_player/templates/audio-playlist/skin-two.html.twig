@@ -82,7 +82,7 @@
         {% endfor %}
 
         <div class="audio-player-playlist">
-            <h3>Playlist</h3>
+            <h3>{{ ('Playlist')|t }}</h3>
             <div class="audio-player-playlist-content">
                 <ul class="audio-player-playlist-ul" data-playlist="{{ playlist|json_encode }}">
                     {% for key, song in playlist %}
@@ -97,7 +97,7 @@
                             </svg>
                             <div class="audio-player-track-info">
                                 <span class="audio-player-title-info">{{ song.mainTitle }} {{ song.subTitle }}</span>
-                                <span class="audio-player-time">0:00</span>
+                                <span>0:00</span>
                             </div>
                         </li>
                     {% endfor %}

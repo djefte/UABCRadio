@@ -598,9 +598,6 @@ class LeafletDefaultWidget extends GeofieldDefaultWidget {
       '#weight' => -2,
     ];
 
-    // Alter/customise the Value Title property.
-    $element['value']['#title'] = $this->t('GeoJSON Data');
-
     // Build JS settings for the Leaflet Widget.
     $leaflet_widget_js_settings = [
       'map_id' => $element['map']['#map_id'],

@@ -70,6 +70,10 @@
         // Determine source and target.
         const source = elementRegistry.get(id);
         const target = elementRegistry.get(next.id);
+        if (source === undefined || target === undefined) {
+          console.error(`Could not find element ${id} or ${next.id} when trying to create a connection. Skipping.`);
+          return;
+        }
         const attrs = {type: 'bpmn:SequenceFlow'};
 
         // Apply condition to the connection?

@@ -6,7 +6,7 @@ dependencies:
   - book:book
   - sitemap:sitemap
 
-# Information added by Drupal.org packaging script on 2025-08-19
-version: '8.x-2.2'
+# Information added by Drupal.org packaging script on 2025-10-01
+version: '8.x-2.4'
 project: 'sitemap'
-datestamp: 1755607735
+datestamp: 1759339107

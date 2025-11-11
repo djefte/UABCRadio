@@ -9,7 +9,8 @@ include:
 variables:
   OPT_IN_TEST_NEXT_MINOR: 1
   OPT_IN_TEST_NEXT_MAJOR: 1
-  _CSPELL_WORDS: 'Csvg, Cpath'
+  OPT_IN_TEST_PREVIOUS_MAJOR: 1
+  _CSPELL_WORDS: 'Csvg, Cpath, Unrestorable'
 
 composer-lint:
   allow_failure: false
@@ -32,10 +33,16 @@ phpstan (next minor):
 phpstan (next major):
   allow_failure: false
 
+phpstan (previous major):
+  allow_failure: true
+
 phpunit (next minor):
   allow_failure: false
 
 phpunit (next major):
+  allow_failure: false
+
+phpunit (previous major):
   allow_failure: false
 
 phpunit:

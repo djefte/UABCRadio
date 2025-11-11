@@ -65,6 +65,17 @@ class RouteSubscriber extends RouteSubscriberBase {
           ->setOption('_admin_route', TRUE)
           ->setOption('_trash_route', TRUE);
         $collection->add("entity.$entity_type_id.purge", $route);
+
+        // Ensure that entity delete forms never load the latest revision.
+        if ($route = $collection->get("entity.$entity_type_id.delete_form")) {
+          $parameters = $route->getOption('parameters') ?? [];
+          foreach ($parameters as &$parameter) {
+            if (isset($parameter['type']) && $parameter['type'] === "entity:$entity_type_id") {
+              unset($parameter['load_latest_revision']);
+              $route->setOption('parameters', $parameters);
+            }
+          }
+        }
       }
     }
   }
@@ -74,7 +85,8 @@ class RouteSubscriber extends RouteSubscriberBase {
    */
   public static function getSubscribedEvents(): array {
     $events = parent::getSubscribedEvents();
-    $events[RoutingEvents::ALTER] = ['onAlterRoutes', -120];
+    // This needs to run after ContentModerationRouteSubscriber::alterRoutes().
+    $events[RoutingEvents::ALTER] = ['onAlterRoutes', -210];
     return $events;
   }
 

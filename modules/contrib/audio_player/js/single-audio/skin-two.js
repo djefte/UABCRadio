@@ -21,7 +21,7 @@
         const $totalTimeSpan = $player.find('.audio-player-total-time');
         const $songNameSpan = $player.find('.audio-player-song-name');
 
-        let isPlaying = false;
+        let isPlaying = 0;
         let currentVolume = audio.volume; // Keep using native audio.volume for direct access
 
         const $playIconSvg = $playPauseBtn.find('.audio-player-play-icon');
@@ -58,14 +58,14 @@
 
         $muteUnmuteBtn.on('click', () => {
           if (audio.muted) {
-            audio.muted = false;
+            audio.muted = 0;
             audio.volume = currentVolume;
             $volumeSlider.val(currentVolume);
             $volumeUpIconSvg.show();
             $volumeMuteIconSvg.hide();
           } else {
             currentVolume = audio.volume;
-            audio.muted = true;
+            audio.muted = 1;
             audio.volume = 0;
             $volumeSlider.val(0);
             $volumeUpIconSvg.hide();
@@ -77,11 +77,11 @@
           audio.volume = $volumeSlider.val();
           currentVolume = audio.volume;
           if (audio.volume === 0) {
-            audio.muted = true;
+            audio.muted = 1;
             $volumeUpIconSvg.hide();
             $volumeMuteIconSvg.show();
           } else {
-            audio.muted = false;
+            audio.muted = 0;
             $volumeUpIconSvg.show();
             $volumeMuteIconSvg.hide();
           }
@@ -91,13 +91,13 @@
           const duration = audio.duration;
           if (!isNaN(duration)) {
             const progressPercent = (audio.currentTime / duration) * 100;
-            $progressBar.css('width', `${progressPercent}%`);
+            $progressBar.css('width', progressPercent + '%');
             $currentTimeSpan.text(formatTime(audio.currentTime));
 
             if (audio.buffered.length > 0) {
               const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
               const bufferedPercent = (bufferedEnd / duration) * 100;
-              $bufferedBar.css('width', `${bufferedPercent}%`);
+              $bufferedBar.css('width', bufferedPercent + '%');
             }
           }
         });
@@ -107,7 +107,7 @@
           if (!isNaN(duration) && audio.buffered.length > 0) {
             const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
             const bufferedPercent = (bufferedEnd / duration) * 100;
-            $bufferedBar.css('width', `${bufferedPercent}%`);
+            $bufferedBar.css('width', bufferedPercent + '%');
           }
         });
 
@@ -122,7 +122,7 @@
           $volumeSlider.val(audio.volume);
           currentVolume = audio.volume;
         };
-  
+
         // Trigger when the page loads or when audio metadata is loaded
         $(audio).on('loadedmetadata', updateMetadata);  // When audio metadata is loaded
 
@@ -139,7 +139,7 @@
         });
 
         $(audio).on('ended', () => {
-          isPlaying = false;
+          isPlaying = 0;
           $playIconSvg.show();
           $pauseIconSvg.hide();
           audio.currentTime = 0;

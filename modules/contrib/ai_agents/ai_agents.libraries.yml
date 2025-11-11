@@ -4,3 +4,9 @@ agents_form:
   css:
     theme:
       css/agents_form.css: {}
+agents_ckeditor:
+  js:
+    js/ckeditor_update.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery

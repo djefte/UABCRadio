@@ -1,15 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\dashboard\Functional\Form;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\dashboard\Entity\Dashboard;
 
 /**
  * Test for dashboard form.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardFormTest extends BrowserTestBase {
 
   /**
@@ -155,6 +157,52 @@ class DashboardFormTest extends BrowserTestBase {
     $this->assertSession()->elementTextEquals('xpath', '//*[@id="block-primary-local-tasks"]/ul/li[1]/a', 'Edit');
     $this->assertSession()->elementTextEquals('xpath', '//*[@id="block-primary-local-tasks"]/ul/li[2]/a', 'Edit layout');
     $this->assertSession()->elementTextEquals('xpath', '//*[@id="block-primary-local-tasks"]/ul/li[3]/a[contains(@class, is-active)]', 'Preview');
+  }
+
+  /**
+   * Tests saving dashboard layout.
+   */
+  public function testSaveDashboardLayout() {
+    $this->drupalLogin($this->adminUser);
+
+    $dashboard = Dashboard::create([
+      'id' => 'test_dashboard',
+      'label' => 'Test dashboard',
+      'weight' => 0,
+    ]);
+    $dashboard->save();
+
+    $this->drupalGet('admin/structure/dashboard/test_dashboard/layout');
+    $this->submitForm([], 'Save dashboard layout');
+
+    $this->assertSession()->addressEquals('/admin/dashboard/test_dashboard');
+    $this->assertSession()->pageTextContains('Updated dashboard Test Dashboard layout.');
+  }
+
+  /**
+   * Tests discarding dashboard layout changes.
+   */
+  public function testDiscardDashboardLayout() {
+    $this->drupalLogin($this->adminUser);
+
+    $dashboard = Dashboard::create([
+      'id' => 'test_dashboard',
+      'label' => 'Test dashboard',
+      'weight' => 0,
+    ]);
+    $dashboard->save();
+    $this->drupalGet('admin/structure/dashboard/test_dashboard/layout');
+
+    $this->clickLink('Discard changes');
+
+    $this->assertSession()->addressEquals('/admin/structure/dashboard/test_dashboard/layout/discard-changes');
+    $this->assertSession()->pageTextContains('Are you sure you want to discard your layout changes?');
+
+    $this->assertSession()->elementExists('xpath', '//input[@type="submit" and @value="Confirm"]');
+    $this->submitForm([], 'Confirm');
+
+    $this->assertSession()->addressEquals('/admin/dashboard/test_dashboard');
+    $this->assertSession()->pageTextContains('The changes to the layout have been discarded.');
   }
 
 }

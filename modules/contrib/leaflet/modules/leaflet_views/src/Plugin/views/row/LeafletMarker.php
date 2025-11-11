@@ -184,7 +184,7 @@ class LeafletMarker extends RowPluginBase implements ContainerFactoryPluginInter
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new self(
+    return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,

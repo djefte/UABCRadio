@@ -14,6 +14,8 @@ use Drupal\ai_agents\Attribute\AiAgent;
 use Drupal\ai_agents\PluginBase\AiAgentEntityWrapper;
 use Drupal\ai_agents\PluginInterfaces\AiAgentInterface;
 use Drupal\ai_agents\Service\AgentHelper;
+use Drupal\ai_agents\Service\ArtifactHelper;
+use Drupal\Component\Uuid\UuidInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -49,6 +51,10 @@ class AiAgentManager extends DefaultPluginManager {
    *   The event dispatcher.
    * @param \Drupal\ai\AiProviderPluginManager $aiProviderPluginManager
    *   The AI provider plugin manager.
+   * @param \Drupal\ai_agents\Service\ArtifactHelper $artifactHelper
+   *   The artifact helper service.
+   * @param \Drupal\Component\Uuid\UuidInterface $uuid
+   *   The UUID service.
    */
   public function __construct(
     \Traversable $namespaces,
@@ -61,6 +67,8 @@ class AiAgentManager extends DefaultPluginManager {
     protected Token $token,
     protected EventDispatcherInterface $eventDispatcher,
     protected AiProviderPluginManager $aiProviderPluginManager,
+    protected ArtifactHelper $artifactHelper,
+    protected UuidInterface $uuid,
   ) {
     parent::__construct(
       'Plugin/AiAgent',
@@ -91,10 +99,47 @@ class AiAgentManager extends DefaultPluginManager {
   public function createInstance($plugin_id, array $configuration = []): AiAgentInterface {
     // Check if the plugin is an action plugin.
     if (isset($this->definitions[$plugin_id]['custom_type']) && $this->definitions[$plugin_id]['custom_type'] === 'config') {
-      $instance = new AiAgentEntityWrapper($this->entityTypeManager->getStorage('ai_agent')->load($plugin_id), $this->currentUser, $this->entityTypeManager, $this->functionCallPluginManager, $this->agentHelper, $this->token, $this->eventDispatcher, $this->aiProviderPluginManager);
+      $instance = new AiAgentEntityWrapper(
+        $this->entityTypeManager->getStorage('ai_agent')->load($plugin_id),
+        $this->currentUser,
+        $this->entityTypeManager,
+        $this->functionCallPluginManager,
+        $this->agentHelper,
+        $this->token,
+        $this->eventDispatcher,
+        $this->aiProviderPluginManager,
+        $this->artifactHelper,
+        $this->uuid,
+      );
       return $instance;
     }
     return parent::createInstance($plugin_id, $configuration);
+  }
+
+  /**
+   * Get agent definitions that implements a specific tool.
+   *
+   * @param string $tool
+   *   The tool id to search for.
+   *
+   * @return array
+   *   An array of agent definitions that implement the tool.
+   */
+  public function getAgentsByTool(string $tool): array {
+    $agents = [];
+    foreach ($this->getDefinitions() as $id => $definition) {
+      if (isset($definition['custom_type']) && $definition['custom_type'] === 'config') {
+        // Load the plugin instance.
+        /** @var \Drupal\ai_agents\PluginInterfaces\ConfigAiAgentInterface $plugin */
+        $plugin = $this->createInstance($id);
+        // Get the actual configuration entity.
+        $entity = $plugin->getAiAgentEntity();
+        if (in_array($tool, array_keys($entity->get('tools')))) {
+          $agents[$id] = $definition;
+        }
+      }
+    }
+    return $agents;
   }
 
   /**

@@ -5,6 +5,7 @@
  * Audio player module.
  */
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\audio_player\Plugin\views\style\ViewsAudioPlayer;
 use Drupal\file\Entity\File;
@@ -235,7 +236,7 @@ function audio_player_generate_name($name) {
 
   $cleanString = trim($cleanString);
 
-  $cleanString = ucfirst(strtolower($cleanString));
+  $cleanString = Html::escape(ucfirst(strtolower($cleanString)));
 
   // Return the final cleaned filename without any extension.
   return $cleanString;
@@ -263,8 +264,8 @@ function audio_player_preprocess_views_view(array &$variables) {
       // Get the URL for the audio or video field.
       $video_url = audio_player_get_field_url($file_url_generator, $entity, $audio_player_video);
       if ($video_url) {
-        $video_title = isset($entity->{$audio_player_title}) ? $entity->{$audio_player_title}->value : NULL;
-        $video_subtitle = isset($entity->{$audio_player_subtitle}) ? $entity->{$audio_player_subtitle}->value : '';
+        $video_title = isset($entity->{$audio_player_title}) ? Html::escape($entity->{$audio_player_title}->value) : NULL;
+        $video_subtitle = isset($entity->{$audio_player_subtitle}) ? Html::escape($entity->{$audio_player_subtitle}->value) : '';
 
         if (!$video_title) {
           $video_title = basename($video_url);
@@ -276,6 +277,9 @@ function audio_player_preprocess_views_view(array &$variables) {
         $row->video_subtitle = $video_subtitle;
         $row->video_url = $video_url;
         $row->video_thumbnail = $audio_player_thumbnail;
+      }
+      else {
+        \Drupal::logger('audio_player')->error('No valid URL found for video field for entity ID: @entity_id', ['@entity_id' => $entity->id()]);
       }
     }
 
@@ -294,6 +298,7 @@ function audio_player_preprocess_views_view(array &$variables) {
     if (!empty($style_plugin['equalizer_effect'])) {
       $variables['#attached']['library'][] = 'audio_player/audio_player.equalizer';
     }
+    $variables['#cache'] = ['max-age' => 0];
   }
 }
 
@@ -325,8 +330,15 @@ function audio_player_get_field_url($file_url_generator, $entity, $audio_player_
  * Helper function to generate an absolute URL from a file.
  */
 function audio_player_generate_file_url($file_url_generator, File $file) {
-  $uri = $file->getFileUri();
-  return $file_url_generator->generateAbsoluteString($uri);
+  if ($file->getMimeType() && in_array($file->getMimeType(), ['audio/mpeg', 'audio/wav', 'audio/flac'])) {
+    $uri = $file->getFileUri();
+    return $file_url_generator->generateAbsoluteString($uri);
+  }
+  else {
+    // Log or handle invalid file type.
+    \Drupal::logger('audio_player')->warning('Invalid file type detected for file with URI: ' . $uri);
+    return NULL;
+  }
 }
 
 /**

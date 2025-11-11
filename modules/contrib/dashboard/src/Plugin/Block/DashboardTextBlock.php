@@ -2,18 +2,19 @@
 
 namespace Drupal\dashboard\Plugin\Block;
 
+use Drupal\Core\Block\Attribute\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Provides a Dashboard Text block.
- *
- * @Block(
- *   id = "dashboard_text_block",
- *   admin_label = @Translation("Dashboard Text"),
- *   category = @Translation("Dashboard"),
- * )
  */
+#[Block(
+  id: 'dashboard_text_block',
+  admin_label: new TranslatableMarkup('Dashboard Text'),
+  category: new TranslatableMarkup('Dashboard'),
+)]
 final class DashboardTextBlock extends BlockBase {
 
   /**

@@ -6,8 +6,9 @@ core_version_requirement: ^10.3 || ^11
 
 dependencies:
   - ai:ai
+  - modeler_api:modeler_api
 
-# Information added by Drupal.org packaging script on 2025-07-17
-version: '1.1.2'
+# Information added by Drupal.org packaging script on 2025-10-13
+version: '1.2.0'
 project: 'ai_agents'
-datestamp: 1752741526
+datestamp: 1760354090

@@ -60,20 +60,6 @@ variables:
 # The 4 validation jobs below are explicit about their artifact. This is not strictly needed
 # (last wins) but done for demonstration. https://docs.gitlab.com/ee/ci/jobs/job_control.html#fetch-artifacts-from-a-parallelmatrix-job
 #
-drupal-check:
-  stage: validate
-  allow_failure: true
-  dependencies:
-    - "composer"
-  rules:
-    - if: '$SKIP_DRUPAL_CHECK == "1"'
-      when: never
-    - when: on_success
-  before_script:
-    - composer require mglaman/drupal-check  --dev
-  script:
-    - vendor/bin/drupal-check --drupal-root $CI_PROJECT_DIR/$_WEB_ROOT $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/$CI_PROJECT_NAME
-
 phpunit (coverage):
   extends: phpunit
   rules:
@@ -101,6 +87,10 @@ phpunit (coverage):
       - coverage.xml
       - coverage
 
+phpunit:
+  rules:
+    - when: never
+
 pages:
   stage: test
   needs:
@@ -108,12 +98,6 @@ pages:
   before_script:
     - cp $CI_PROJECT_DIR/README.md $CI_PROJECT_DIR/docs/index.md
     - cp -R $CI_PROJECT_DIR/coverage $CI_PROJECT_DIR/docs/coverage
-
-phpunit:
-  rules:
-    - when: never
-
-
 
 ###################################################################################
 #

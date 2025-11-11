@@ -2,7 +2,6 @@
 
 namespace Drupal\eca_base\Plugin\FieldWidgetAction;
 
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -12,7 +11,7 @@ use Drupal\field_widget_actions\FieldWidgetActionBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * The base field widget for ECA.
+ * The field widget action for ECA.
  */
 #[FieldWidgetAction(
   id: 'eca_field_widget',
@@ -50,40 +49,16 @@ class EcaFieldWidget extends FieldWidgetActionBase {
   /**
    * Ajax handler for ECA field widget.
    */
-  public function executeWidget(array &$form, FormStateInterface $form_state): array|AjaxResponse {
+  public function executeWidget(array &$form, FormStateInterface $form_state): AjaxResponse {
     $id = substr($this->configuration['plugin_id'], 17);
-    $array_parents = $form_state->getTriggeringElement()['#array_parents'];
-    array_pop($array_parents);
-    $array_parents[] = static::FORM_ELEMENT_PROPERTY;
-    $target_element = NestedArray::getValue($form, $array_parents);
-    $selector = $target_element ? $target_element['#attributes']['data-drupal-selector'] : '';
-    $fieldName = $array_parents[0];
-    $fieldKey = $array_parents[2] ?? 0;
+    $fieldKey = $this->getTargetElementDelta($form, $form_state);
+    $fieldName = $this->getTargetElementFieldName($form, $form_state);
+    $selector = $this->getSuggestionsTarget($form, $form_state);
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = static::buildEntity($form, $form_state);
-
-    // Run the ECA model for the entity.
     /** @var \Drupal\eca_base\Event\FieldWidgetEvent $event */
     $event = $this->triggerEvent->dispatchFromPlugin('eca_base:eca_field_widget', $id, $entity, $fieldName, $fieldKey);
-
-    $value = $event->getWidgetValue();
-    if (method_exists($this, 'returnSuggestions')) {
-      return $this->returnSuggestions($value, $selector);
-    }
-    if ($value === NULL) {
-      // Ensure the widget has enough elements for all values.
-      $form[$fieldName]['widget']['#items_count'] = count($entity->{$fieldName});
-      if (isset($entity->{$fieldName}[$fieldKey])) {
-        $item = $entity->{$fieldName}[$fieldKey];
-        if ($item->value) {
-          $value = $item->value;
-        }
-      }
-    }
-    if ($value) {
-      $form[$fieldName]['widget'][$fieldKey]['value']['#value'] = $value;
-    }
-    return $form[$fieldName];
+    return $this->returnSuggestions($event->getWidgetValue(), $selector);
   }
 
 }

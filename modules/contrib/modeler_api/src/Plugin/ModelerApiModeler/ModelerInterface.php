@@ -169,6 +169,14 @@ interface ModelerInterface extends PluginInspectionInterface, ContainerFactoryPl
   public function getChangelog(): string;
 
   /**
+   * Get the model's storage setting.
+   *
+   * @return string
+   *   The storage setting.
+   */
+  public function getStorage(): string;
+
+  /**
    * Get the model's documentation.
    *
    * @return string

@@ -58,8 +58,11 @@ final class Project {
    *   if this information is not known. Defaults to NULL.
    * @param \Drupal\Core\Url|null $url
    *   URL of the project, if any. Defaults to NULL.
-   * @param array $categories
-   *   Value of module_categories of the project.
+   * @param array<int|string, string|\Stringable> $categories
+   *   The categories this project is in. This should be an associative array
+   *   whose keys are the category IDs (which are internal to the source plugin
+   *   which exposed this project), and the values are the human-readable names
+   *   of the categories to be displayed in the UI.
    * @param array $images
    *   Images of the project. Each item needs to be an array with two elements:
    *   `file`, which is a \Drupal\Core\Url object pointing to the image, and
@@ -173,11 +176,11 @@ final class Project {
       $logo = NULL;
     }
 
-    return [
+    $data = [
       'is_compatible' => $this->isCompatible,
       'is_covered' => $this->isCovered,
       'project_usage_total' => $this->projectUsageTotal,
-      'module_categories' => $this->categories,
+      'categories' => $this->categories,
       'project_machine_name' => $this->machineName,
       'project_images' => array_map(
         function (array $image): array {
@@ -195,6 +198,12 @@ final class Project {
       'url' => $this->url?->setAbsolute()->toString(),
       'id' => $this->id,
     ];
+
+    // Add renamed properties, for backwards compatibility.
+    foreach ($data['categories'] as $id => $name) {
+      $data['module_categories'][$id] = ['id' => $id, 'name' => $name];
+    }
+    return $data;
   }
 
 }

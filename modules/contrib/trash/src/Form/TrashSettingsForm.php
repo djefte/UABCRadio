@@ -215,7 +215,6 @@ class TrashSettingsForm extends ConfigFormBase {
     $unsupported_entity_types = [
       'comment',
       'taxonomy_term',
-      'path_alias',
       'user',
       'workspace',
     ];

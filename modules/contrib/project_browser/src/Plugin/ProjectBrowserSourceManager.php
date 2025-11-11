@@ -49,7 +49,10 @@ final class ProjectBrowserSourceManager extends DefaultPluginManager implements 
    * @return \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface
    *   The source plugin.
    */
-  public function createInstance($plugin_id, array $configuration = []): ProjectBrowserSourceInterface {
+  public function createInstance($plugin_id, ?array $configuration = []): ProjectBrowserSourceInterface {
+    $configuration ??= $this->configFactory->get('project_browser.admin_settings')
+      ->get("enabled_sources.$plugin_id") ?? [];
+
     $instance = parent::createInstance($plugin_id, $configuration);
     assert($instance instanceof ProjectBrowserSourceInterface);
     return $instance;

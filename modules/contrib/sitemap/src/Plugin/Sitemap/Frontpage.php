@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
   settings: [
     'title' => new TranslatableMarkup('Front page'),
     'rss' => '/rss.xml',
+    'front_text_override' => '',
   ],
 )]
 class Frontpage extends SitemapBase {
@@ -56,6 +57,13 @@ class Frontpage extends SitemapBase {
       '#access' => $this->currentUser->hasPermission('set front page rss link on sitemap'),
     ];
 
+    $form['front_text_override'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Text override'),
+      '#default_value' => $this->settings['front_text_override'],
+      '#description' => $this->t('Override the link text for the homepage. Leave this blank for default.'),
+    ];
+
     return $form;
   }
 
@@ -67,9 +75,9 @@ class Frontpage extends SitemapBase {
 
     $content[] = [
       '#theme' => 'sitemap_frontpage_item',
-      '#text' => $this->t('Front page of %sn', [
+      '#text' => empty($this->settings['front_text_override']) ? $this->t('Front page of %sn', [
         '%sn' => $this->configFactory->get('system.site')->get('name'),
-      ]),
+      ]) : $this->settings['front_text_override'],
       '#url' => Url::fromRoute('<front>', [], ['html' => TRUE])->toString(),
       '#feed' => $this->settings['rss'],
     ];

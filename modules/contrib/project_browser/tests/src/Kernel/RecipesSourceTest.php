@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\project_browser\Kernel;
 
+use Drupal\project_browser\Plugin\ProjectBrowserSourceInterface;
 use Drupal\Component\FileSystem\FileSystem;
+use Drupal\Component\Serialization\Json;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\project_browser\Plugin\ProjectBrowserSource\Recipes;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
@@ -33,6 +35,25 @@ final class RecipesSourceTest extends KernelTestBase {
   ];
 
   /**
+   * A reference to the file system.
+   *
+   * @var \Symfony\Component\Filesystem\Filesystem
+   */
+  protected $fileSystem;
+  /**
+   * The directory created to house installed recipes.
+   *
+   * @var string
+   */
+  protected $installedRecipesDir;
+  /**
+   * The directory where the symlinked module is.
+   *
+   * @var string
+   */
+  protected $generatedRecipeDir;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -52,25 +73,13 @@ final class RecipesSourceTest extends KernelTestBase {
   public function testRecipesAreDiscovered(): void {
     // Generate a fake recipe in the temporary directory.
     $generated_recipe_name = uniqid('recipe-');
-    $generated_recipe_dir = FileSystem::getOsTemporaryDirectory() . '/' . $generated_recipe_name;
-    mkdir($generated_recipe_dir);
-    file_put_contents($generated_recipe_dir . '/composer.json', '{"name": "drupal/bogus_recipe"}');
-    file_put_contents($generated_recipe_dir . '/recipe.yml', 'name: Bogus');
-
-    $installed_recipes_dir = uniqid(FileSystem::getOsTemporaryDirectory() . '/');
-    $file_system = new SymfonyFilesystem();
-    $file_system->mkdir($installed_recipes_dir);
-    // Symlink the fake recipe into the place where the source plugin will
-    // search, to prove that the plugin follows symlinks.
-    $file_system->symlink($generated_recipe_dir, $installed_recipes_dir . '/' . $generated_recipe_name);
-
-    /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
-    $source = $this->container->get(ProjectBrowserSourceManager::class)->createInstance('recipes', [
-      'additional_directories' => [
-        __DIR__ . '/../../fixtures',
-        $installed_recipes_dir,
-      ],
-    ]);
+    $recipes = [
+      $generated_recipe_name => Json::encode([
+        'name' => 'drupal/bogus_recipe',
+      ]
+      ),
+    ];
+    $source = $this->prepareRecipesDirectory($recipes);
 
     $expected_recipe_names = [
       $generated_recipe_name,
@@ -118,36 +127,53 @@ final class RecipesSourceTest extends KernelTestBase {
     $this->assertNotEmpty($body);
 
     // Clean up.
-    $file_system->remove([
-      $installed_recipes_dir . '/' . $generated_recipe_name,
-      $generated_recipe_dir,
-    ]);
+    $this->tearDownRecipesDirectory();
   }
 
   /**
-   * Tests that discovered recipes are limited by an allow-list.
+   * Tests homepage URL handling for recipes with and without homepage field.
    */
-  public function testAllowList(): void {
-    $expected_recipe_names = ['document_media_type', 'user_picture'];
-
-    $this->config('project_browser.admin_settings')
-      ->set('allowed_projects', [
-        'recipes' => ['example', ...$expected_recipe_names],
-      ])
-      ->save();
+  public function testRecipeHomepageUrlHandling(): void {
+    // Generate fake recipes - one with homepage, one without.
+    $recipes_with_homepage = [
+      'recipe_with_homepage' => Json::encode([
+        "name" => "drupal/recipe_with_homepage",
+        "homepage" => "https://example.com/recipe-with-homepage",
+      ]),
+      'recipe_without_homepage' => Json::encode([
+        "name" => "drupal/recipe_without_homepage",
+      ]),
+      'another_recipe_with_homepage' => Json::encode([
+        "name" => "drupal/another_recipe_with_homepage",
+        "homepage" => "https://example.com/another-recipe",
+      ]),
+    ];
 
     /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
-    $source = $this->container->get(ProjectBrowserSourceManager::class)->createInstance('recipes');
+    $source = $this->prepareRecipesDirectory($recipes_with_homepage);
+
+    // Fetch discovered recipes.
     $projects = $source->getProjects();
-    $found_recipe_names = array_column($projects->list, 'machineName');
+    $found_recipes = [];
+    foreach ($projects->list as $project) {
+      $found_recipes[$project->machineName] = $project;
+    }
 
-    // The `example` recipe (from core) should always be hidden, even if it's in
-    // the allow list.
-    $this->assertNotContains('example', $found_recipe_names);
+    // Verify recipe with homepage has the correct URL.
+    $this->assertArrayHasKey('recipe_with_homepage', $found_recipes);
+    $this->assertSame('https://example.com/recipe-with-homepage', $found_recipes['recipe_with_homepage']->url?->toString());
 
-    sort($expected_recipe_names);
-    sort($found_recipe_names);
-    $this->assertSame($expected_recipe_names, $found_recipe_names);
+    // Verify recipe without homepage has NULL URL
+    // (doesn't inherit from previous recipe).
+    $this->assertArrayHasKey('recipe_without_homepage', $found_recipes);
+    $this->assertNull($found_recipes['recipe_without_homepage']->url);
+
+    // Verify another recipe with homepage has its own correct URL.
+    $this->assertArrayHasKey('another_recipe_with_homepage', $found_recipes);
+    $this->assertSame('https://example.com/another-recipe', $found_recipes['another_recipe_with_homepage']->url?->toString());
+
+    // Clean up.
+    $this->tearDownRecipesDirectory();
   }
 
   /**
@@ -156,31 +182,13 @@ final class RecipesSourceTest extends KernelTestBase {
   public function testRecipeSortingByRecipeName(): void {
     // Generate fake recipes with varying case names.
     $generated_recipes = [
-      'deltaRecipe' => '{"name": "drupal/delta_recipe"}',
-      'betaRecipe' => '{"name": "drupal/beta_recipe"}',
-      'AlphaRecipe' => '{"name": "drupal/alpha_recipe"}',
-      'GammaRecipe' => '{"name": "drupal/gamma_recipe"}',
+      'deltaRecipe' => Json::encode(["name" => "drupal/delta_recipe"]),
+      'betaRecipe' => Json::encode(["name" => "drupal/beta_recipe"]),
+      'AlphaRecipe' => Json::encode(["name" => "drupal/alpha_recipe"]),
+      'GammaRecipe' => Json::encode(["name" => "drupal/gamma_recipe"]),
     ];
 
-    $installed_recipes_dir = uniqid(FileSystem::getOsTemporaryDirectory() . '/');
-    $file_system = new SymfonyFilesystem();
-    $file_system->mkdir($installed_recipes_dir);
-
-    /** @var \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface $source */
-    $source = $this->container->get(ProjectBrowserSourceManager::class)
-      ->createInstance('recipes', [
-        'additional_directories' => [
-          __DIR__ . '/../../fixtures',
-          $installed_recipes_dir,
-        ],
-      ]);
-
-    foreach ($generated_recipes as $recipe_name => $composer_json_content) {
-      $recipe_dir = $installed_recipes_dir . '/' . $recipe_name;
-      $file_system->mkdir($recipe_dir);
-      file_put_contents($recipe_dir . '/composer.json', $composer_json_content);
-      file_put_contents($recipe_dir . '/recipe.yml', "name: $recipe_name");
-    }
+    $source = $this->prepareRecipesDirectory($generated_recipes);
 
     // Fetch discovered recipes.
     $projects = $source->getProjects();
@@ -197,7 +205,54 @@ final class RecipesSourceTest extends KernelTestBase {
     $this->assertSame($generated_recipe_titles, $found_generated_titles);
 
     // Clean up.
-    $file_system->remove($installed_recipes_dir);
+    $this->tearDownRecipesDirectory();
+  }
+
+  /**
+   * Gets the recipes source with test-friendly config.
+   *
+   * @param array $recipes
+   *   A list of recipes to create.
+   *
+   * @return \Drupal\project_browser\Plugin\ProjectBrowserSourceInterface
+   *   A Project Browser Source plugin.
+   */
+  private function prepareRecipesDirectory(Array $recipes): ProjectBrowserSourceInterface {
+    $this->installedRecipesDir = uniqid(FileSystem::getOsTemporaryDirectory() . '/');
+    $this->fileSystem = new SymfonyFilesystem();
+    $this->fileSystem->mkdir($this->installedRecipesDir);
+
+    foreach ($recipes as $recipe_name => $composer_json_content) {
+      $recipe_dir = $this->installedRecipesDir . '/' . $recipe_name;
+      $this->fileSystem->mkdir($recipe_dir);
+      file_put_contents($recipe_dir . '/composer.json', $composer_json_content);
+      file_put_contents($recipe_dir . '/recipe.yml', "name: $recipe_name");
+    }
+
+    // Symlink the fake recipe into the place where the source plugin will
+    // search, to prove that the plugin follows symlinks.
+    $generated_recipe_name = uniqid('generated-');
+    $this->generatedRecipeDir = FileSystem::getOsTemporaryDirectory() . '/' . $generated_recipe_name;
+    $this->fileSystem->symlink($this->generatedRecipeDir, $this->installedRecipesDir . '/' . $generated_recipe_name);
+
+    $source = $this->container->get(ProjectBrowserSourceManager::class)->createInstance('recipes', [
+      'additional_directories' => [
+        __DIR__ . '/../../fixtures',
+        $this->installedRecipesDir,
+      ],
+    ]);
+
+    return $source;
+  }
+
+  /**
+   * Tears down the recipes directories.
+   */
+  private function tearDownRecipesDirectory(): void {
+    $this->fileSystem->remove([
+      $this->installedRecipesDir,
+      $this->generatedRecipeDir,
+    ]);
   }
 
 }

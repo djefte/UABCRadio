@@ -10,14 +10,14 @@
 (function (exports) {
   // Common variables that each drawing function needs.
   // These will be passed in from the main script.
-  let equalizerCanvas = null;
-  let canvasCtx = null;
-  let analyser = null;
+  let equalizerCanvas = undefined;
+  let canvasCtx = undefined;
+  let analyser = undefined;
   let bufferLength = 0;
-  let timeDomainDataArray = null;
-  let frequencyDataArray = null;
-  let animationFrameId = null;
-  let equalizerColorData = null;
+  let timeDomainDataArray = undefined;
+  let frequencyDataArray = undefined;
+  let animationFrameId = undefined;
+  let equalizerColorData = undefined;
 
   // Variables for specific effects that need persistent state
   let rotationAngle = 0; // For Rotating Ring and Vortex Spectrum
@@ -47,8 +47,9 @@
    * @param {Function} drawFn The actual drawing function (e.g., drawWaveform)
    */
   function animate(drawFn) {
-    if (!equalizerCanvas || !canvasCtx || !analyser) return null; // Ensure essentials exist
-
+    if (!equalizerCanvas || !canvasCtx || !analyser) {
+      return undefined; // Ensure essentials exist
+    }
     // If there's an ongoing animation, cancel it before starting a new one.
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
@@ -160,7 +161,7 @@
       const y = v * equalizerCanvas.height / 2;
 
       canvasCtx.beginPath();
-      canvasCtx.arc(x, y, 2, 0, Math.PI * 2, false); // Draw a small circle (dot)
+      canvasCtx.arc(x, y, 2, 0, Math.PI * 2, 0); // Draw a small circle (dot)
       canvasCtx.fillStyle = '#1a73e8';
       canvasCtx.fill();
       x += sliceWidth;
@@ -188,7 +189,7 @@
     const currentRadius = baseRadius * scale * 2; // Make it more pronounced
 
     canvasCtx.beginPath();
-    canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, false);
+    canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, 0);
     canvasCtx.fillStyle = 'rgba(26, 115, 232, 0.7)'; // Semi-transparent blue
     canvasCtx.fill();
     canvasCtx.strokeStyle = '#1a73e8';
@@ -310,9 +311,9 @@
       canvasCtx.beginPath();
       canvasCtx.moveTo(x1, y1);
       canvasCtx.lineTo(x2, y2);
-      canvasCtx.arc(centerX, centerY, currentRadius, startAngle, endAngle, false);
+      canvasCtx.arc(centerX, centerY, currentRadius, startAngle, endAngle, 0);
       canvasCtx.lineTo(x4, y4);
-      canvasCtx.arc(centerX, centerY, minRadius, endAngle, startAngle, true);
+      canvasCtx.arc(centerX, centerY, minRadius, endAngle, startAngle, 1);
       canvasCtx.closePath();
       canvasCtx.fill();
 
@@ -375,7 +376,7 @@
     canvasCtx.lineWidth = 3;
 
     canvasCtx.beginPath();
-    canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, false);
+    canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, 0);
     canvasCtx.fill();
     canvasCtx.stroke();
 
@@ -433,7 +434,7 @@
       const size = minParticleSize + (maxParticleSize - minParticleSize) * normalizedData;
 
       canvasCtx.beginPath();
-      canvasCtx.arc(x, y, size, 0, Math.PI * 2, false);
+      canvasCtx.arc(x, y, size, 0, Math.PI * 2, 0);
       canvasCtx.fillStyle = `rgba(26, 115, 232, ${0.2 + normalizedData * 0.8})`;
       canvasCtx.fill();
     }
@@ -471,7 +472,7 @@
       canvasCtx.beginPath();
       canvasCtx.moveTo(x1, y1);
       canvasCtx.lineTo(x2, y2);
-      canvasCtx.strokeStyle = `hsl(${i * (360 / numSegments)}, 80%, 60%)`;
+      canvasCtx.strokeStyle = "hsl(" + (i * (360 / numSegments)) + ", 80%, 60 %)";
       canvasCtx.lineWidth = 2;
       canvasCtx.stroke();
     }
@@ -532,7 +533,7 @@
     canvasCtx.lineWidth = 5 + (scale * 5);
 
     canvasCtx.beginPath();
-    canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, false);
+    canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, 0);
     canvasCtx.fill();
     canvasCtx.stroke();
 
@@ -595,7 +596,7 @@
       const alpha = 0.1 + intensity * 0.4;
 
       canvasCtx.beginPath();
-      canvasCtx.arc(centerX, centerY, radius, 0, Math.PI * 2, false);
+      canvasCtx.arc(centerX, centerY, radius, 0, Math.PI * 2, 0);
       canvasCtx.strokeStyle = `rgba(26, 115, 232, ${alpha})`;
       canvasCtx.lineWidth = 1 + (intensity * 3);
       canvasCtx.stroke();
@@ -644,7 +645,7 @@
       }
 
       canvasCtx.beginPath();
-      canvasCtx.arc(p.x, p.y, p.size * (1 + pulseScale), 0, Math.PI * 2, false);
+      canvasCtx.arc(p.x, p.y, p.size * (1 + pulseScale), 0, Math.PI * 2, 0);
       canvasCtx.fillStyle = `rgba(26, 115, 232, ${p.alpha})`;
       canvasCtx.fill();
     }
@@ -676,7 +677,7 @@
       const alpha = 1 - (actualRadius / maxDimension);
 
       canvasCtx.beginPath();
-      canvasCtx.arc(centerX, centerY, finalRadius, 0, Math.PI * 2, false);
+      canvasCtx.arc(centerX, centerY, finalRadius, 0, Math.PI * 2, 0);
       canvasCtx.strokeStyle = `rgba(26, 115, 232, ${alpha})`;
       canvasCtx.lineWidth = 1 + (intensity * 2);
       canvasCtx.stroke();
@@ -721,8 +722,12 @@
       f.vx += (Math.random() - 0.5) * 0.5 * influence;
       f.vy += (Math.random() - 0.5) * 0.5 * influence;
 
-      if (f.x < 0 || f.x > equalizerCanvas.width) f.vx *= -1;
-      if (f.y < 0 || f.y > equalizerCanvas.height) f.vy *= -1;
+      if (f.x < 0 || f.x > equalizerCanvas.width) {
+        f.vx *= -1;
+      }
+      if (f.y < 0 || f.y > equalizerCanvas.height) {
+        f.vy *= -1;
+      }
 
       f.life--;
       if (f.life <= 0) {
@@ -736,7 +741,7 @@
 
       const alpha = (f.life / f.maxLife) * (0.5 + influence * 0.5);
       canvasCtx.beginPath();
-      canvasCtx.arc(f.x, f.y, f.size * (1 + influence), 0, Math.PI * 2, false);
+      canvasCtx.arc(f.x, f.y, f.size * (1 + influence), 0, Math.PI * 2, 0);
       canvasCtx.fillStyle = `rgba(255, 255, 100, ${alpha})`;
       canvasCtx.fill();
 
@@ -839,7 +844,7 @@
       const alpha = 1 - (currentRadius / maxRadius) * 0.8; // Fade out as it expands
 
       canvasCtx.beginPath();
-      canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, false);
+      canvasCtx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2, 0);
       canvasCtx.strokeStyle = `rgba(26, 115, 232, ${alpha})`;
       canvasCtx.lineWidth = 2 + (intensity * 3); // Thicker line with more intensity
       canvasCtx.stroke();
@@ -921,7 +926,7 @@
       }
 
       canvasCtx.beginPath();
-      canvasCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2, false);
+      canvasCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2, 0);
       canvasCtx.fillStyle = `rgba(150, 200, 255, ${p.alpha})`; // Light blue for rain
       canvasCtx.fill();
     }
@@ -1034,8 +1039,8 @@
       canvasCtx.fillStyle = gradient;
 
       canvasCtx.beginPath();
-      canvasCtx.arc(0, 0, baseInnerRadius + barLength, startAngle, endAngle, false); // Outer arc
-      canvasCtx.arc(0, 0, baseInnerRadius, endAngle, startAngle, true); // Inner arc (reversed)
+      canvasCtx.arc(0, 0, baseInnerRadius + barLength, startAngle, endAngle, 0); // Outer arc
+      canvasCtx.arc(0, 0, baseInnerRadius, endAngle, startAngle, 1); // Inner arc (reversed)
       canvasCtx.closePath();
       canvasCtx.fill();
     }

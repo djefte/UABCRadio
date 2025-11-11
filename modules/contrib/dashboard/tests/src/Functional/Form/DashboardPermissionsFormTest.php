@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\dashboard\Functional\Form;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\dashboard\Entity\Dashboard;
 use Drupal\user\Entity\Role;
 
 /**
  * Test for dashboard permissions form.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardPermissionsFormTest extends BrowserTestBase {
 
   /**

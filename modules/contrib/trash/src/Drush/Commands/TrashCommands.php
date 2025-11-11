@@ -203,7 +203,6 @@ final class TrashCommands extends DrushCommands {
         $this->trashManager->executeInTrashContext('inactive', function () use (&$count, $storage, $chunk, $operation) {
           $entities = $storage->loadMultiple($chunk);
           if ($operation === 'restore') {
-            // @phpstan-ignore-next-line
             $storage->restoreFromTrash($entities);
           }
           elseif ($operation === 'purge') {

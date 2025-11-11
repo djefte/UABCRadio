@@ -6,14 +6,12 @@ namespace Drupal\Tests\ai_agents\Kernel\Plugin\AiFunctionCall;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\ai\Service\FunctionCalling\ExecutableFunctionCallInterface;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the ListEntityTypesTest class.
  *
  * @group ai_agents
  */
-#[Group('ai_agents')]
 final class ListEntityTypesTest extends KernelTestBase {
 
   /**
@@ -70,8 +68,7 @@ final class ListEntityTypesTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    // Install required modules.
-    $this->container->get('module_installer')->install(static::$modules);
+    // Install the necessary entity schemas.
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
     $this->installEntitySchema('taxonomy_vocabulary');

@@ -29,29 +29,65 @@ variables:
   _PHPUNIT_TESTGROUPS: ''
   _CSPELL_EXTRA: '--dot'
   _ALL_VALIDATE_ALLOW_FAILURE: 0
+  PHPUNIT_FAIL_ON_PHPUNIT_DEPRECATION: 0
 
 ################
 # Job overrides
 ################
 
+workflow:
+  rules:
+    - !reference [ .default-workflow ]
+    # Also run if the branch starts with 'mr' followed by digits or is the specific issue branch 3356800.
+    - if: $CI_COMMIT_BRANCH =~ /^mr[0-9]+/i || ($CI_COMMIT_BRANCH =~ /^3356800/ && $CI_PIPELINE_SOURCE != "merge_request_event")
+
 .show-variables: &show-variables
   - |
-    printf "CI_PIPELINE_SOURCE          = %s\n" $CI_PIPELINE_SOURCE &&
-    printf "CI_DEFAULT_BRANCH           = %s\n" $CI_DEFAULT_BRANCH &&
-    printf "CI_COMMIT_BRANCH            = %s\n" $CI_COMMIT_BRANCH &&
-    printf "CI_COMMIT_TAG               = %s\n" $CI_COMMIT_TAG &&
-    printf "CI_COMMIT_TITLE             = %s\n" "$CI_COMMIT_TITLE" &&
-    printf "CI_MERGE_REQUEST_IID        = %s\n" $CI_MERGE_REQUEST_IID &&
-    printf "CI_MERGE_REQUEST_TITLE      = %s\n" "$CI_MERGE_REQUEST_TITLE" &&
-    printf "CI_PROJECT_ROOT_NAMESPACE   = %s\n" $CI_PROJECT_ROOT_NAMESPACE &&
-    printf "CI_PAGES_URL                = %s\n" $CI_PAGES_URL &&
-    printf "CI_PROJECT_NAME             = %s\n" $CI_PROJECT_NAME &&
-    printf "CI_JOB_NAME                 = %s\n" "$CI_JOB_NAME" &&
-    printf "CI_JOB_NAME trimmed from :  = %s\n" "${CI_JOB_NAME%:*}" &&
+    echo -e "\e[0Ksection_start:`date +%s`:show_variables[collapsed=true]\r\e[0K--- Variables"
+    printf " \nInternal and derived variables\n------------------------------\n"
+    printf "PROJECT_NAME                = %s\n" $PROJECT_NAME &&
+    printf "MODULE_NAME (for bc)        = %s\n" $MODULE_NAME &&
+    printf "PROJECT_TYPE                = %s\n" $PROJECT_TYPE &&
     printf "DRUPAL_CORE                 = %s\n" $DRUPAL_CORE &&
+    printf "INSTALLED_DRUPAL_VERSION    = %s\n" $INSTALLED_DRUPAL_VERSION &&
     printf "PHP_VERSION                 = %s\n" $PHP_VERSION &&
     printf "PHP_IMAGE_VARIANT           = %s\n" $PHP_IMAGE_VARIANT &&
     printf "PHP_IMAGE_TAG               = %s\n" $PHP_IMAGE_TAG
+    printf " \nBuild jobs\n----------\n"
+    printf "SKIP_PAGES                  = %s\n" "$SKIP_PAGES $([[ $SKIP_PAGES != 0 ]] && echo '(not default)')"
+    printf "SKIP_MKDOCS                 = %s\n" "$SKIP_MKDOCS (custom variable)"
+    printf " \nLint jobs\n---------\n"
+    printf "SKIP_COMPOSER_LINT          = %s\n" "$SKIP_COMPOSER_LINT $([[ $SKIP_COMPOSER_LINT != 0 ]] && echo '(not default)')"
+    printf "SKIP_ESLINT                 = %s\n" "$SKIP_ESLINT $([[ $SKIP_ESLINT != 0 ]] && echo '(not default)')"
+    printf "SKIP_STYLELINT              = %s\n" "$SKIP_STYLELINT $([[ $SKIP_STYLELINT != 0 ]] && echo '(not default)')"
+    printf "SKIP_PHPCS                  = %s\n" "$SKIP_PHPCS $([[ $SKIP_PHPCS != 0 ]] && echo '(not default)')"
+    printf "SKIP_PHPSTAN                = %s\n" "$SKIP_PHPSTAN $([[ $SKIP_PHPSTAN != 0 ]] && echo '(not default)')"
+    printf "SKIP_CSPELL                 = %s\n" "$SKIP_CSPELL $([[ $SKIP_CSPELL != 0 ]] && echo '(not default)')"
+    printf " \nTesting jobs\n------------\n"
+    printf "SKIP_PHPUNIT                = %s\n" "$SKIP_PHPUNIT $([[ $SKIP_PHPUNIT != 0 ]] && echo '(not default)')"
+    printf "SKIP_NIGHTWATCH             = %s\n" "$SKIP_NIGHTWATCH $([[ $SKIP_NIGHTWATCH != 0 ]] && echo '(not default)')"
+    printf "SKIP_TEST_ONLY_CHANGES      = %s\n" "$SKIP_TEST_ONLY_CHANGES $([[ $SKIP_TEST_ONLY_CHANGES != 0 ]] && echo '(not default)')"
+    printf "RUN_JOB_UPGRADE_STATUS      = %s\n" "$RUN_JOB_UPGRADE_STATUS $([[ $RUN_JOB_UPGRADE_STATUS != 0 ]] && echo '(not default)')"
+    printf " \nOpt-in variables\n----------------\n"
+    printf "OPT_IN_TEST_CURRENT         = %s\n" "$OPT_IN_TEST_CURRENT $([[ $OPT_IN_TEST_CURRENT != 1 ]] && echo '(not default)')"
+    printf "OPT_IN_TEST_MAX_PHP         = %s\n" "$OPT_IN_TEST_MAX_PHP $([[ $OPT_IN_TEST_MAX_PHP != 0 ]] && echo '(not default)')"
+    printf "OPT_IN_TEST_NEXT_MINOR      = %s\n" "$OPT_IN_TEST_NEXT_MINOR $([[ $OPT_IN_TEST_NEXT_MINOR != 0 ]] && echo '(not default)')"
+    printf "OPT_IN_TEST_NEXT_MAJOR      = %s\n" "$OPT_IN_TEST_NEXT_MAJOR $([[ $OPT_IN_TEST_NEXT_MAJOR != 0 ]] && echo '(not default)')"
+    printf "OPT_IN_TEST_PREVIOUS_MINOR  = %s\n" "$OPT_IN_TEST_PREVIOUS_MINOR $([[ $OPT_IN_TEST_PREVIOUS_MINOR != 0 ]] && echo '(not default)')"
+    printf "OPT_IN_TEST_PREVIOUS_MAJOR  = %s\n" "$OPT_IN_TEST_PREVIOUS_MAJOR $([[ $OPT_IN_TEST_PREVIOUS_MAJOR != 0 ]] && echo '(not default)')"
+    printf "OPT_IN_TEST_DRUPAL9         = %s\n" "$OPT_IN_TEST_DRUPAL9 (custom variable)"
+    printf "OPT_IN_TEST_DRUPAL8         = %s\n" "$OPT_IN_TEST_DRUPAL8 (custom variable)"
+    printf " \nTemplates\n---------\n"
+    printf "_GITLAB_TEMPLATES_REPO      = %s\n" $_GITLAB_TEMPLATES_REPO
+    printf "_GITLAB_TEMPLATES_REF       = %s\n" $_GITLAB_TEMPLATES_REF
+    printf "_CURL_TEMPLATES_REPO        = %s\n" $_CURL_TEMPLATES_REPO
+    printf "_CURL_TEMPLATES_REF         = %s\n" $_CURL_TEMPLATES_REF
+    printf " \nOther\n-----\n"
+    printf "CI_JOB_NAME                 = %s\n" "$CI_JOB_NAME" &&
+    printf "CI_JOB_NAME trimmed from :  = %s\n" "${CI_JOB_NAME%:*}" &&
+    printf "CI_PAGES_URL                = %s\n" $CI_PAGES_URL
+    printf " \n"
+    echo -e "\e[0Ksection_end:`date +%s`:show_variables\r\e[0K"
 
 # -------------------------------- BUILD ---------------------------------------
 
@@ -63,35 +99,43 @@ variables:
   if: '$OPT_IN_TEST_DRUPAL8 != "1"'
   when: never
 
-# Re-usable rule for running the job automatically on Merge Requests and allowing it
-# to manually triggered for all other types of pipeline.
-# Using 'when: manual' needs 'allow failure: true' otherwise the overall pipeline status
-# is shown as 'blocked' and the stages show 'running' without ever appearing to finish.
-.manual-if-not-mr-rule: &manual-if-not-mr-rule
-  - if: $CI_PIPELINE_SOURCE != "merge_request_event"
-    when: manual
+# Re-usable rule for running the job automatically on Merge Requests. Also run
+# if the branch matches two specific criteria, even if not in a Merge Request.
+.run-in-mr-rule: &run-in-mr-rule
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    when: on_success
+  - if: $CI_COMMIT_BRANCH =~ /^mr[0-9]+/i || $CI_COMMIT_BRANCH =~ /^3356800/
+    when: on_success
+
+# Run the job when committing to the real repo, otherwise manual. This is used in every variant except 'current'
+# and should be the last rule in the set because it ends without a condition.
+.run-on-commit-otherwise-manual-rule: &run-on-commit-otherwise-manual-rule
+  - if: $CI_PIPELINE_SOURCE == "push"
+    when: on_success
+  - when: manual
     allow_failure: true
-  - when: on_success
 
 .composer-base:
-  before_script:
-    # If testing against Drupal 11 then swap in a different composer file to load dev versions and
-    # merge-request branches of several third-party modules which which do not have a fully compatible release yet.
-    - if [[ $DRUPAL_CORE =~ ^11 ]]; then rm composer.json; mv composer_for_d11_testing.json composer.json; echo "Using composer_for_d11_testing.json"; fi;
   after_script:
-    - !reference [ .create-environment-variables ]
     - pwd && echo "Top-level directories" && ls -tldr */
     - printf "Top 10 folders by size:\n" && du -m web/* | sort -n -r | head -n 10 || true
-    # Show the last two commits. Current directory /builds/project/scheduler ($CI_PROJECT_DIR) is correct.
+    # Show summary of the last two commits.
     - git show -2 --stat --oneline
     - |
       if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then
+        # Show the last actual commit in detail (need to skip the merge commit).
+        cd $CI_PROJECT_DIR && git show -1 --skip=1
         BASELINE=${CI_MERGE_REQUEST_TARGET_BRANCH_SHA:-$CI_MERGE_REQUEST_DIFF_BASE_SHA}
         git diff --stat $BASELINE
         git diff $BASELINE -- .gitlab-ci.yml | head -n 30
       fi
+    # Read the build.env file, because variables created in a script section are not passed to after_script.
+    - IFS=$'\n' && export $(<build.env) && unset IFS
+    - !reference [ .show-ci-variables ]
     - *show-variables
-    # - cat composer.json
+    - $CI_PROJECT_DIR/vendor/bin/drush status | grep version | tr -s ' '
+    - $CI_PROJECT_DIR/vendor/bin/phpunit --version | head -1 | awk '{ print $1 " " $2 }'
+    - echo "Nightwatch$($CI_PROJECT_DIR/$_WEB_ROOT/core/node_modules/.bin/nightwatch --version | grep 'version' | tr -s ' ')"
     - COLUMNS=130 composer show | grep -E '\/(core |rules|commerce|entity|inline_entity_form|workbench|drush|devel_generate|address|coder)'
 
 composer (max PHP version):
@@ -99,37 +143,34 @@ composer (max PHP version):
   rules:
     - !reference [ .opt-in-max-php-rule ]
     - !reference [ .check-max-php-version-rule ]
-    - when: manual
-      allow_failure: true
+    - *run-on-commit-otherwise-manual-rule
 
 composer (previous minor):
   rules:
     - !reference [ .opt-in-previous-minor-rule ]
-    - when: manual
-      allow_failure: true
+    - *run-on-commit-otherwise-manual-rule
 
 composer (previous major):
   rules:
     - !reference [ .opt-in-previous-major-rule ]
-    - when: manual
-      allow_failure: true
+    - *run-on-commit-otherwise-manual-rule
 
 composer (next minor):
   rules:
     - !reference [ .opt-in-next-minor-rule ]
-    - *manual-if-not-mr-rule
+    - *run-in-mr-rule
+    - *run-on-commit-otherwise-manual-rule
 
 composer (next major):
   rules:
     - !reference [ .opt-in-next-major-rule ]
-    - *manual-if-not-mr-rule
+    - *run-on-commit-otherwise-manual-rule
 
 composer (drupal 9):
   extends: .composer-base
   rules:
     - *opt-in-drupal9-rule
-    - when: manual
-      allow_failure: true
+    - *run-on-commit-otherwise-manual-rule
   variables:
     PHP_VERSION: 8.1
     DRUPAL_CORE: ^9.5
@@ -139,14 +180,14 @@ composer (drupal 8):
   extends: .composer-base
   rules:
     - *opt-in-drupal8-rule
-    - when: manual
-      allow_failure: true
+    - *run-on-commit-otherwise-manual-rule
   variables:
     PHP_VERSION: 7.4
     DRUPAL_CORE: ^8.9
     PHP_IMAGE_VARIANT: 'apache'
   before_script:
-    - !reference [.composer-base, before_script]
+    # Uncomment this reference if a before_script is used in .composer-base
+    # - !reference [.composer-base, before_script]
     # Some tests need to be modified to allow running on Drupal 8
     # See https://www.drupal.org/project/scheduler/issues/3356800
     - patch -p1 < tests/3356800-d8.patch
@@ -163,8 +204,10 @@ mkdocs:
         - mkdocs.yml
       when: on_success
   script:
-    - !reference ['.calculate-gitlab-ref']
     - !reference [ .create-environment-variables ]
+    - !reference ['.calculate-gitlab-ref']
+    - !reference [ .show-ci-variables ]
+    - !reference [ .show-environment-variables ]
     - *show-variables
     - EXIT_CODE=0;
     - echo -e "Get the script from gitlab_templates\nExecuting curl -L --output scripts/unformatted-links.php https://git.drupalcode.org/$_CURL_TEMPLATES_REPO/-/raw/$_CURL_TEMPLATES_REF/scripts/unformatted-links.php"
@@ -177,30 +220,52 @@ mkdocs:
 
 eslint:
   after_script:
-    - echo -e "\e[0Ksection_start:`date +%s`:eslint_files[collapsed=true]\r\e[0KShow ESLINT and PRETTIER files"
+    - echo -e "\e[0Ksection_start:`date +%s`:eslint_files[collapsed=true]\r\e[0K---Show ESLINT and PRETTIER files"
     - echo "Change to directory above the project"
-    - cd $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom
+    - cd $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom && pwd
     - ls -lG .{eslint,prettier}* || true
     - echo "Change to the project directory"
-    - cd $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/$CI_PROJECT_NAME
+    - cd $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/$CI_PROJECT_NAME && pwd
     - ls -lG .{eslint,prettier}* || true
+    - find -L .eslintignore .prettierignore 2>/dev/null -exec echo "===== {} =====" \; -exec  cat {} \; || true
     - echo -e "\e[0Ksection_end:`date +%s`:eslint_files\r\e[0K"
 
 phpstan:
   after_script:
-    - pwd && ls -l phpstan* && test -f phpstan.neon && echo "=== This is phpstan.neon ===" && cat phpstan.neon
+    - echo -e "\e[0Ksection_start:`date +%s`:phpstan_summary[collapsed=true]\r\e[0K---PHPSTAN summary"
+    - pwd && ls -l phpstan* && test -f phpstan.neon && echo "=== This is phpstan.neon ===" && cat phpstan.neon && echo "==="
     - php $CI_PROJECT_DIR/scripts/phpstan-baseline-summary.php phpstan-baseline-to-fix.neon || true
+    - echo -e "\e[0Ksection_end:`date +%s`:phpstan_summary\r\e[0K"
+
+phpstan (previous major):
+  # Temporarily skip this job.
+  rules:
+    - when: never
 
 # -------------------------------- TEST ----------------------------------------
 
 .scheduler-testgroup-rule: &scheduler-testgroup-rule
+  # If running all test groups in one, then we only need one job. Also cater for when the whole matrix is erased.
+  - if: $_PHPUNIT_TESTGROUPS == "--all" && $_MATRIX_VALUE != "scheduler" && $_MATRIX_VALUE != null
+    when: never
+  # If running two or more groups, we only need one job. This is a work-around because trying to match
+  # $_PHPUNIT_TESTGROUPS !~ $_MATRIX_VALUE in the next condition to only run the selected matrix jobs never matches.
+  # The job will be labelled 'scheduler' but will only run the specified set of test groups.
+  - if: $_PHPUNIT_TESTGROUPS =~ /(,)/ && $_MATRIX_VALUE == "scheduler"
+    when: on_success
+  # If running a specific test group then discard the jobs for the other matrix values.
+  - if: $_PHPUNIT_TESTGROUPS != "" && $_PHPUNIT_TESTGROUPS != "--all" && $_MATRIX_VALUE != null && $_PHPUNIT_TESTGROUPS != $_MATRIX_VALUE
+    when: never
   # Run some test groups manually not automatically.
-  # @todo put back "scheduler_drush" when https://www.drupal.org/project/scheduler/issues/3359998 is solved.
-  # @todo put back "scheduler_workbench" when https://www.drupal.org/project/scheduler/issues/3495229 is solved.
-  - if: $_MATRIX_VALUE =~ /(drush|workbench)/
+  # @todo restore "drush" to automatic when https://www.drupal.org/project/scheduler/issues/3359998 is solved.
+  - if: $_MATRIX_VALUE =~ /(drush)/
     when: manual
     allow_failure: true
   - when: on_success
+
+.merge-core-deprecation-file: &merge-core-deprecation-file
+  # Merge core's deprecation ignore file into the module's own file. Make sure the core file exists (for older Drupal versions)
+  - touch $CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt && cat $CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt >> $DRUPAL_PROJECT_FOLDER/.deprecation-ignore.txt
 
 phpunit:
   parallel:
@@ -222,14 +287,20 @@ phpunit:
     # If any variation also needs a before_script then add - !reference [phpunit, before_script] to include this script.
     - *show-variables
     - |
-      printf "_MATRIX_VALUE               = %s\n" $_MATRIX_VALUE &&
-      printf "_PHPUNIT_CONCURRENT         = %s\n" $_PHPUNIT_CONCURRENT &&
-      printf "_PHPUNIT_TESTGROUPS         = %s\n" "$_PHPUNIT_TESTGROUPS" &&
-      printf "_PHPUNIT_EXTRA              = %s\n" "$_PHPUNIT_EXTRA" &&
-      printf "SYMFONY_DEPRECATIONS_HELPER = %s\n" "$SYMFONY_DEPRECATIONS_HELPER" &&
-      printf "MINK_DRIVER_ARGS_WEBDRIVER  = %s\n" "$MINK_DRIVER_ARGS_WEBDRIVER"
+      printf "_MATRIX_VALUE                       = %s\n" $_MATRIX_VALUE &&
+      printf "_PHPUNIT_CONCURRENT                 = %s\n" $_PHPUNIT_CONCURRENT &&
+      printf "_PHPUNIT_TESTGROUPS                 = %s\n" "$_PHPUNIT_TESTGROUPS" &&
+      printf "_PHPUNIT_EXTRA                      = %s\n" "$_PHPUNIT_EXTRA" &&
+      printf "_CONCURRENCY_THREADS                = %s\n" "$_CONCURRENCY_THREADS" &&
+      printf "SYMFONY_DEPRECATIONS_HELPER         = %s\n" "$SYMFONY_DEPRECATIONS_HELPER" &&
+      printf "PHPUNIT_FAIL_ON_PHPUNIT_DEPRECATION = %s\n" "$PHPUNIT_FAIL_ON_PHPUNIT_DEPRECATION"
     - |
-      if [[ "$_MATRIX_VALUE" != "" ]]; then
+      # @todo Delete this rm when https://www.drupal.org/project/scheduler/issues/3359998 is solved.
+      if [[ $_PHPUNIT_TESTGROUPS == "--all" ]]; then
+        rm -v tests/src/Functional/SchedulerDrushTest.php
+      fi
+    - |
+      if [[ "$_MATRIX_VALUE" != "" && $_PHPUNIT_TESTGROUPS == "" ]]; then
         if [[ "$_PHPUNIT_CONCURRENT" == "0" ]]; then
           # Specify parameters that will be passed to PHPUNIT (needs --group)
           export _PHPUNIT_EXTRA="$_PHPUNIT_EXTRA --group $_MATRIX_VALUE"
@@ -240,10 +311,11 @@ phpunit:
           export _PHPUNIT_CONCURRENT=1
         fi
       fi
+    - *merge-core-deprecation-file
     # Patch to disable strict config schema validation on older versions of core.
     # See https://www.drupal.org/project/scheduler/issues/3451750
     - vendor/bin/drush status | awk "NR==1{print \$4}" | grep -E '^(8.|9.|10.2)' && echo 'Core version is before 10.3, patching to remove strict config validation' && patch -p1 < tests/3451750-strict-config-schema.patch
-    - echo "End of before_script _PHPUNIT_CONCURRENT=$_PHPUNIT_CONCURRENT _PHPUNIT_EXTRA=$_PHPUNIT_EXTRA"
+    - echo "End of before_script _PHPUNIT_EXTRA=$_PHPUNIT_EXTRA"
 
 phpunit (max PHP version):
   rules:
@@ -251,6 +323,9 @@ phpunit (max PHP version):
     - !reference [ .skip-phpunit-rule ]
     - !reference [ .check-max-php-version-rule ]
     - *scheduler-testgroup-rule
+  variables:
+    # Use the project ignoreFile to show the other deprecations. This will only have an effect when $_PHPUNIT_CONCURRENT=1.
+    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$DRUPAL_PROJECT_FOLDER/.deprecation-ignore.txt"
 
 phpunit (previous minor):
   rules:
@@ -270,9 +345,8 @@ phpunit (next minor):
     - !reference [ .skip-phpunit-rule ]
     - *scheduler-testgroup-rule
   variables:
-    # Use core ignoreFile to show deprecations. This is only used when $_PHPUNIT_CONCURRENT=1 so make sure that is also set.
-    _PHPUNIT_CONCURRENT: 1
-    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt"
+    # Use the project ignoreFile to show the other deprecations. This will only have an effect when $_PHPUNIT_CONCURRENT=1.
+    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$DRUPAL_PROJECT_FOLDER/.deprecation-ignore.txt"
 
 phpunit (next major):
   rules:
@@ -280,24 +354,17 @@ phpunit (next major):
     - !reference [ .skip-phpunit-rule ]
     - *scheduler-testgroup-rule
   variables:
-    # Use core ignoreFile to show deprecations. This is only used when $_PHPUNIT_CONCURRENT=1 so make sure that is also set.
-    _PHPUNIT_CONCURRENT: 1
-    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt"
+    # Use the project ignoreFile to show the other deprecations. This will only have an effect when $_PHPUNIT_CONCURRENT=1.
+    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$DRUPAL_PROJECT_FOLDER/.deprecation-ignore.txt"
 
 phpunit (drupal 9):
   extends: phpunit
-  services:
-    - !reference [ .with-database ]
-    - !reference [ .with-chrome-legacy ]
   rules:
     - *opt-in-drupal9-rule
     - !reference [ .skip-phpunit-rule ]
     - *scheduler-testgroup-rule
-  needs:
-    - "composer (drupal 9)"
+  needs: [composer (drupal 9)]
   allow_failure: true
-  variables:
-    MINK_DRIVER_ARGS_WEBDRIVER: $MINK_DRIVER_ARGS_WEBDRIVER_LEGACY
 
 phpunit (drupal 8):
   extends: phpunit (drupal 9)
@@ -305,12 +372,22 @@ phpunit (drupal 8):
     - *opt-in-drupal8-rule
     - !reference [ .skip-phpunit-rule ]
     - *scheduler-testgroup-rule
-  needs:
-    - "composer (drupal 8)"
+  needs: [composer (drupal 8)]
 
 test-only changes:
-  # Remove the parallel definition that is defined in the customized phpunit.
+  # Remove the parallel definition that is defined in the customized phpunit job.
   parallel:
+  before_script:
+    # Do not need the matrix value manipulation here.
+    - |
+      printf "_PHPUNIT_CONCURRENT                 = %s\n" $_PHPUNIT_CONCURRENT &&
+      printf "_CONCURRENCY_THREADS                = %s\n" "$_CONCURRENCY_THREADS" &&
+      printf "SYMFONY_DEPRECATIONS_HELPER         = %s\n" "$SYMFONY_DEPRECATIONS_HELPER" &&
+      printf "PHPUNIT_FAIL_ON_PHPUNIT_DEPRECATION = %s\n" "$PHPUNIT_FAIL_ON_PHPUNIT_DEPRECATION"
+    - *show-variables
+    - *merge-core-deprecation-file
+    # Add .deprecation-ignore.txt to the file pattern to be preserved. Include | if there is already a value for the pattern.
+    - _TEST_ONLY_FILE_PATTERN="${_TEST_ONLY_FILE_PATTERN:+$_TEST_ONLY_FILE_PATTERN|}\.deprecation\-ignore\.txt"
 
 upgrade status:
   rules:

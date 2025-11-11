@@ -21,7 +21,7 @@
       // Use jQuery's .once() for Drupal's attach method.
       // The .once() method ensures the code only runs once per element
       // within the given context.
-        
+
       once('audio_player_skin_eighteen', '.audio-player.skin-eighteen', context).forEach(function (playerElement) {
         const $playerElement = $(playerElement);
 
@@ -45,8 +45,8 @@
         const $volumeFill = $playerElement.find('.audio-player-volume-fill');
         const $volumeHandle = $playerElement.find('.audio-player-volume-handle');
 
-        let isDraggingProgress = false;
-        let isDraggingVolume = false;
+        let isDraggingProgress = 0;
+        let isDraggingVolume = 0;
 
         // --- Helper Functions (adapted to use jQuery where appropriate) ---
 
@@ -92,8 +92,8 @@
         $audio.on('timeupdate', () => {
           if (!isDraggingProgress) { // Only update if not currently dragging
             const progressPercent = (audio.currentTime / audio.duration) * 100;
-            $progress.css('width', `${progressPercent}%`);
-            $progressSlider.css('left', `${progressPercent}%`);
+            $progress.css('width', progressPercent + '%');
+            $progressSlider.css('left', progressPercent + '%');
           }
           $currentTimeSpan.text(formatTime(audio.currentTime));
         });
@@ -110,19 +110,19 @@
 
         // Trigger on page load (if audio is already available)
         updateMetadata();
-        
+
         // Update Buffer Bar
         $audio.on('progress', () => {
           if (audio.buffered.length > 0) {
             const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
             const bufferPercent = (bufferedEnd / audio.duration) * 100;
-            $bufferBar.css('width', `${bufferPercent}%`);
+            $bufferBar.css('width', bufferPercent + '%');
           }
         });
 
         // Progress Bar Interaction (Seek)
         $progressBar.on('mousedown', (e) => {
-          isDraggingProgress = true;
+          isDraggingProgress = 1;
           $progressBar.addClass('dragging');
           updateProgress(e); // Update immediately on click
           $(document).on('mousemove', updateProgress);
@@ -131,7 +131,7 @@
 
         $progressSlider.on('mousedown', (e) => {
           e.stopPropagation(); // Prevent progressBar's mousedown from firing
-          isDraggingProgress = true;
+          isDraggingProgress = 1;
           $progressSlider.addClass('dragging');
           $(document).on('mousemove', updateProgress);
           $(document).on('mouseup', stopProgressDrag);
@@ -145,13 +145,13 @@
             const percent = (clickX / rect.width);
             audio.currentTime = percent * audio.duration;
             // Visually update immediately during drag
-            $progress.css('width', `${percent * 100}%`);
-            $progressSlider.css('left', `${percent * 100}%`);
+            $progress.css('width', (percent * 100) + '%');
+            $progressSlider.css('left', (percent * 100) + '%');
           }
         };
 
         const stopProgressDrag = () => {
-          isDraggingProgress = false;
+          isDraggingProgress = 0;
           $progressBar.removeClass('dragging');
           $progressSlider.removeClass('dragging');
           $(document).off('mousemove', updateProgress);
@@ -177,14 +177,14 @@
           updateVolumeIcon();
           if (!isDraggingVolume) { // Only update if not currently dragging
             const volumePercent = audio.volume * 100;
-            $volumeFill.css('width', `${volumePercent}%`);
-            $volumeHandle.css('left', `${volumePercent}%`);
+            $volumeFill.css('width', volumePercent + '%');
+            $volumeHandle.css('left', volumePercent + '%');
           }
         });
 
         // Volume Slider Interaction
         $volumeSlider.on('mousedown', (e) => {
-          isDraggingVolume = true;
+          isDraggingVolume = 1;
           $volumeSlider.addClass('dragging');
           updateVolume(e); // Update immediately on click
           $(document).on('mousemove', updateVolume);
@@ -193,7 +193,7 @@
 
         $volumeHandle.on('mousedown', (e) => {
           e.stopPropagation(); // Prevent volumeSlider's mousedown from firing
-          isDraggingVolume = true;
+          isDraggingVolume = 1;
           $volumeHandle.addClass('dragging');
           $(document).on('mousemove', updateVolume);
           $(document).on('mouseup', stopVolumeDrag);
@@ -206,16 +206,16 @@
             clickX = Math.max(0, Math.min(clickX, rect.width)); // Clamp within bounds
             const percent = (clickX / rect.width);
             audio.volume = percent;
-            audio.muted = false; // Unmute if dragging volume
+            audio.muted = 0; // Unmute if dragging volume
             // Visually update immediately during drag
-            $volumeFill.css('width', `${percent * 100}%`);
-            $volumeHandle.css('left', `${percent * 100}%`);
+            $volumeFill.css('width', (percent * 100) + '%');
+            $volumeHandle.css('left', (percent * 100) + '%');
             updateVolumeIcon(); // Update icon and slider color
           }
         };
 
         const stopVolumeDrag = () => {
-          isDraggingVolume = false;
+          isDraggingVolume = 0;
           $volumeSlider.removeClass('dragging');
           $volumeHandle.removeClass('dragging');
           $(document).off('mousemove', updateVolume);
@@ -226,8 +226,8 @@
         updatePlayPauseIcon();
         updateVolumeIcon();
         // Set initial volume visually
-        $volumeFill.css('width', `${audio.volume * 100}%`);
-        $volumeHandle.css('left', `${audio.volume * 100}%`);
+        $volumeFill.css('width', (audio.volume * 100) + '%');
+        $volumeHandle.css('left', (audio.volume * 100) + '%');
       });
     }
   };

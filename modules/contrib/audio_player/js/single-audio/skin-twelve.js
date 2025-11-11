@@ -44,9 +44,9 @@
         const $artistNameText = $player.find('.audio-player-artist-name');
         const $playbackSpeedSelect = $player.find('.audio-player-playback-speed-select');
 
-        let isPlaying = false;
+        let isPlaying = 0;
         let initialVolume = audio.volume;
-        let isSeeking = false; // Flag for seeking to prevent timeupdate interference
+        let isSeeking = 0; // Flag for seeking to prevent timeupdate interference
 
         // --- Helper Functions ---
         // formatTime function is already defined outside the behavior and is fine as is.
@@ -59,7 +59,7 @@
               // Find the last buffered range end
               const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
               const bufferedPercent = (bufferedEnd / duration) * 100;
-              $bufferedBar.css('width', `${bufferedPercent}%`);
+              $bufferedBar.css('width', bufferedPercent + '%');
             } else {
               $bufferedBar.css('width', '0%'); // No buffered data yet
             }
@@ -95,14 +95,14 @@
         // --- Mute/Unmute and Volume Control ---
         function toggleMuteUnmute() {
           if (audio.muted) {
-            audio.muted = false;
+            audio.muted = 0;
             audio.volume = initialVolume > 0 ? initialVolume : 1; // Restore to initial or full if 0
             $volumeSlider.val(audio.volume);
             $volumeUpIcon.show();
             $volumeMuteIcon.hide();
           } else {
             initialVolume = audio.volume;
-            audio.muted = true;
+            audio.muted = 1;
             audio.volume = 0;
             $volumeSlider.val(0);
             $volumeUpIcon.hide();
@@ -115,11 +115,11 @@
         $volumeSlider.on('input', (e) => {
           audio.volume = e.target.value;
           if (audio.volume == 0) { // Using == for string/number comparison from slider
-            audio.muted = true;
+            audio.muted = 1;
             $volumeUpIcon.hide();
             $volumeMuteIcon.show();
           } else {
-            audio.muted = false;
+            audio.muted = 0;
             $volumeUpIcon.show();
             $volumeMuteIcon.hide();
             initialVolume = audio.volume;
@@ -130,7 +130,7 @@
         $audio.on('timeupdate', () => {
           if (!isSeeking && !isNaN(audio.duration) && audio.duration > 0) { // Only update if not seeking
             const progressPercent = (audio.currentTime / audio.duration) * 100;
-            $progressBar.css('width', `${progressPercent}%`);
+            $progressBar.css('width', progressPercent + '%');
           }
           $currentTimeSpan.text(formatTime(audio.currentTime));
           updateBufferedBar(); // Call buffer update on timeupdate for consistency
@@ -141,7 +141,7 @@
           $totalTimeSpan.text(formatTime(audio.duration));
           const audioSrc = audio.src;
           const fileName = audioSrc.substring(audioSrc.lastIndexOf('/') + 1);
-          $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.]+$/, "")));
+          $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.] + $ / , "")));
           $artistNameText.text(""); // This seems to be a hardcoded string, if it should be dynamic, you'd need to get it from a data attribute or drupalSettings.
           $volumeSlider.val(audio.volume);
           initialVolume = audio.volume; // Set initialVolume once metadata is loaded
@@ -161,7 +161,7 @@
 
         // Click on progress bar to seek
         $progressContainer.on('mousedown', (e) => {
-          isSeeking = true; // Set seeking flag
+          isSeeking = 1; // Set seeking flag
           if (isPlaying) {
             audio.pause(); // Pause playback during seek
           }
@@ -169,12 +169,12 @@
           const width = $progressContainer.outerWidth(); // Total width of the progress bar container
           const seekTime = (clickX / width) * audio.duration;
           audio.currentTime = seekTime;
-          $progressBar.css('width', `${(seekTime / audio.duration) * 100}%`); // Update visually immediately
+          $progressBar.css('width', ((seekTime / audio.duration) * 100) + '%'); // Update visually immediately
         });
 
         $(document).on('mouseup', () => {
           if (isSeeking) {
-            isSeeking = false; // Clear seeking flag
+            isSeeking = 0; // Clear seeking flag
             if (isPlaying) { // Only resume if it was playing before seek
               audio.play();
             }
@@ -196,7 +196,7 @@
 
         // Handle end of song
         $audio.on('ended', () => {
-          isPlaying = false;
+          isPlaying = 0;
           $playIcon.show();
           $pauseIcon.hide();
           audio.currentTime = 0;

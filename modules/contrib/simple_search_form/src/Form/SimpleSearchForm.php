@@ -24,7 +24,9 @@ class SimpleSearchForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, array $config = []) {
     $form['#method'] = 'get';
-    $form['#action'] = Url::fromUserInput($config['action_path'])->toString();
+    if (!empty($config['action_path'])) {
+      $form['#action'] = Url::fromUserInput($config['action_path'])->toString();
+    }
     $form['#token'] = FALSE;
 
     $form[$config['get_parameter']] = [

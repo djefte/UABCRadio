@@ -113,7 +113,7 @@ class AiAgentWrapper extends FunctionCallBase implements ExecutableFunctionCallI
       $configuration,
       $plugin_id,
       $plugin_definition,
-      new ContextDefinitionNormalizer(),
+      $container->get('ai.context_definition_normalizer'),
       $container->get('plugin.manager.ai_agents'),
       $container->get('ai.provider'),
       $container->get('entity_type.manager'),
@@ -123,14 +123,14 @@ class AiAgentWrapper extends FunctionCallBase implements ExecutableFunctionCallI
   /**
    * {@inheritdoc}
    */
-  public function getAgent(): AiAgentInterface {
+  public function getAgent(): ConfigAiAgentInterface {
     return $this->agent;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setAgent(AiAgentInterface $agent) {
+  public function setAgent(ConfigAiAgentInterface $agent) {
     $this->agent = $agent;
   }
 
@@ -149,12 +149,6 @@ class AiAgentWrapper extends FunctionCallBase implements ExecutableFunctionCallI
     $prompt = $this->getContextValue('prompt');
     $files = $this->getContextValue('files');
 
-    $defaults = $this->aiProvider->getDefaultProviderForOperationType('chat_with_tools');
-    if (empty($defaults['provider_id']) || empty($defaults['model_id'])) {
-      throw new \exception("No AI provider is configured for 'Chat with Tools/Function Calling'. Please configure in the AI default settings");
-    }
-
-    $this->agent = $this->aiAgentManager->createInstance($this->pluginDefinition['function_name']);
     // Run the agents plugin.
     $task = new Task($prompt);
     // Set the files if any.
@@ -165,9 +159,21 @@ class AiAgentWrapper extends FunctionCallBase implements ExecutableFunctionCallI
     }
     $this->agent->setRunnerId($this->runnerId);
     $this->agent->setTask($task);
-    $this->agent->setAiProvider($this->aiProvider->createInstance($defaults['provider_id']));
-    $this->agent->setModelName($defaults['model_id']);
-    $this->agent->setAiConfiguration([]);
+    if ($this->agent->getAiProvider() === NULL) {
+      $defaults = $this->aiProvider->getDefaultProviderForOperationType('chat_with_tools');
+
+      if (empty($defaults['provider_id']) || empty($defaults['model_id'])) {
+        throw new \exception("No AI provider is configured for 'Chat with Tools/Function Calling'. Please configure in the AI default settings");
+      }
+      $this->agent->setAiProvider($this->aiProvider->createInstance($defaults['provider_id']));
+      $this->agent->setModelName($defaults['model_id']);
+      $this->agent->setAiConfiguration([]);
+    }
+    else {
+      $this->agent->setAiProvider($this->agent->getAiProvider());
+      $this->agent->setModelName($this->agent->getModelName());
+      $this->agent->setAiConfiguration($this->agent->getAiConfiguration());
+    }
     $this->agent->setCreateDirectly(TRUE);
     if ($this->agent instanceof ConfigAiAgentInterface) {
       $this->agent->setTokenContexts($this->tokens);
@@ -185,10 +191,7 @@ class AiAgentWrapper extends FunctionCallBase implements ExecutableFunctionCallI
   }
 
   /**
-   * Set tokens for the agent.
-   *
-   * @param array $tokens
-   *   The tokens to set.
+   * {@inheritDoc}
    */
   public function setTokens(array $tokens) {
     $this->tokens = $tokens;

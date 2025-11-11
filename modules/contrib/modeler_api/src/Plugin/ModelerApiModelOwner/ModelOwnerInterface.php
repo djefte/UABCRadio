@@ -213,6 +213,29 @@ interface ModelOwnerInterface extends PluginInspectionInterface, ContainerFactor
   public function getVersion(ConfigEntityInterface $model): string;
 
   /**
+   * Set storage of the model.
+   *
+   * @param \Drupal\Core\Config\Entity\ConfigEntityInterface $model
+   *   The model.
+   * @param string $storage
+   *   The storage.
+   *
+   * @return $this
+   */
+  public function setStorage(ConfigEntityInterface $model, string $storage): ModelOwnerInterface;
+
+  /**
+   * Get storage setting from the model.
+   *
+   * @param \Drupal\Core\Config\Entity\ConfigEntityInterface $model
+   *   The model.
+   *
+   * @return string
+   *   The storage setting.
+   */
+  public function getStorage(ConfigEntityInterface $model): string;
+
+  /**
    * Set documentation of the model.
    *
    * @param \Drupal\Core\Config\Entity\ConfigEntityInterface $model

@@ -61,24 +61,24 @@
         // Waveform elements
         const $waveformCanvas = $player.find('.audio-player-waveform-canvas');
         const waveformCanvas = $waveformCanvas[0]; // Get the native DOM element for canvas context
-        const canvasCtx = waveformCanvas ? waveformCanvas.getContext('2d') : null; // Check if canvas exists
+        const canvasCtx = waveformCanvas ? waveformCanvas.getContext('2d') : undefined; // Check if canvas exists
         let audioContext;
         let analyser;
         let sourceNode;
         let dataArray;
         let bufferLength;
 
-        let isPlaying = false;
+        let isPlaying = 0;
         let initialVolume = audio.volume; // Store initial volume for mute/unmute
-        let isSeeking = false;
-        let isDraggingVolume = false; // New: Flag for volume slider dragging
+        let isSeeking = 0;
+        let isDraggingVolume = 0; // New: Flag for volume slider dragging
 
         // Set initial song name and total time (these will be updated on loadedmetadata)
         $totalTimeSpan.text(formatTime(audio.duration));
         const audioSrc = audio.src;
         const fileName = audioSrc.substring(audioSrc.lastIndexOf('/') + 1);
-        $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.]+$/, "")));
-          
+        $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.] + $ / , "")));
+
         // --- Helper Functions ---
 
         function updateBufferedBar() {
@@ -87,7 +87,7 @@
             if (audio.buffered.length > 0) {
               const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
               const bufferedPercent = (bufferedEnd / duration) * 100;
-              $bufferedBar.css('width', `${bufferedPercent}%`);
+              $bufferedBar.css('width', bufferedPercent + '%');
             } else {
               $bufferedBar.css('width', '0%');
             }
@@ -112,7 +112,7 @@
         // --- Waveform Visualization Functions ---
         function setupAudioContext() {
           if (!audioContext && waveformCanvas) { // Ensure canvas exists before setting up context
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext = new(window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             sourceNode = audioContext.createMediaElementSource(audio);
 
@@ -202,7 +202,7 @@
         // Helper to update the visual state of the volume slider
         function updateVolumeSliderUI(volume) {
             const volumePercent = volume * 100;
-            $volumeFill.css('width', `${volumePercent}%`);
+            $volumeFill.css('width', volumePercent + '%');
 
             if (volume === 0) {
                 $volumeUpIcon.hide();
@@ -215,12 +215,12 @@
 
         function toggleMuteUnmute() {
           if (audio.muted) {
-            audio.muted = false;
+            audio.muted = 0;
             audio.volume = initialVolume; // Restore to the initialVolume saved before muting
             updateVolumeSliderUI(initialVolume);
           } else {
             initialVolume = audio.volume; // Save current volume before muting
-            audio.muted = true;
+            audio.muted = 1;
             audio.volume = 0;
             updateVolumeSliderUI(0);
           }
@@ -229,19 +229,19 @@
         $muteUnmuteBtn.on('click', toggleMuteUnmute);
 
         // New: Volume Slider Div interaction
-        $volumeSlider.on('mousedown', function(e) {
-            isDraggingVolume = true;
+        $volumeSlider.on('mousedown', function (e) {
+            isDraggingVolume = 1;
             updateVolumeFromMouseEvent(e);
         });
 
-        $(document).on('mousemove', function(e) {
+        $(document).on('mousemove', function (e) {
             if (isDraggingVolume) {
                 updateVolumeFromMouseEvent(e);
             }
         });
 
-        $(document).on('mouseup', function() {
-            isDraggingVolume = false;
+        $(document).on('mouseup', function () {
+            isDraggingVolume = 0;
         });
 
         function updateVolumeFromMouseEvent(e) {
@@ -251,22 +251,21 @@
 
             audio.volume = newVolume;
             updateVolumeSliderUI(newVolume);
-            
+
             // If dragging and volume becomes 0, ensure it's muted
             if (newVolume === 0) {
-                audio.muted = true;
+                audio.muted = 1;
             } else {
-                audio.muted = false;
+                audio.muted = 0;
                 initialVolume = newVolume; // Update initialVolume for next mute
             }
         }
-
 
         // --- Progress Bar and Time Display ---
         $audio.on('timeupdate', () => {
           if (!isSeeking && !isNaN(audio.duration) && audio.duration > 0) {
             const progressPercent = (audio.currentTime / audio.duration) * 100;
-            $progressBar.css('width', `${progressPercent}%`);
+            $progressBar.css('width', progressPercent + '%');
           }
           $currentTimeSpan.text(formatTime(audio.currentTime));
           updateBufferedBar();
@@ -276,11 +275,10 @@
 
         });
 
-
         // Function to update metadata once loaded
         const updateMetadata = () => {
           $totalTimeSpan.text(formatTime(audio.duration));
-          $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.]+$/, "")));
+          $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.] + $ / , "")));
           updateBufferedBar();
 
           // Initialize volume slider state on loadedmetadata
@@ -294,13 +292,12 @@
 
         updateMetadata();
 
-        
         $audio.on('progress', updateBufferedBar);
         $audio.on('loadeddata', updateBufferedBar);
 
         // Click on progress bar to seek
         $progressContainer.on('mousedown', (e) => {
-          isSeeking = true;
+          isSeeking = 1;
           if (isPlaying) {
             audio.pause();
             stopEqualizerAnimation();
@@ -311,12 +308,12 @@
           if (!isNaN(seekTime) && isFinite(seekTime)) {
             audio.currentTime = seekTime;
           }
-          $progressBar.css('width', `${(audio.currentTime / audio.duration) * 100}%`);
+          $progressBar.css('width', ((audio.currentTime / audio.duration) * 100) + '%');
         });
 
         $(document).on('mouseup', () => {
           if (isSeeking) {
-            isSeeking = false;
+            isSeeking = 0;
             if (isPlaying) {
               audio.play();
               startEqualizerAnimation();
@@ -338,7 +335,7 @@
 
         // Handle end of song
         $audio.on('ended', () => {
-          isPlaying = false;
+          isPlaying = 0;
           $playIcon.show();
           $pauseIcon.hide();
           audio.currentTime = 0;
@@ -355,7 +352,6 @@
         // especially if `loadedmetadata` is slow or if `audio.volume` has a default.
         initialVolume = audio.volume; // Ensures it's always initialized
         updateVolumeSliderUI(audio.volume); // Ensures visual state matches current audio volume on load
-
 
       });
     }

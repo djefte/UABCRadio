@@ -124,7 +124,10 @@ final class DrupalCore extends ProjectBrowserSourceBase {
 
     // Filter by categories.
     if (!empty($query['categories'])) {
-      $projects = array_filter($projects, fn(Project $project): bool => !empty(array_intersect(array_column($project->categories, 'id'), explode(',', $query['categories']))));
+      $projects = array_filter(
+        $projects,
+        fn (Project $project): bool => (bool) array_intersect_key($project->categories, explode(',', $query['categories'])),
+      );
     }
 
     // Filter by search text.
@@ -193,10 +196,7 @@ final class DrupalCore extends ProjectBrowserSourceBase {
         title: $module->info['name'],
         packageName: 'drupal/core',
         categories: [
-          [
-            'id' => $module->info['package'],
-            'name' => $module->info['package'],
-          ],
+          $module->info['package'] => $module->info['package'],
         ],
         id: $module_name,
       );

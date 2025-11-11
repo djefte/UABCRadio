@@ -10,7 +10,6 @@ use Drupal\ai\Attribute\FunctionCall;
 use Drupal\ai\Base\FunctionCallBase;
 use Drupal\ai\Service\FunctionCalling\ExecutableFunctionCallInterface;
 use Drupal\ai\Service\FunctionCalling\FunctionCallInterface;
-use Drupal\ai\Utility\ContextDefinitionNormalizer;
 use Drupal\ai_agents\PluginInterfaces\AiAgentContextInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Yaml\Yaml;
@@ -50,7 +49,6 @@ use Symfony\Component\Yaml\Yaml;
       label: new TranslatableMarkup("Fields"),
       description: new TranslatableMarkup("The fields to list. Leave empty to list all fields."),
       required: FALSE,
-      default_value: ['id'],
     ),
     'sort_field' => new ContextDefinition(
       data_type: 'string',
@@ -91,7 +89,7 @@ class ListConfigEntities extends FunctionCallBase implements ExecutableFunctionC
       $configuration,
       $plugin_id,
       $plugin_definition,
-      new ContextDefinitionNormalizer(),
+      $container->get('ai.context_definition_normalizer'),
     );
     $instance->entityTypeManager = $container->get('entity_type.manager');
     $instance->currentUser = $container->get('current_user');
@@ -139,8 +137,13 @@ class ListConfigEntities extends FunctionCallBase implements ExecutableFunctionC
           continue;
         }
         $entity_data = [];
-        foreach ($fields as $field) {
-          $entity_data[] = $entity->get($field);
+        if (!empty($fields)) {
+          foreach ($fields as $field) {
+            $entity_data[$field] = $entity->get($field);
+          }
+        }
+        else {
+          $entity_data[] = $entity->toArray();
         }
         $this->list[] = $entity_data;
       }

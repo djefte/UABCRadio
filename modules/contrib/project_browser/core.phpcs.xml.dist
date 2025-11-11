@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- cspell:ignore Openercase -->
 <ruleset name="drupal_core">
   <arg name="extensions" value="engine,inc,install,module,php,profile,test,theme,yml"/>
   <description>Default PHP CodeSniffer configuration for Drupal core.</description>
@@ -34,6 +35,7 @@
     <include-pattern>core/*/Unit/*</include-pattern>
     <include-pattern>core/*/FunctionalJavascript/*</include-pattern>
     <include-pattern>core/*/Kernel/*</include-pattern>
+    <include-pattern>core/*/Functional/*</include-pattern>
     <include-pattern>core/lib/*</include-pattern>
     <include-pattern>core/modules/*/tests/modules/*</include-pattern>
   </rule>
@@ -93,14 +95,7 @@
   <rule ref="Drupal.Files.EndFileNewline"/>
   <rule ref="Drupal.Files.FileEncoding"/>
   <rule ref="Drupal.Files.LineLength">
-    <include-pattern>*/core/lib/*</include-pattern>
-    <exclude-pattern>*/core/lib/*/*Trait</exclude-pattern>
-    <include-pattern>*/core/includes/*</include-pattern>
-    <include-pattern>*/core/profiles/*</include-pattern>
-    <include-pattern>*/core/recipes/*</include-pattern>
-    <include-pattern>*/core/themes/*</include-pattern>
-    <include-pattern>*/core/modules/*</include-pattern>
-    <exclude-pattern>*/core/modules/*/tests</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
   </rule>
   <rule ref="Drupal.Files.TxtFileLineLength"/>
   <rule ref="Drupal.Formatting.MultiLineAssignment"/>
@@ -248,6 +243,7 @@
        Drupal.Classes.PropertyDeclaration. -->
     <exclude name="PSR2.Classes.PropertyDeclaration.Underscore"/>
   </rule>
+  <rule ref="PSR2.ControlStructures.SwitchDeclaration.WrongOpenercase"/>
   <rule ref="PSR2.Namespaces.NamespaceDeclaration"/>
   <rule ref="PSR2.Namespaces.UseDeclaration"/>
 
@@ -256,6 +252,7 @@
   <rule ref="SlevomatCodingStandard.Commenting.ForbiddenAnnotations">
     <properties>
       <property name="forbiddenAnnotations" type="array">
+        <element value="@encode"/>
         <element value="@inheritDoc"/>
         <element value="@inheritdoc"/>
         <element value="@returns"/>
@@ -266,12 +263,14 @@
     <properties>
        <property name="forbiddenCommentPatterns" type="array">
          <element value="/@inheritDoc/"/>
+         <element value="/(?&lt;!\.)\.\.(?!\.)$/"/>
        </property>
     </properties>
   </rule>
   <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator"/>
   <rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/>
   <rule ref="SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch" />
+  <rule ref="SlevomatCodingStandard.PHP.TypeCast" />
   <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
     <properties>
       <property name="spacesCountAroundEqualsSign" value="0" />

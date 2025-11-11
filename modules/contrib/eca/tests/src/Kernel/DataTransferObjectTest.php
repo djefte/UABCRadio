@@ -6,6 +6,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\eca\Plugin\DataType\DataTransferObject;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -15,6 +16,8 @@ use Drupal\user\Entity\User;
  * @group eca_core
  */
 class DataTransferObjectTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -43,8 +46,7 @@ class DataTransferObjectTest extends KernelTestBase {
     User::create(['uid' => 0, 'name' => 'guest'])->save();
     User::create(['uid' => 1, 'name' => 'admin'])->save();
     // Create an Article content type.
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
   }
 
   /**

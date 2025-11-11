@@ -8,8 +8,8 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\eca\Token\TokenInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 use Drupal\views\Entity\View;
 
@@ -20,6 +20,8 @@ use Drupal\views\Entity\View;
  * @group eca_views
  */
 class ViewsQueryTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -101,9 +103,7 @@ class ViewsQueryTest extends KernelTestBase {
     ConfigurableLanguage::createFromLangcode('de')->save();
 
     // Create the Article content type with a standard body field.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
 
     $this->node = Node::create([
       'uid' => 1,

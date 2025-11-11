@@ -8,7 +8,7 @@ use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
 use Drupal\eca\Entity\Eca;
 use Drupal\eca_test_array\Plugin\Action\ArrayIncrement;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 
 /**
  * Kernel tests for the events provided by the ECA Workflow module.
@@ -19,7 +19,7 @@ use Drupal\node\Entity\NodeType;
 class WorkflowEventsTest extends KernelTestBase {
 
   use ContentModerationTestTrait;
-
+  use ContentTypeCreationTrait;
   use ConfigTestTrait;
 
   /**
@@ -32,6 +32,7 @@ class WorkflowEventsTest extends KernelTestBase {
     'system',
     'text',
     'workflows',
+    'field',
     'eca',
     'eca_test_array',
     'eca_workflow',
@@ -51,9 +52,7 @@ class WorkflowEventsTest extends KernelTestBase {
     $this->installEntitySchema('content_moderation_state');
     $this->installConfig(['system', 'content_moderation']);
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
 
     $workflow = $this->createEditorialWorkflow();
     $workflow->getTypePlugin()->addEntityTypeAndBundle('node', 'article');

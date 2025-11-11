@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\Dashboard\Kernel;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\dashboard\DashboardPermissions;
 use Drupal\dashboard\Entity\Dashboard;
 
 /**
  * Tests for dashboard dynamic permissions.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardPermissionsTest extends KernelTestBase {
 
   /**
@@ -22,6 +22,7 @@ class DashboardPermissionsTest extends KernelTestBase {
    */
   protected static $modules = [
     'dashboard',
+    'layout_builder',
   ];
 
   /**

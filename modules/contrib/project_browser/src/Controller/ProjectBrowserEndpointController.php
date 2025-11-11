@@ -223,6 +223,23 @@ final class ProjectBrowserEndpointController extends ControllerBase {
       $response->addCommand(new ScrollTopCommand('[data-drupal-messages]'));
       Error::logException($this->logger, $e);
     }
+
+    // Capture any messages set from activation and send to the frontend.
+    // We do this in case any modules use their hook_install() to inform the
+    // user about any "next steps" or other important information. We do it
+    // here in the Endpoint Controller so we don't have to do it in each
+    // individual Activator.
+    foreach ($this->messenger()->all() as $type => $messages) {
+      foreach ($messages as $message) {
+        $response->addCommand(new MessageCommand(
+          $message,
+          options: ['type' => $type],
+          clear_previous: FALSE,
+        ));
+      }
+    }
+    $this->messenger->deleteAll();
+
     $this->installProgress->clear();
     return $response->addCommand(new RefreshProjectsCommand());
   }

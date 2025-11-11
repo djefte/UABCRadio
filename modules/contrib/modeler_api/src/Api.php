@@ -364,6 +364,7 @@ class Api {
       ->setModelerId($model, $modeler_id)
       ->setChangelog($model, $modeler->getChangelog())
       ->setLabel($model, $modeler->getLabel())
+      ->setStorage($model, $modeler->getStorage())
       ->setDocumentation($model, $modeler->getDocumentation())
       ->setTags($model, $modeler->getTags())
       ->setVersion($model, $modeler->getVersion());

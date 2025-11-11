@@ -159,16 +159,11 @@
   font-size: var(--gin-font-size-s);
 }
 
-#project-browser
-  .search__filter__toggle.form-element
-  .search__filter__toggle-img {
+#project-browser .search__filter__toggle.form-element .search__filter__toggle-img {
   padding: 0;
 }
 
-.gin--dark-mode
-  #project-browser
-  .search__filter__toggle.form-element
-  .search__filter__toggle-img {
+.gin--dark-mode #project-browser .search__filter__toggle.form-element .search__filter__toggle-img {
   filter: invert(1);
 }
 

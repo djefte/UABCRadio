@@ -19,5 +19,7 @@ parameters:
     -
       message: '#internal#'
       reportUnmatched: false
+    # Ignore restoreFromTrash() method calls - dynamically added by TrashStorageTrait.
+    - '#Call to an undefined method .+::restoreFromTrash\(\)#'
   scanDirectories:
     - ../../../../vendor/drush/drush/src-symfony-compatibility

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\dashboard\Functional\Form;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\dashboard\DashboardInterface;
 use Drupal\dashboard\Entity\Dashboard;
@@ -9,9 +12,8 @@ use Drupal\user\UserInterface;
 
 /**
  * Test for dashboard navigation.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardNavigationTest extends BrowserTestBase {
 
   /**

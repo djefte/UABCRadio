@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Yaml\Exception\ParseException;
 
 /**
- * Render an inline template using the Twig engine..
+ * Render an inline template using the Twig engine.
  *
  * @Action(
  *   id = "eca_render_twig",

@@ -2,6 +2,7 @@
 
 namespace Drupal\audio_player\Plugin\Field\FieldFormatter;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -294,7 +295,15 @@ class AudioPlayerFieldFormatter extends FileFormatterBase implements ContainerFa
     if ($files) {
       foreach ($files as $delta => $file) {
         $video_uri = $file->getFileUri();
-        $video_uri_absolute = $this->fileUrlGenerator->generateAbsoluteString($video_uri);
+        // Check if the file is accessible to the current user.
+        if ($file->access('view')) {
+          // File is accessible, generate the URL.
+          $video_uri_absolute = $this->fileUrlGenerator->generateAbsoluteString($video_uri);
+        }
+        else {
+          return [];
+        }
+
         $video_uri_parsed = parse_url($video_uri_absolute);
         $video_uri_path = $video_uri_parsed['path'] ?? '';
 
@@ -302,6 +311,7 @@ class AudioPlayerFieldFormatter extends FileFormatterBase implements ContainerFa
 
         $audio_name = basename($video_uri_path);
         $audio_name = urldecode($audio_name);
+        $audio_name = Html::escape($audio_name);
 
         $audios[$delta] = [
           'original_url' => $video_uri_path,

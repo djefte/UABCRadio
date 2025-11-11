@@ -6,8 +6,8 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\eca\Entity\Eca;
 use Drupal\eca_queue\Task;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -17,6 +17,8 @@ use Drupal\user\Entity\User;
  * @group eca_queue
  */
 class EnqueueTaskTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -58,13 +60,11 @@ class EnqueueTaskTest extends KernelTestBase {
    */
   public function testEnqueueTask(): void {
     // Create the Article content type with revisioning and translation enabled.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
 
     /** @var \Drupal\Core\Action\ActionManager $action_manager */
     $action_manager = \Drupal::service('plugin.manager.action');

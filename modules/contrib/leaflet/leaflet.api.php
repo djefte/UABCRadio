@@ -151,6 +151,32 @@ function hook_leaflet_map_info() {
             'bearing' => '0',
           ],
         ],
+        // A Map Tiler (Aquarelle style) integration example.
+        // @see https://cloud.maptiler.com/maps/aquarelle/
+        'Map Tiler Aquarelle' => [
+          'urlTemplate' => 'https://api.maptiler.com/maps/aquarelle/{z}/{x}/{y}.png?key=OIQHXCpngQEP6dfvC5nq',
+          'options' => [
+            "tileSize" => 512,
+            "zoomOffset" => -1,
+            "minZoom" => 0,
+            "maxZoom" => 22,
+            'attribution' => "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
+            'crossOrigin' => TRUE,
+          ],
+        ],
+        // A Map Tiler (Backdrop style) integration example.
+        // @see https://cloud.maptiler.com/maps/backdrop/
+        'Map Tiler Backdrop' => [
+          'urlTemplate' => 'https://api.maptiler.com/maps/backdrop/{z}/{x}/{y}.png?key=OIQHXCpngQEP6dfvC5nq',
+          'options' => [
+            "tileSize" => 512,
+            "zoomOffset" => -1,
+            "minZoom" => 0,
+            "maxZoom" => 22,
+            'attribution' => "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
+            'crossOrigin' => TRUE,
+          ],
+        ],
         // An example Overlay definition, in addition to previous Base Layers.
         // (@see @3050934: simultaneous multiple layers feature)
         'OpenRailwayMap' => [

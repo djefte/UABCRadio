@@ -16,17 +16,6 @@ project_browser.admin_settings:
     allow_ui_install:
       type: boolean
       label: 'Allow installing packages from within the UI'
-    allowed_projects:
-      type: sequence
-      label: 'Allow-lists of projects, keyed by source plugin ID'
-      sequence:
-        type: sequence
-        label: 'List of allowed projects'
-        sequence:
-          type: string
-          label: 'Project identifier'
-          constraints:
-            NotBlank: []
     max_selections:
       type: integer
       nullable: true

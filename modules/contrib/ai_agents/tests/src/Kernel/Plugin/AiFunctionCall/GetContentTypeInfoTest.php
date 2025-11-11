@@ -6,14 +6,12 @@ namespace Drupal\Tests\ai_agents\Kernel\Plugin\AiFunctionCall;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\ai\Service\FunctionCalling\ExecutableFunctionCallInterface;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the GetContentTypeInfoTest class.
  *
  * @group ai_agents
  */
-#[Group('ai_agents')]
 final class GetContentTypeInfoTest extends KernelTestBase {
 
   /**
@@ -76,8 +74,7 @@ final class GetContentTypeInfoTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    // Install required modules.
-    $this->container->get('module_installer')->install(['user', 'node', 'ai', 'ai_agents', 'system']);
+    // Install the necessary entity schemas.
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
 

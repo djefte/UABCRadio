@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
   label: new TranslatableMarkup('Contrib modules'),
   description: new TranslatableMarkup('Modules on Drupal.org queried via the JSON:API endpoint'),
   local_task: [
-    'title' => new TranslatableMarkup('Contrib modules'),
+    'title' => new TranslatableMarkup('Browse modules'),
   ],
 )]
 final class DrupalDotOrgJsonApi extends DrupalDotOrgSourceBase {

@@ -35,6 +35,9 @@ interface TrashHandlerInterface {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   An entity object.
+   *
+   * @throws \Drupal\trash\Exception\UnrestorableEntityException
+   *   Thrown when an entity can not be restored from Trash.
    */
   public function preTrashRestore(EntityInterface $entity): void;
 
@@ -43,8 +46,10 @@ interface TrashHandlerInterface {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   An entity object.
+   * @param int|string $deleted_timestamp
+   *   The timestamp when the entity was deleted.
    */
-  public function postTrashRestore(EntityInterface $entity): void;
+  public function postTrashRestore(EntityInterface $entity, int|string $deleted_timestamp): void;
 
   /**
    * Alters the entity delete form to provide additional information if needed.

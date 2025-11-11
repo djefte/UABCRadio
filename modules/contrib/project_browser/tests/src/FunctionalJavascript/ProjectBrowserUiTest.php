@@ -697,7 +697,7 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
       ->findAll('css', 'li a[href*="/admin/modules/browse/"]');
     $this->assertCount(2, $local_tasks);
     // Verify that the contrib modules source is first tab.
-    $this->assertSame('Contrib modules', $local_tasks[0]->getText());
+    $this->assertSame('Browse modules', $local_tasks[0]->getText());
 
     // Re-order plugins.
     $this->drupalGet('admin/config/development/project_browser');
@@ -760,8 +760,8 @@ final class ProjectBrowserUiTest extends WebDriverTestBase {
 
     $astronaut_simulator_categories = $this->waitForProject('Astronaut Simulator')
       ->findAll('css', '.pb-project-categories ul li');
-    $this->assertCount(2, $astronaut_simulator_categories);
-    $this->assertSame('E-commerce', $astronaut_simulator_categories[1]->getText());
+    $this->assertCount(1, $astronaut_simulator_categories);
+    $this->assertSame('E-commerce', $astronaut_simulator_categories[0]->getText());
   }
 
   /**

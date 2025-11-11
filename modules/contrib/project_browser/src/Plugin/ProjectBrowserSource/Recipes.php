@@ -8,7 +8,6 @@ use Composer\InstalledVersions;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -48,7 +47,6 @@ final class Recipes extends ProjectBrowserSourceBase {
     private readonly FileSystemInterface $fileSystem,
     private readonly CacheBackendInterface $cacheBin,
     private readonly ModuleExtensionList $moduleList,
-    private readonly ConfigFactoryInterface $configFactory,
     private readonly string $appRoot,
     private readonly FileUrlGeneratorInterface $fileUrlGenerator,
     mixed ...$arguments,
@@ -65,7 +63,6 @@ final class Recipes extends ProjectBrowserSourceBase {
       $container->get(FileSystemInterface::class),
       $container->get('cache.project_browser'),
       $container->get(ModuleExtensionList::class),
-      $container->get(ConfigFactoryInterface::class),
       $container->getParameter('app.root'),
       $container->get('file_url_generator'),
       ...array_slice(func_get_args(), 1),
@@ -118,6 +115,9 @@ final class Recipes extends ProjectBrowserSourceBase {
           if (array_key_exists('homepage', $package)) {
             $url = Url::fromUri($package['homepage']);
           }
+          else {
+            $url = NULL;
+          }
         }
 
         $recipe = Yaml::decode($file->getContents());
@@ -152,11 +152,6 @@ final class Recipes extends ProjectBrowserSourceBase {
     // Filter by coverage.
     if (!empty($query['security_advisory_coverage'])) {
       $projects = array_filter($projects, fn(Project $project): bool => $project->isCovered ?? FALSE);
-    }
-
-    // Filter by categories.
-    if (!empty($query['categories'])) {
-      $projects = array_filter($projects, fn(Project $project): bool => empty(array_intersect(array_column($project->categories, 'id'), explode(',', $query['categories']))));
     }
 
     // Filter by search text.
@@ -223,7 +218,7 @@ final class Recipes extends ProjectBrowserSourceBase {
       $search_in[] = $recipes_dir;
     }
 
-    $finder = Finder::create()
+    return Finder::create()
       ->files()
       ->in($search_in)
       ->depth(1)
@@ -233,15 +228,6 @@ final class Recipes extends ProjectBrowserSourceBase {
       // The example recipe exists for documentation purposes only.
       ->notPath('example/')
       ->name('recipe.yml');
-
-    $allowed = $this->configFactory->get('project_browser.admin_settings')
-      ->get('allowed_projects.' . $this->getPluginId());
-    if ($allowed) {
-      $finder->path(
-        array_map(fn (string $name) => $name . '/', $allowed),
-      );
-    }
-    return $finder;
   }
 
   /**

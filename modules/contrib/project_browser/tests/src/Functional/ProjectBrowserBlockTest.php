@@ -63,23 +63,41 @@ final class ProjectBrowserBlockTest extends BrowserTestBase {
   }
 
   /**
+   * Tests that the block is still configurable if the source is disabled.
+   */
+  public function testBlockFormIfSourceNotEnabled(): void {
+    $page = $this->getSession()->getPage();
+    $assert_session = $this->assertSession();
+
+    // Disable the test source, then place a block that uses it. We should be
+    // able to do that without blowing up.
+    $this->config('project_browser.admin_settings')
+      ->set('enabled_sources', [])
+      ->save();
+    $this->drupalGet('/admin/structure/block/add/project_browser_block:project_browser_test_mock/stark');
+    $page->fillField('region', 'content');
+    $page->pressButton('Save block');
+    $assert_session->statusCodeEquals(200);
+    $assert_session->pageTextContains('Project Browser block');
+  }
+
+  /**
    * Tests that the block only appears if the source is enabled.
    */
-  public function testBlockIsBrokenIfSourceIsDisabled(): void {
+  public function testBlockAccessIfSourceNotEnabled(): void {
     $this->drupalGet('<front>');
-    $assertSession = $this->assertSession();
-    $assertSession->pageTextContains('Project browser block');
-    $assertSession->pageTextNotContains('This block is broken or missing.');
+    $assert_session = $this->assertSession();
+    $assert_session->pageTextContains('Project browser block');
 
-    // Globally disable the source, even though the block's still refers to it.
+    // Globally disable the source, even though the block still refers to it.
     $this->config('project_browser.admin_settings')
       ->set('enabled_sources', [])
       ->save();
 
-    // The block should still appear, but it should be broken or missing.
+    // The block should not appear because we cannot access it since the source
+    // has been disabled.
     $this->getSession()->reload();
-    $assertSession->pageTextContains('Project browser block');
-    $assertSession->pageTextContains('This block is broken or missing.');
+    $assert_session->pageTextNotContains('Project browser block');
   }
 
   /**

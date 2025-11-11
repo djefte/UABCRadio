@@ -21,25 +21,18 @@ use Drupal\ai_agents\AiAgentInterface;
  *     plural = "@count AI Agents",
  *   ),
  *   handlers = {
- *     "list_builder" = "Drupal\ai_agents\AiAgentListBuilder",
  *     "form" = {
  *       "add" = "Drupal\ai_agents\Form\AiAgentForm",
  *       "edit" = "Drupal\ai_agents\Form\AiAgentForm",
- *       "delete" = "Drupal\Core\Entity\EntityDeleteForm",
  *     },
  *   },
  *   config_prefix = "ai_agent",
  *   admin_permission = "administer ai_agent",
- *   links = {
- *     "collection" = "/admin/structure/ai-agent",
- *     "add-form" = "/admin/structure/ai-agent/add",
- *     "edit-form" = "/admin/structure/ai-agent/{ai_agent}",
- *     "delete-form" = "/admin/structure/ai-agent/{ai_agent}/delete",
- *   },
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",
  *     "uuid" = "uuid",
+ *     "weight" = "weight"
  *   },
  *   config_export = {
  *     "id",
@@ -56,6 +49,8 @@ use Drupal\ai_agents\AiAgentInterface;
  *     "max_loops",
  *     "masquerade_roles",
  *     "exclude_users_role",
+ *     "structured_output_enabled",
+ *     "structured_output_schema",
  *   },
  * )
  */
@@ -130,5 +125,15 @@ final class AiAgent extends ConfigEntityBase implements AiAgentInterface {
    * Do not use users role.
    */
   protected bool $exclude_users_role = FALSE;
+
+  /**
+   * If the structured output is enabled.
+   */
+  protected ?bool $structured_output_enabled = NULL;
+
+  /**
+   * The structured output schema in JSON format.
+   */
+  protected ?string $structured_output_schema = NULL;
 
 }

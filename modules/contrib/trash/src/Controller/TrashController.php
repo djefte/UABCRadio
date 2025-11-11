@@ -207,7 +207,10 @@ class TrashController extends ControllerBase implements ContainerInjectionInterf
    */
   protected function buildRow(FieldableEntityInterface $entity): array {
     $entity_type = $entity->getEntityType();
-    if ($entity_type->getLinkTemplate('canonical') != $entity_type->getLinkTemplate('edit-form') && $entity->access('view')) {
+    if ($entity_type->hasLinkTemplate('canonical')
+      && $entity_type->getLinkTemplate('canonical') != $entity_type->getLinkTemplate('edit-form')
+      && $entity->access('view')
+    ) {
       $row['label']['data'] = [
         '#type' => 'link',
         '#title' => "{$entity->label()} ({$entity->id()})",

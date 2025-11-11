@@ -2,13 +2,12 @@ name: 'Visitors test views'
 type: module
 description: 'Provides default views for views visitor counter tests.'
 package: Testing
-# version: VERSION
 core_version_requirement: ^10.1 || ^11
 dependencies:
   - visitors:visitors
   - drupal:views
 
-# Information added by Drupal.org packaging script on 2025-05-31
-version: '8.x-2.31'
+# Information added by Drupal.org packaging script on 2025-09-26
+version: '8.x-2.32'
 project: 'visitors'
-datestamp: 1748725097
+datestamp: 1758919525

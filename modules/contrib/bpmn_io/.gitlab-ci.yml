@@ -14,6 +14,7 @@ BuildApp:
     - npm run all
 variables:
   _CSPELL_IGNORE_PATHS: '"build/", "css/", "js/", "webpack/", "**/eca.eca.*.yml", "**/eca.model.*.yml", "**/ConverterTest.php", "tests/**/*.js"'
+  _PHPCS_EXTRA: '--ignore=eca.model.*.yml'
   SKIP_ESLINT: '1'
   SKIP_STYLELINT: '1'
   OPT_IN_TEST_PREVIOUS_MAJOR: 1

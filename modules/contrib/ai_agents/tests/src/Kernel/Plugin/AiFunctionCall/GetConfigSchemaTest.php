@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Drupal\Tests\ai_agents\Kernel\Plugin\AiFunctionCall;
 
 use Drupal\KernelTests\KernelTestBase;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the GetConfigSchemaTest class.
  *
  * @group ai_agents
  */
-#[Group('ai_agents')]
 final class GetConfigSchemaTest extends KernelTestBase {
 
   /**
@@ -68,8 +66,7 @@ final class GetConfigSchemaTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    // Install required modules.
-    $this->container->get('module_installer')->install(['user', 'node', 'ai', 'ai_agents', 'system']);
+    // Install the necessary entity schemas.
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
 

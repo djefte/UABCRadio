@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\Dashboard\Kernel;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\dashboard\Entity\Dashboard;
 use Drupal\layout_builder\Section;
@@ -11,9 +12,8 @@ use Drupal\layout_builder\SectionComponent;
 
 /**
  * Tests for dashboard config dependencies.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardConfigDependenciesTest extends KernelTestBase {
 
   /**
@@ -23,6 +23,7 @@ class DashboardConfigDependenciesTest extends KernelTestBase {
    */
   protected static $modules = [
     'dashboard',
+    'layout_builder',
     'layout_discovery',
     'announcements_feed',
   ];

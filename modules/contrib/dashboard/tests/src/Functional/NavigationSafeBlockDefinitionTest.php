@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\dashboard\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\BrowserTestBase;
 
 /**
  * Tests the definition of navigation safe blocks.
- *
- * @group navigation
  */
+#[Group('dashboard')]
+#[Group('navigation')]
 class NavigationSafeBlockDefinitionTest extends BrowserTestBase {
 
   /**
@@ -56,8 +57,13 @@ class NavigationSafeBlockDefinitionTest extends BrowserTestBase {
     // Confirm that default blocks are available.
     $layout_url = '/admin/config/user-interface/navigation-block';
     $this->drupalGet($layout_url);
-    $this->clickLink('Add block');
 
+    // After https://drupal.org/i/3509310 this requires JavaScript, because of
+    // the new "Edit mode", so we cannot test this in this way.
+    if (version_compare(\Drupal::VERSION, '11.2', '>=')) {
+      $this->markTestSkipped('This will only work on < 11.2');
+    }
+    $this->clickLink('Add block');
     $this->assertSession()->linkExists('Navigation Dashboard');
   }
 

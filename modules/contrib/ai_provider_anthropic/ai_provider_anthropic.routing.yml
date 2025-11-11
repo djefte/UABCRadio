@@ -5,4 +5,3 @@ ai_provider_anthropic.settings_form:
     _title: 'Setup Anthropic Authentication'
   requirements:
     _permission: 'administer ai providers'
-

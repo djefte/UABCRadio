@@ -4,7 +4,7 @@ description: 'Implements search form block for redirecting to a path with a para
 package: Search
 core_version_requirement: ^8.8 || ^9 || ^10 || ^11
 
-# Information added by Drupal.org packaging script on 2025-08-12
-version: '8.x-1.7'
+# Information added by Drupal.org packaging script on 2025-10-13
+version: '8.x-1.8'
 project: 'simple_search_form'
-datestamp: 1755001400
+datestamp: 1760340207

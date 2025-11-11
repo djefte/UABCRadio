@@ -63,8 +63,8 @@ final class InstallerController extends ControllerBase {
       // The risks of forcing a destroy with TRUE are understood, which is why
       // we first check if the lock originated from Project Browser. This
       // function is called if an exception is thrown during an install. This
-      // can occur during a phase where the sandbox might not be claimable, so we
-      // force-destroy with the TRUE parameter, knowing that the checks above
+      // can occur during a phase where the sandbox might not be claimable, so
+      // we force-destroy with the TRUE parameter, knowing that the checks above
       // will prevent destroying an Automatic Updates sandbox or a sandbox that
       // is in the process of applying.
       $this->installer->destroy(TRUE);

@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\Dashboard\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\dashboard\Entity\Dashboard;
 use Drupal\user\Entity\Role;
 
 /**
  * Tests the dashboard links and local actions.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardLinksTest extends BrowserTestBase {
 
   /**

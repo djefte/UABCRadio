@@ -9,7 +9,7 @@ use Drupal\eca\Token\TokenInterface;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 
 /**
  * Tests for ECA condition eca_list_contains plugin.
@@ -18,6 +18,8 @@ use Drupal\node\Entity\NodeType;
  * @group eca_base
  */
 class ListContainsTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The token service.
@@ -137,14 +139,11 @@ class ListContainsTest extends KernelTestBase {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   private function createField(): void {
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
-    node_add_body_field($node_type);
 
     $field_definition = FieldStorageConfig::create([
       'field_name' => 'field_node_multi',

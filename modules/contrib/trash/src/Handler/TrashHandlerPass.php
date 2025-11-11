@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\trash\Handler;
 
 use Drupal\Core\Config\BootstrapConfigStorageFactory;
+use Drupal\trash\PathAlias\TrashAliasRepository;
+use Drupal\trash\PathAlias\TrashWorkspacesAliasRepository;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -53,6 +55,24 @@ class TrashHandlerPass implements CompilerPassInterface {
         ->addTag('trash_handler', ['entity_type_id' => $entity_type_id])
         ->addMethodCall('setEntityTypeId', [$entity_type_id])
         ->setConfigurator(new Reference('trash.handler_configurator'));
+    }
+
+    // Replace the class of the 'path_alias.repository' service. We have to do
+    // it here so it gets executed after Workspaces' service provider.
+    if ($container->hasDefinition('path_alias.repository')) {
+      $definition = $container->getDefinition('path_alias.repository');
+      // Use the workspaces-aware version if workspaces module is enabled.
+      if ($container->hasDefinition('workspaces.manager')) {
+        $definition
+          ->setClass(TrashWorkspacesAliasRepository::class)
+          ->addMethodCall('setWorkspacesManager', [new Reference('workspaces.manager')])
+          ->addMethodCall('setTrashManager', [new Reference('trash.manager')]);
+      }
+      else {
+        $definition
+          ->setClass(TrashAliasRepository::class)
+          ->addMethodCall('setTrashManager', [new Reference('trash.manager')]);
+      }
     }
   }
 

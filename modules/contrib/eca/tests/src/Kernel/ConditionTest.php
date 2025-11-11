@@ -5,7 +5,7 @@ namespace Drupal\Tests\eca\Kernel;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\eca\Plugin\ECA\Condition\StringComparisonBase;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 
 /**
  * Tests for ECA condition plugins.
@@ -14,6 +14,8 @@ use Drupal\node\Entity\NodeType;
  * @group eca_core
  */
 class ConditionTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -47,10 +49,7 @@ class ConditionTest extends KernelTestBase {
    */
   public function testScalarComparison(): void {
     // Create the Article content type with a standard body field.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
-    node_add_body_field($node_type);
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
 
     $body = $this->randomMachineName(32);
     $summary = $this->randomMachineName(16);

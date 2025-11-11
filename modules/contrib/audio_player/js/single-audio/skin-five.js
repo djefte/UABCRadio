@@ -42,9 +42,9 @@
         const $durationSpan = $player.find('.audio-player-duration');
         const $songNameSpan = $player.find('.audio-player-song-name');
 
-        let isPlaying = false;
-        let isSeeking = false; // Flag to prevent timeupdate overriding seek
-        let isMuted = false; // Track mute state for toggling
+        let isPlaying = 0;
+        let isSeeking = 0; // Flag to prevent timeupdate overriding seek
+        let isMuted = 0; // Track mute state for toggling
         let previousVolume = audio.volume; // Store previous volume for mute/unmute
 
         // NEW: Function to update the buffered bar
@@ -54,7 +54,7 @@
             if (audio.buffered.length > 0) {
               const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
               const bufferedPercent = (bufferedEnd / duration) * 100;
-              $bufferedBar.css('width', `${bufferedPercent}%`);
+              $bufferedBar.css('width', bufferedPercent + '%');
             } else {
               $bufferedBar.css('width', '0%'); // No buffered data yet
             }
@@ -99,7 +99,7 @@
             $volumeOnIcon.hide();
             $volumeOffIcon.show();
             $volumeSlider.val(0); // Set slider to 0 when muted
-            isMuted = true;
+            isMuted = 1;
           } else {
             $volumeOnIcon.show();
             $volumeOffIcon.hide();
@@ -111,7 +111,7 @@
             } else {
               $volumeSlider.val(audio.volume); // Restore slider to actual volume
             }
-            isMuted = false;
+            isMuted = 0;
           }
         });
 
@@ -119,15 +119,15 @@
         $volumeSlider.on('input', () => {
           audio.volume = $volumeSlider.val();
           if (audio.volume == 0) { // Using == for string/number comparison from slider
-            audio.muted = true;
+            audio.muted = 1;
             $volumeOnIcon.hide();
             $volumeOffIcon.show();
-            isMuted = true;
+            isMuted = 1;
           } else {
-            audio.muted = false;
+            audio.muted = 0;
             $volumeOnIcon.show();
             $volumeOffIcon.hide();
-            isMuted = false;
+            isMuted = 0;
           }
         });
 
@@ -135,7 +135,7 @@
         $audio.on('timeupdate', () => {
           if (!isSeeking && !isNaN(audio.duration) && audio.duration > 0) {
             const progress = (audio.currentTime / audio.duration) * 100;
-            $progressBar.css('width', `${progress}%`);
+            $progressBar.css('width', progress + '%');
           }
           $currentTimeSpan.text(formatTime(audio.currentTime));
           updateBufferedBar(); // NEW: Update buffered bar on timeupdate as well
@@ -155,7 +155,7 @@
 
         // Handle clicks on progress bar to seek
         $progressBarWrapper.on('mousedown', (e) => {
-          isSeeking = true;
+          isSeeking = 1;
           if (isPlaying) {
             audio.pause();
           }
@@ -164,12 +164,12 @@
           const width = rect.width;
           const percentage = clickX / width;
           audio.currentTime = audio.duration * percentage;
-          $progressBar.css('width', `${percentage * 100}%`); // Update visually immediately
+          $progressBar.css('width', (percentage * 100) + '%'); // Update visually immediately
         });
 
         $(document).on('mouseup', () => {
           if (isSeeking) {
-            isSeeking = false;
+            isSeeking = 0;
             if (isPlaying) { // Only resume if it was playing before seek
               audio.play();
             }
@@ -186,7 +186,7 @@
 
         // When song ends
         $audio.on('ended', () => {
-          isPlaying = false;
+          isPlaying = 0;
           $playIcon.show();
           $pauseIcon.hide();
           audio.currentTime = 0; // Reset to start
@@ -199,7 +199,6 @@
 
         // Initial update for buffered bar if audio is already partially loaded (e.g., from cache)
         updateBufferedBar();
-      
 
         });
       });

@@ -13,7 +13,6 @@ use Drupal\ai\OperationType\Chat\ChatMessage;
 use Drupal\ai\OperationType\GenericType\ImageFile;
 use Drupal\ai\Service\FunctionCalling\ExecutableFunctionCallInterface;
 use Drupal\ai\Service\FunctionCalling\FunctionCallInterface;
-use Drupal\ai\Utility\ContextDefinitionNormalizer;
 use Drupal\ai_agents\PluginInterfaces\AiAgentContextInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -66,7 +65,7 @@ class Vision extends FunctionCallBase implements ExecutableFunctionCallInterface
       $configuration,
       $plugin_id,
       $plugin_definition,
-      new ContextDefinitionNormalizer(),
+      $container->get('ai.context_definition_normalizer'),
     );
     $instance->aiProviderManager = $container->get('ai.provider');
     $instance->entityTypeManager = $container->get('entity_type.manager');

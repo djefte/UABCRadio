@@ -99,4 +99,49 @@ class ViewQueryTest extends TrashKernelTestBase {
     $view->destroy();
   }
 
+  /**
+   * Tests that entities referencing a deleted entity are excluded from views.
+   */
+  public function testRelationshipToDeletedEntity(): void {
+    // Create three entities: A, B, C.
+    $entityA = TrashTestEntity::create();
+    $entityA->save();
+
+    $entityB = TrashTestEntity::create(['reference' => $entityA->id()]);
+    $entityB->save();
+
+    $entityC = TrashTestEntity::create(['reference' => $entityA->id()]);
+    $entityC->save();
+
+    // The view should return the list of entities that reference the entity
+    // passed in. Confirm that when we pass in entityA, we get back
+    // entityB and entityC.
+    $view = Views::getView('trash_test_view_relationship');
+    $view->setArguments([$entityA->id()]);
+    $view->execute('default');
+    $this->assertIdenticalResultset($view, [
+      ['trash_test_trash_test_id' => 2],
+      ['trash_test_trash_test_id' => 3],
+    ], ['trash_test_trash_test_id' => 'trash_test_trash_test_id']);
+    $view->destroy();
+    // Re-enable trash. Executing the view disabled it, and the post render hook
+    // that re-enables it automatically isn't executed due to the way we're
+    // executing the view.
+    \Drupal::service('trash.manager')->setTrashContext('active');
+
+    // Now move EntityB to the trash.
+    $entityB->delete();
+
+    // The same view should no longer include entityB in its result set since
+    // it's in the trash.
+    $view = Views::getView('trash_test_view_relationship');
+    $view->setArguments([$entityA->id()]);
+    $view->execute('default');
+    $this->assertIdenticalResultset($view, [
+      ['trash_test_trash_test_id' => 3],
+    ], ['trash_test_trash_test_id' => 'trash_test_trash_test_id']);
+    $view->destroy();
+    \Drupal::service('trash.manager')->setTrashContext('active');
+  }
+
 }

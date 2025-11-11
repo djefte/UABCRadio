@@ -9,6 +9,7 @@
     },
     "require-dev": {
         "drupal/book": "^1 || ^2",
-        "drush/drush": "*"
+        "drush/drush": "*",
+        "drupal/metatag": "^2"
     }
 }

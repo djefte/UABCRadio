@@ -14,7 +14,7 @@ use Drupal\eca_form\Event\FormValidate;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -26,6 +26,8 @@ use Symfony\Component\HttpFoundation\Session\Session;
  * @group eca_form
  */
 class FormConditionsTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -61,10 +63,7 @@ class FormConditionsTest extends KernelTestBase {
     User::create(['uid' => 1, 'name' => 'admin'])->save();
 
     // Create the Article content type with a standard body field.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
-    node_add_body_field($node_type);
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
     // Create a multi-value text field.
     FieldStorageConfig::create([
       'field_name' => 'field_string_multi',

@@ -57,3 +57,11 @@ function ai_provider_anthropic_update_10001() {
   }
   return $return_message;
 }
+
+/**
+ * Enable dynamic model fetching for Anthropic provider.
+ */
+function ai_provider_anthropic_update_10002() {
+  // This is informational only - dynamic fetching is enabled by default.
+  return t('Anthropic provider now supports dynamic model detection. New models like Claude 4 (claude-opus-4-20250514, claude-sonnet-4-20250514) will be automatically available. You can disable this feature by setting "dynamic_models_enabled" to FALSE in the provider configuration.');
+}

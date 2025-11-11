@@ -153,11 +153,11 @@ final class Visitors extends ControllerBase {
    * Tracks visits.
    */
   public function track(Request $request): Response {
-    $response = new Response();
-    $response->setStatusCode(Response::HTTP_NO_CONTENT);
 
     $server = $request->server;
     $query = $request->query->all();
+
+    $response = $this->getResponse($query['send_image'] ?? FALSE);
 
     $fields = $this->getDefaultFields();
 
@@ -179,10 +179,10 @@ final class Visitors extends ControllerBase {
     $this->doUrl($fields, $query);
     $this->doReferrer($fields, $query);
 
-    $cvar = $query['_cvar'] ?? NULL;
-    $this->doCustom($fields, $cvar);
+    $custom_page_var = $query['cvar'] ?? NULL;
+    $this->doCustom($fields, $custom_page_var);
 
-    $this->doCounter($fields, $cvar);
+    $this->doCounter($fields, $custom_page_var);
 
     $this->doConfig($fields, $query);
     $this->doPerformance($fields, $query);
@@ -198,6 +198,47 @@ final class Visitors extends ControllerBase {
     $this->tracker->writeLog($fields);
 
     return $response;
+  }
+
+  /**
+   * Get the response.
+   *
+   * @param bool $send_image
+   *   Whether to send the image.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   The response.
+   */
+  protected function getResponse(bool $send_image): Response {
+    $headers = [
+      'Cache-Control' => 'no-cache, no-store, must-revalidate',
+      'Pragma' => 'no-cache',
+      'Expires' => '0',
+    ];
+    $content = '';
+    if ($send_image) {
+      $content = $this->getImageContent();
+      $headers['Content-Type'] = 'image/gif';
+      $headers['Content-Length'] = strlen($content);
+    }
+
+    $response = new Response(
+      $content,
+      ($send_image) ? Response::HTTP_OK : Response::HTTP_NO_CONTENT,
+      $headers,
+    );
+
+    return $response;
+  }
+
+  /**
+   * Get the image content.
+   *
+   * @return string
+   *   The image content.
+   */
+  protected function getImageContent(): string {
+    return hex2bin('47494638396101000100800000000000FFFFFF21F9040100000000002C00000000010001000002024401003B');
   }
 
   /**
@@ -275,28 +316,21 @@ final class Visitors extends ControllerBase {
    * Set the fields with data in the custom variable.
    */
   protected function doCustom(array &$fields, $cvar = NULL) {
-    $path = '';
-    $route = '';
-    $server = NULL;
 
     if (!is_null($cvar)) {
-      $custom = json_decode($cvar);
+      $custom = json_decode($cvar) ?? [];
       foreach ($custom as $c) {
         if ($c[0] == 'path') {
-          $path = $c[1];
+          $fields['visitors_path'] = $c[1];
         }
         if ($c[0] == 'route') {
-          $route = $c[1];
+          $fields['route'] = $c[1];
         }
         if ($c[0] == 'server') {
-          $server = $c[1];
+          $fields['server'] = $c[1];
         }
       }
     }
-
-    $fields['visitors_path'] = $path;
-    $fields['route'] = $route;
-    $fields['server'] = $server;
 
   }
 

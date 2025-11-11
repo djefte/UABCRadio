@@ -270,10 +270,18 @@ class Component {
       foreach ($plugin->buildConfigurationForm($form, $form_state) as $key => $form_field) {
         $value = $configuration[$key] ?? NULL;
         $replacement = NULL;
+        $typeReplacement = NULL;
+        if (is_array($value)) {
+          $typeReplacement = $value;
+          $value = implode("\n", $value);
+        }
         if ($errorMsg = $this->owner->prepareFormFieldForValidation($value, $replacement, $form_field)) {
           $errors[] = sprintf('%s "%s" (%s): %s', $typeLabel, $this->label, $this->id, $errorMsg);
         }
-        if ($replacement !== NULL) {
+        if ($typeReplacement !== NULL) {
+          $replaced_fields[$key] = $typeReplacement;
+        }
+        elseif ($replacement !== NULL) {
           $replaced_fields[$key] = $replacement;
         }
         if ($value !== ($configuration[$key] ?? NULL)) {

@@ -279,14 +279,6 @@
       border-block-end: 0;
     }
 
-    td:nth-child(odd) {
-      width: 75%;
-    }
-
-    td:nth-child(even) {
-      width: 25%;
-    }
-
     time {
       color: var(--color-gray-450);
       font-size: var(--font-size-s);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\project_browser_test;
 
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\project_browser\Activator\ActivationStatus;
 use Drupal\project_browser\Activator\ActivatorInterface;
@@ -16,6 +17,7 @@ final class TestActivator implements ActivatorInterface {
 
   public function __construct(
     private readonly StateInterface $state,
+    private readonly MessengerInterface $messenger,
   ) {}
 
   /**
@@ -76,8 +78,28 @@ final class TestActivator implements ActivatorInterface {
 
     $activated_projects = $this->state->get("test activator", []);
     $activated_projects[] = $project->id;
+    $messages = $this->state->get('messages set by packages', []);
+    if (array_key_exists($project->packageName, $messages)) {
+      foreach ($messages[$project->packageName] as $package_message) {
+        $this->messenger->addMessage($package_message);
+      }
+    }
     $this->state->set("test activator", $activated_projects);
     return NULL;
+  }
+
+  /**
+   * Sets messages when activating a specific project.
+   *
+   * @param string $package_name
+   *   The Composer package name of the project.
+   * @param string[] $messages_to_set
+   *   The list of messages to set when activating the given project.
+   */
+  public static function setMessagesOnActivate(string $package_name, array $messages_to_set): void {
+    $messages = \Drupal::state()->get('messages set by packages', []);
+    $messages[$package_name] = $messages_to_set;
+    \Drupal::state()->set('messages set by packages', $messages);
   }
 
 }

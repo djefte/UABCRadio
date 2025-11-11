@@ -19,6 +19,7 @@ oneline
 mkdocs
 testgroup
 ksection
+fastzip
 
 # Scheduler words
 timecheck

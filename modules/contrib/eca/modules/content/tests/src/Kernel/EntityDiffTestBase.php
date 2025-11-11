@@ -4,7 +4,7 @@ namespace Drupal\Tests\eca_content\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -14,6 +14,8 @@ use Drupal\user\Entity\User;
  * @group eca_content
  */
 abstract class EntityDiffTestBase extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -45,13 +47,10 @@ abstract class EntityDiffTestBase extends KernelTestBase {
     $this->installConfig(static::$modules);
     User::create(['uid' => 1, 'name' => 'admin'])->save();
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
     ]);
-    $node_type->save();
-    node_add_body_field($node_type);
 
     /** @var \Drupal\Core\Session\AccountSwitcherInterface $account_switcher */
     $account_switcher = \Drupal::service('account_switcher');

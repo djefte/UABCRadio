@@ -4,6 +4,7 @@ namespace Drupal\Tests\trash\Kernel;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Tests\workspaces\Kernel\WorkspaceTestTrait;
+use Drupal\trash\EntityQuery\Workspaces\QueryFactory;
 use Drupal\workspaces\Entity\Workspace;
 
 /**
@@ -37,6 +38,9 @@ class TrashWorkspacesTest extends TrashKernelTestBase {
     $this->workspaceManager = \Drupal::service('workspaces.manager');
 
     $this->installSchema('workspaces', ['workspace_association']);
+    if (isset(workspaces_schema()['workspace_association_revision'])) {
+      $this->installSchema('workspaces', ['workspace_association_revision']);
+    }
     $this->installEntitySchema('workspace');
 
     $this->workspaces['stage'] = Workspace::create(['id' => 'stage', 'label' => 'Stage']);
@@ -45,6 +49,13 @@ class TrashWorkspacesTest extends TrashKernelTestBase {
     $this->setCurrentUser($this->createUser([
       'view any workspace',
     ]));
+  }
+
+  /**
+   * Test decorating the ws service.
+   */
+  public function testContainer(): void {
+    static::assertInstanceOf(QueryFactory::class, $this->container->get('entity.query.sql'));
   }
 
   /**

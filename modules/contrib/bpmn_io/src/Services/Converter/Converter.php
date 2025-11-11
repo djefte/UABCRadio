@@ -5,7 +5,7 @@ namespace Drupal\bpmn_io\Services\Converter;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Core\Session\AccountProxy;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\bpmn_io\Plugin\ECA\Modeller\BpmnIo;
@@ -26,13 +26,13 @@ class Converter implements ConverterInterface {
    *   ECA modeller service.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger.
-   * @param \Drupal\Core\Session\AccountProxy $currentUser
+   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
    *   The current user.
    */
   public function __construct(
     protected Modellers $modellerServices,
     protected MessengerInterface $messenger,
-    protected AccountProxy $currentUser,
+    protected AccountProxyInterface $currentUser,
   ) {
   }
 

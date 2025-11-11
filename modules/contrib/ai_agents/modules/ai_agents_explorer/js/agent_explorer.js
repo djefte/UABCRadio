@@ -16,6 +16,18 @@
         // Start the runner.
         startRunner();
       });
+
+      // Update URL when agent selection changes.
+      $('#edit-agent').on('change', function() {
+        const selectedAgent = $(this).val();
+        const url = new URL(window.location.href);
+        if (selectedAgent) {
+          url.searchParams.set('agent_id', selectedAgent);
+        } else {
+          url.searchParams.delete('agent_id');
+        }
+        window.history.pushState({}, '', url);
+      });
     }
   };
 

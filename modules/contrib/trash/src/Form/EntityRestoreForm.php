@@ -8,6 +8,7 @@ use Drupal\Core\Entity\ContentEntityConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\WorkspaceSafeFormInterface;
 use Drupal\Core\Url;
+use Drupal\trash\Exception\UnrestorableEntityException;
 use Drupal\trash\TrashManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -72,23 +73,32 @@ class EntityRestoreForm extends ContentEntityConfirmFormBase implements Workspac
   public function submitForm(array &$form, FormStateInterface $form_state) {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $this->getEntity();
-    $message = $this->t('The @entity-type %label has been restored from trash.', [
+    $args = [
       '@entity-type' => $entity->getEntityType()->getSingularLabel(),
+      '@bundle' => $this->entityTypeBundleInfo->getBundleInfo($entity->getEntityTypeId())[$entity->bundle()]['label'],
       '%label' => $entity->label() ?? $entity->id(),
-    ]);
+    ];
 
-    trash_restore_entity($entity);
+    try {
+      trash_restore_entity($entity);
+    }
+    catch (UnrestorableEntityException $e) {
+      $this->messenger()->addError($this->t('The @entity-type %label could not be restored from trash.', $args));
+      if ($message = $e->getMessage()) {
+        $this->messenger()->addError($message);
+      }
+      $form_state->setRedirectUrl($this->getCancelUrl());
+      return;
+    }
 
     // Ensure that the redirect URL doesn't have any Trash context.
     $this->getRequest()->query->remove('in_trash');
     $form_state->setRedirectUrl($this->getRedirectUrl());
 
-    $this->messenger()->addStatus($message);
+    $this->messenger()->addStatus($this->t('The @entity-type %label has been restored from trash.', $args));
     $this->getLogger('trash')->info('@entity-type (@bundle): restored %label.', [
       '@entity-type' => $entity->getEntityType()->getLabel(),
-      '@bundle' => $this->entityTypeBundleInfo->getBundleInfo($entity->getEntityTypeId())[$entity->bundle()]['label'],
-      '%label' => $entity->label() ?? $entity->id(),
-    ]);
+    ] + $args);
   }
 
   /**

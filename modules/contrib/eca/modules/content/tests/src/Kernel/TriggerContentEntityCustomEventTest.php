@@ -7,8 +7,8 @@ use Drupal\eca_content\Event\ContentEntityCustomEvent;
 use Drupal\eca_content\Event\ContentEntityEvents;
 use Drupal\eca_content\Event\ContentEntityPreSave;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -18,6 +18,8 @@ use Drupal\user\Entity\User;
  * @group eca_content
  */
 class TriggerContentEntityCustomEventTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -54,13 +56,11 @@ class TriggerContentEntityCustomEventTest extends KernelTestBase {
     $this->installConfig(static::$modules);
     User::create(['uid' => 0, 'name' => 'anonymous'])->save();
     // Create an article content type.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => FALSE,
     ]);
-    $node_type->save();
     $node = Node::create([
       'type' => 'article',
       'title' => 'A title',

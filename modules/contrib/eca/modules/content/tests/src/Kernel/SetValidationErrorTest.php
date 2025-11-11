@@ -7,7 +7,7 @@ use Drupal\eca_content\Event\ContentEntityCreate;
 use Drupal\eca_content\Event\ContentEntityEvents;
 use Drupal\eca_content\Event\ContentEntityValidate;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -17,6 +17,8 @@ use Drupal\user\Entity\User;
  * @group eca_content
  */
 class SetValidationErrorTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -45,9 +47,7 @@ class SetValidationErrorTest extends KernelTestBase {
     $this->installConfig(static::$modules);
     User::create(['uid' => 1, 'name' => 'admin'])->save();
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
   }
 
   /**

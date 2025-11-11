@@ -7,7 +7,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\eca\Token\TokenInterface;
 use Drupal\eca_test_render_basics\Event\BasicRenderEvent;
 use Drupal\eca_test_render_basics\RenderBasicsEvents;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\Session\Session;
  * Kernel tests regarding ECA render actions.
  */
 abstract class RenderActionsTestBase extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * Core action manager.
@@ -54,6 +56,7 @@ abstract class RenderActionsTestBase extends KernelTestBase {
     'responsive_image',
     'serialization',
     'views',
+    'breakpoint',
     'eca',
     'eca_render',
     'eca_test_render_basics',
@@ -76,13 +79,10 @@ abstract class RenderActionsTestBase extends KernelTestBase {
     User::create(['uid' => 2, 'name' => 'auth'])->save();
 
     // Create the Article content type with a standard body field.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
     ]);
-    $node_type->save();
-    node_add_body_field($node_type);
 
     $request = Request::create('/eca/first/second?a=b', 'POST', [], [], [], [], 'hello');
     $request->setSession(new Session());

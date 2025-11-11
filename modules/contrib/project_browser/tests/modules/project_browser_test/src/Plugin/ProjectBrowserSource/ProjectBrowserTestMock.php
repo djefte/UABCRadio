@@ -240,10 +240,10 @@ final class ProjectBrowserTestMock extends ProjectBrowserSourceBase {
   }
 
   /**
-   * Returns category data keyed by category ID.
+   * Returns the list of categories.
    *
-   * @return array
-   *   The category ID and name, keyed by ID.
+   * @return string[]
+   *   The category names, keyed by ID.
    */
   protected function getCategoryData(): array {
     $module_path = $this->moduleHandler->getModule('project_browser')->getPath();
@@ -252,10 +252,7 @@ final class ProjectBrowserTestMock extends ProjectBrowserSourceBase {
     $category_list = Json::decode($contents) ?? [];
     $categories = [];
     foreach ($category_list as $category) {
-      $categories[$category['tid']] = [
-        'id' => $category['tid'],
-        'name' => $category['name'],
-      ];
+      $categories[$category['tid']] = $category['name'];
     }
     return $categories;
   }
@@ -273,13 +270,11 @@ final class ProjectBrowserTestMock extends ProjectBrowserSourceBase {
       'search' => new TextFilter('', $this->t('Search')),
     ];
 
-    $categories = array_values($this->getCategoryData());
-    $categories = array_combine(
-      array_column($categories, 'id'),
-      array_column($categories, 'name'),
+    $filters['categories'] = new MultipleChoiceFilter(
+      $this->getCategoryData(),
+      [],
+      $this->t('Categories'),
     );
-    $filters['categories'] = new MultipleChoiceFilter($categories, [], $this->t('Categories'), $this->t('Categories'));
-
     $filters['security_advisory_coverage'] = new BooleanFilter(
       TRUE,
       $this->t('Only show projects covered by a security policy'),
@@ -307,6 +302,9 @@ final class ProjectBrowserTestMock extends ProjectBrowserSourceBase {
       foreach ($api_response['list'] as $project_data) {
         $avatar_url = 'https://git.drupalcode.org/project/' . $project_data['field_project_machine_name'] . '/-/avatar';
 
+        $project_categories = array_column($project_data['project_data']['taxonomy_vocabulary_3'] ?? [], 'id');
+        $project_categories = array_flip($project_categories);
+
         $returned_list[] = new Project(
           logo: Url::fromUri($avatar_url),
           // Mock projects are filtered and made sure that they are compatible
@@ -321,8 +319,7 @@ final class ProjectBrowserTestMock extends ProjectBrowserSourceBase {
           title: $project_data['title'],
           packageName: 'drupal/' . $project_data['field_project_machine_name'],
           url: Url::fromUri('https://www.drupal.org/project/' . $project_data['field_project_machine_name']),
-          // Add name property to each category, so it can be rendered.
-          categories: array_map(fn($category): array => $categories[$category['id']] ?? [], $project_data['project_data']['taxonomy_vocabulary_3'] ?? []),
+          categories: array_intersect_key($categories, $project_categories),
           images: array_map(
             function (array $image): array {
               $image['file'] = Url::fromUri($image['file']['uri']);

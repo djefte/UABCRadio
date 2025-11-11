@@ -12,9 +12,8 @@
         // Ensure the Leaflet Behavior is attached only once to each Leaflet map
         // id element.
         // @see https://www.drupal.org/project/leaflet/issues/3314762#comment-15044223
-        const leaflet_elements = $(once('behaviour-leaflet', '#' + mapid,));
-        leaflet_elements.each(function() {
-          const map_container = $(this);
+        once('behaviour-leaflet', '#' + mapid).forEach(function (element) {
+          const map_container = $(element);
 
           // Function to load the Leaflet Map, based on the provided mapid.
           function loadMap(mapid) {
@@ -189,7 +188,7 @@
 
           // Load the Leaflet Map, lazy based on the mapObserver, or not.
           if (mapObserver && leaflet_settings.map.settings.map_lazy_load?.lazy_load) {
-            mapObserver.observe(this);
+            mapObserver.observe(element);
           } else {
             loadMap(mapid);
           }
@@ -899,7 +898,8 @@
   Drupal.Leaflet.prototype.create_collection = function(collection) {
     let layers = new L.featureGroup();
     for (let x = 0; x < collection.component.length; x++) {
-      layers.addLayer(this.create_feature(collection.component[x]));
+      let feature = { ...collection, ...collection.component[x]};
+      layers.addLayer(this.create_feature(feature));
     }
     return layers;
   };

@@ -7,16 +7,19 @@ layout_builder.dashboard.view:
   route_name: layout_builder.dashboard.view
   base_route: entity.dashboard.edit_form
   title: 'Edit layout'
+  weight: 10
 
 entity.dashboard.preview:
   route_name: entity.dashboard.preview
   base_route: entity.dashboard.edit_form
   title: 'Preview'
+  weight: 20
 
 entity.dashboard.permissions:
   route_name: entity.dashboard.permissions_form
   base_route: entity.dashboard.edit_form
   title: 'Manage permissions'
+  weight: 100
 
 dashboard:
   route_name: dashboard

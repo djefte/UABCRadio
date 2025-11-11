@@ -27,3 +27,13 @@ function project_browser_post_update_convert_enabled_sources_to_arrays(): void {
   }
   $config->set('enabled_sources', $enabled_sources)->save();
 }
+
+/**
+ * Removes the `allowed_projects` config setting.
+ */
+function project_browser_post_update_remove_allowed_projects(): void {
+  \Drupal::configFactory()
+    ->getEditable('project_browser.admin_settings')
+    ->clear('allowed_projects')
+    ->save();
+}

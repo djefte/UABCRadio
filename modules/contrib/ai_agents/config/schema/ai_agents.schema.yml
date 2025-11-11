@@ -18,6 +18,9 @@ ai_agents.ai_agent.*:
       type: string
       label: ID
       description: 'The ID of the AI agent. This is the machine name of the AI agent. Can only contain lowercase letters, numbers and underscores.'
+    weight:
+      type: weight
+      label: 'Weight'
     label:
       type: label
       label: Label
@@ -84,3 +87,13 @@ ai_agents.ai_agent.*:
       description: 'The roles that the AI agent can masquerade as. This is a list of roles that the AI agent can use to perform its tasks. The AI agent will pick the right role based on the system prompt and the user input.'
       sequence:
         type: ignore
+    structured_output_enabled:
+      type: boolean
+      label: Structured Output Enabled
+      description: 'Whether structured output is enabled for the AI agent. If this is set to true, the AI agent will format its responses according to the provided structured output schema.'
+      default: false
+    structured_output_schema:
+      type: string
+      label: Structured Output Schema
+      description: 'The schema that defines the structured output format for the AI agent. This schema guides how the AI agent should format its responses when structured output is enabled. It should be in JSON Schema format.'
+      default: ''

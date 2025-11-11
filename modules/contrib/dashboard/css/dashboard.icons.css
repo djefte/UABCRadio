@@ -3,10 +3,13 @@
  * Dashboard toolbar icon styling.
  */
 
+.toolbar .toolbar-bar .toolbar-icon.toolbar-icon-system-dashboard::before,
 .toolbar-tray .toolbar-icon-system-dashboard::before {
-  background-image: url("../icons/dashboard.svg");
-}
+  --icon: url("../icons/dashboard.svg");
 
-.toolbar-tray .toolbar-icon-system-dashboard.is-active::before {
-  background-image: url("../icons/dashboard-active.svg");
+  mask-image: var(--icon);
+  mask-size: contain;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }

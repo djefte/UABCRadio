@@ -1,15 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\Dashboard\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\dashboard\Entity\Dashboard;
 
 /**
  * Test for dashboard layout builder preview looking like the dashboard.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardPreviewTest extends BrowserTestBase {
 
   /**

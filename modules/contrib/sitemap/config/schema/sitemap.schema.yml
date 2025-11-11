@@ -63,6 +63,10 @@ sitemap_plugin_settings.frontpage:
       type: path
       label: "RSS"
       nullable: true
+    front_text_override:
+      type: label
+      label: 'Text override'
+      nullable: true
 
 # Schema for Menu plugin settings.
 sitemap_plugin_settings.menu:

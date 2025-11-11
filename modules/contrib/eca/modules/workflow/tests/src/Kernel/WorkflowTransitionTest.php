@@ -9,8 +9,8 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\ConfigTestTrait;
 use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 
 /**
  * Kernel tests for the "eca_workflow" action plugin.
@@ -21,7 +21,7 @@ use Drupal\node\NodeInterface;
 class WorkflowTransitionTest extends KernelTestBase {
 
   use ContentModerationTestTrait;
-
+  use ContentTypeCreationTrait;
   use ConfigTestTrait;
 
   /**
@@ -34,6 +34,7 @@ class WorkflowTransitionTest extends KernelTestBase {
     'system',
     'text',
     'workflows',
+    'field',
     'eca',
     'eca_workflow',
   ];
@@ -73,9 +74,7 @@ class WorkflowTransitionTest extends KernelTestBase {
     $this->installEntitySchema('content_moderation_state');
     $this->installConfig(['system', 'content_moderation']);
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
 
     $workflow = $this->createEditorialWorkflow();
     $this->addEntityTypeAndBundleToWorkflow($workflow, 'node', 'article');

@@ -20,9 +20,11 @@ trait ProjectBrowserUiTestTrait {
    *
    * @param string $text
    *   The text we're waiting for.
+   * @param int $timeout
+   *   (optional) How long to wait, in milliseconds. Defaults to 10000.
    */
-  protected function assertPageHasText(string $text): void {
-    $this->assertTrue($this->assertSession()->waitForText($text), "Expected '$text' to appear on the page but it didn't.");
+  protected function assertPageHasText(string $text, int $timeout = 10000): void {
+    $this->assertTrue($this->assertSession()->waitForText($text, $timeout), "Expected '$text' to appear on the page but it didn't.");
   }
 
   /**

@@ -15,6 +15,9 @@ services:
   Drupal\dashboard\Hook\GinThemeIntegration:
     class: Drupal\dashboard\Hook\GinThemeIntegration
     autowire: true
+  Drupal\dashboard\Hook\CoffeeIntegration:
+    class: Drupal\dashboard\Hook\CoffeeIntegration
+    autowire: true
   Drupal\dashboard\Hook\MenuLocalTasks:
     class: Drupal\dashboard\Hook\MenuLocalTasks
     autowire: true

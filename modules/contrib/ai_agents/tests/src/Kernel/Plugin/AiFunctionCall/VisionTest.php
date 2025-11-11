@@ -6,14 +6,12 @@ namespace Drupal\Tests\ai_agents\Kernel\Plugin\AiFunctionCall;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\ai\Service\FunctionCalling\ExecutableFunctionCallInterface;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the VisionTest class.
  *
  * @group ai_agents
  */
-#[Group('ai_agents')]
 final class VisionTest extends KernelTestBase {
 
   /**
@@ -41,9 +39,6 @@ final class VisionTest extends KernelTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-
-    // Install required modules.
-    $this->container->get('module_installer')->install(self::$modules);
 
     // Set up the dependencies.
     $this->functionCallManager = $this->container->get('plugin.manager.ai.function_calls');

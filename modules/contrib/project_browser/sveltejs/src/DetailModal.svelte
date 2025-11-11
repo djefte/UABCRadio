@@ -9,6 +9,7 @@
 
   // eslint-disable-next-line import/no-mutable-exports,import/prefer-default-export
   export let project;
+  let categories = [];
   const { Drupal } = window;
   onMount(() => {
     const description = document.createElement('div');
@@ -19,6 +20,7 @@
       anchors[i].setAttribute('rel', 'noopener noreferrer');
     }
     project.body.value = description.innerHTML;
+    categories = Object.values(project.categories);
   });
 </script>
 
@@ -31,14 +33,10 @@
       </div>
     </div>
     <div class="pb-detail-modal__details">
-      {#if project.module_categories.length}
+      {#if categories.length}
         <div class="pb-detail-modal__categories">
-          <strong>Categories:</strong>
-          <span>
-            {project.module_categories
-              .map((category) => category.name)
-              .join(', ')}
-          </span>
+          <strong>{Drupal.t('Categories')}:</strong>
+          <span>{categories.join(', ')}</span>
         </div>
       {/if}
     </div>

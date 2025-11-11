@@ -9,7 +9,7 @@ use Drupal\eca\Event\BeforeInitialExecutionEvent;
 use Drupal\eca_access\Event\EntityAccess;
 use Drupal\eca_access\Event\FieldAccess;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 
@@ -20,6 +20,8 @@ use Drupal\user\Entity\User;
  * @group eca_access
  */
 class AccessExecutionChainTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -60,23 +62,17 @@ class AccessExecutionChainTest extends KernelTestBase {
     ]);
 
     // Create an Article content type.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
-    node_add_body_field($node_type);
     // Create a Page content type.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'page',
       'name' => 'Basic page',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
-    node_add_body_field($node_type);
   }
 
   /**

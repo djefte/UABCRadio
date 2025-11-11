@@ -36,6 +36,9 @@ final class Normalizer implements NormalizerInterface {
       $source_id = $context['source'];
       $data = $this->getActivationInfo($data, $source_id, $context['account'] ?? NULL) + $data->toArray();
       $data['id'] = $source_id . '/' . $data['id'];
+      // Ensure the project's categories are always encoded as an object, even
+      // if empty.
+      $data['categories'] = (object) $data['categories'];
     }
     elseif ($data instanceof ProjectsResultsPage) {
       $context['source'] = $data->pluginId;

@@ -12,8 +12,8 @@ use Drupal\eca_form\Event\FormProcess;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +31,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * @group eca_content
  */
 class ContentExecutionChainTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -62,13 +64,11 @@ class ContentExecutionChainTest extends KernelTestBase {
     User::create(['uid' => 1, 'name' => 'admin'])->save();
     User::create(['uid' => 2, 'name' => 'authenticated'])->save();
     // Create the Article content type with revisioning and translation enabled.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
     user_role_grant_permissions('authenticated', [
       'access content',
       'edit own article content',

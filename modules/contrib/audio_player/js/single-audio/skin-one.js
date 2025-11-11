@@ -41,13 +41,13 @@
           const $songNameDisplay = $player.find('.audio-player-song-name');
 
           // State variables for playback and mute status
-          let isPlaying = false;
+          let isPlaying = 0;
           let prevVolume = 1; // Stores volume before muting (when setting slider to 0)
-          let isDraggingProgressBar = false; // Flag to track if the progress bar is being dragged
-          let isDraggingVolume = false; // Flag to track if the volume slider is being dragged
+          let isDraggingProgressBar = 0; // Flag to track if the progress bar is being dragged
+          let isDraggingVolume = 0; // Flag to track if the volume slider is being dragged
 
           $durationSpan.text(formatTime(audioElement.duration));
-          
+
           /**
            * Updates the buffered bar's width based on audio buffering progress.
            */
@@ -57,7 +57,7 @@
               if (audioElement.buffered.length > 0) {
                 const bufferedEnd = audioElement.buffered.end(audioElement.buffered.length - 1);
                 const bufferedPercent = (bufferedEnd / duration) * 100;
-                $bufferedBar.css('width', `${bufferedPercent}%`);
+                $bufferedBar.css('width', bufferedPercent + '%');
               } else {
                 $bufferedBar.css('width', '0%');
               }
@@ -94,7 +94,7 @@
             const containerWidth = rect.width;
 
             const newProgress = (clickX / containerWidth) * 100;
-            $progressBar.css('width', `${newProgress}%`);
+            $progressBar.css('width', newProgress + '%');
 
             const newTime = (clickX / containerWidth) * audioElement.duration;
             if (!isNaN(audioElement.duration)) {
@@ -116,7 +116,7 @@
 
             audioElement.volume = newVolume;
             $volumeSlider.val(newVolume);
-            $volumeSlider[0].style.setProperty('--value', `${newVolume * 100}%`);
+            $volumeSlider[0].style.setProperty('--value', (newVolume * 100) + '%');
           }
 
           /**
@@ -139,7 +139,7 @@
           $(audioElement).on('timeupdate', () => {
             if (!isDraggingProgressBar && !isNaN(audioElement.duration) && audioElement.duration > 0) {
               const progress = (audioElement.currentTime / audioElement.duration) * 100;
-              $progressBar.css('width', `${progress}%`);
+              $progressBar.css('width', progress + '%');
             }
             $currentTimeSpan.text(formatTime(audioElement.currentTime));
             updateBufferedBar();
@@ -152,7 +152,7 @@
             $durationSpan.text(formatTime(audioElement.duration));
             const audioSrc = audioElement.src;
             const fileName = audioSrc.substring(audioSrc.lastIndexOf('/') + 1);
-            $songNameDisplay.text(decodeURIComponent(fileName.replace(/\.[^/.]+$/, "")));
+            $songNameDisplay.text(decodeURIComponent(fileName.replace(/\.[^/.] + $ / , "")));
             $volumeSlider.val(audioElement.volume);
             updateBufferedBar();
           };
@@ -161,11 +161,11 @@
           $(audioElement).on('loadedmetadata', updateMetadata);  // When audio metadata is loaded
 
           updateMetadata();
-        
+
           $(audioElement).on('loadeddata', updateBufferedBar);
 
           $progressBarContainer.on('mousedown', (e) => {
-            isDraggingProgressBar = true;
+            isDraggingProgressBar = 1;
             if (isPlaying) {
               audioElement.pause();
             }
@@ -181,7 +181,7 @@
 
           $(document).on('mouseup', () => {
             if (isDraggingProgressBar) {
-              isDraggingProgressBar = false;
+              isDraggingProgressBar = 0;
               if (isPlaying) {
                 audioElement.play();
               }
@@ -204,7 +204,7 @@
           });
 
           $volumeSlider.on('mousedown', (e) => {
-            isDraggingVolume = true;
+            isDraggingVolume = 1;
             updateVolume(e);
             e.preventDefault();
           });
@@ -217,7 +217,7 @@
 
           $(document).on('mouseup', () => {
             if (isDraggingVolume) {
-              isDraggingVolume = false;
+              isDraggingVolume = 0;
               if (audioElement.volume === 0 && prevVolume === 0) {
                 prevVolume = 1;
               } else if (audioElement.volume > 0) {
@@ -229,7 +229,7 @@
           $(audioElement).on('volumechange', () => {
             if (!isDraggingVolume) {
               $volumeSlider.val(audioElement.volume);
-              $volumeSlider[0].style.setProperty('--value', `${audioElement.volume * 100}%`);
+              $volumeSlider[0].style.setProperty('--value', (audioElement.volume * 100) + '%');
             }
             updateVolumeIcon();
           });
@@ -242,12 +242,12 @@
               audioElement.volume = 0;
             }
             $volumeSlider.val(audioElement.volume);
-            $volumeSlider[0].style.setProperty('--value', `${audioElement.volume * 100}%`);
+            $volumeSlider[0].style.setProperty('--value', (audioElement.volume * 100) + '%');
             updateVolumeIcon();
           });
 
           $(audioElement).on('ended', () => {
-            isPlaying = false;
+            isPlaying = 0;
             $playIcon.show();
             $pauseIcon.hide();
             $playPauseBtn.removeClass('audio-player-play-pause-button-active');
@@ -255,7 +255,7 @@
             $bufferedBar.css('width', '0%');
             $currentTimeSpan.text('0:00');
             audioElement.currentTime = 0;
-            $volumeSlider[0].style.setProperty('--value', `${audioElement.volume * 100}%`);
+            $volumeSlider[0].style.setProperty('--value', (audioElement.volume * 100) + '%');
             updateVolumeIcon();
           });
 
@@ -266,7 +266,7 @@
 
           // Initial calls to set visual states
           updateBufferedBar();
-          $volumeSlider[0].style.setProperty('--value', `${audioElement.volume * 100}%`);
+          $volumeSlider[0].style.setProperty('--value', (audioElement.volume * 100) + '%');
           updateVolumeIcon();
         });
       });

@@ -22,11 +22,11 @@
           _paq.push(['setSiteId', 1]);
           _paq.push(['setTrackerUrl', `${u}visitors/_track`]);
           _paq.push(['setUserId', uid]);
-          _paq.push(['setCustomVariable', 1, 'route', route, 'visit']);
-          _paq.push(['setCustomVariable', 2, 'path', path, 'visit']);
-          _paq.push(['setCustomVariable', 3, 'server', server, 'visit']);
+          _paq.push(['setCustomVariable', 1, 'route', route, 'page']);
+          _paq.push(['setCustomVariable', 2, 'path', path, 'page']);
+          _paq.push(['setCustomVariable', 3, 'server', server, 'page']);
           if (counter) {
-            _paq.push(['setCustomVariable', 4, 'viewed', counter, 'visit']);
+            _paq.push(['setCustomVariable', 4, 'viewed', counter, 'page']);
           }
 
           _paq.push(['trackPageView']);

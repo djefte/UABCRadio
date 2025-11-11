@@ -6,14 +6,12 @@ namespace Drupal\Tests\ai_agents\Kernel\Plugin\AiFunctionCall;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\ai\Service\FunctionCalling\ExecutableFunctionCallInterface;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the GetCurrentContentEntityValuesTest class.
  *
  * @group ai_agents
  */
-#[Group('ai_agents')]
 final class GetCurrentContentEntityValuesTest extends KernelTestBase {
 
   /**
@@ -90,8 +88,7 @@ final class GetCurrentContentEntityValuesTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    // Install required modules.
-    $this->container->get('module_installer')->install(self::$modules);
+    // Install the necessary entity schemas.
     $this->installSchema('node', 'node_access');
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');

@@ -7,8 +7,8 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -18,6 +18,8 @@ use Drupal\user\Entity\User;
  * @group eca_content
  */
 class SetFieldValueTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -52,10 +54,7 @@ class SetFieldValueTest extends KernelTestBase {
     // ECA actions plugin "eca_set_field_value" gets executed without an event.
     \Drupal::state()->set('_eca_internal_test_context', TRUE);
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
-    node_add_body_field($node_type);
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
   }
 
   /**

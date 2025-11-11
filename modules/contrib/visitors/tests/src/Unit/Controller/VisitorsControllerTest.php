@@ -178,6 +178,7 @@ class VisitorsControllerTest extends UnitTestCase {
    * @covers ::doVisitorId
    * @covers ::getDefaultFields
    * @covers ::track
+   * @covers ::getResponse
    */
   public function testTrack() {
     $this->device->expects($this->once())
@@ -197,7 +198,7 @@ class VisitorsControllerTest extends UnitTestCase {
       ['server', 'localhost'],
       ['viewed', 'node:1'],
     ];
-    $query->set('_cvar', json_encode($_cvar));
+    $query->set('cvar', json_encode($_cvar));
     $request->server = new ServerBag();
     $request->server->set('HTTP_USER_AGENT', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleBot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36');
     $request->method('getLanguages')->willReturn([]);
@@ -210,6 +211,14 @@ class VisitorsControllerTest extends UnitTestCase {
 
     $response = $this->controller->track($request);
     $this->assertSame('', $response->getContent());
+    $this->assertSame(204, $response->getStatusCode());
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
+    $this->assertSame(204, $response->getStatusCode());
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
   }
 
   /**
@@ -229,6 +238,7 @@ class VisitorsControllerTest extends UnitTestCase {
    * @covers ::doVisitorId
    * @covers ::getDefaultFields
    * @covers ::track
+   * @covers ::getResponse
    */
   public function testTrackNoDeviceLibrary() {
     $this->device->expects($this->once())
@@ -248,7 +258,7 @@ class VisitorsControllerTest extends UnitTestCase {
       ['server', 'localhost'],
       ['viewed', 'node:1'],
     ];
-    $query->set('_cvar', json_encode($_cvar));
+    $query->set('cvar', json_encode($_cvar));
     $request->server = new ServerBag();
     $request->server->set('HTTP_USER_AGENT', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleBot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36');
     $request->method('getLanguages')->willReturn(['en_US']);
@@ -270,6 +280,10 @@ class VisitorsControllerTest extends UnitTestCase {
 
     $response = $this->controller->track($request);
     $this->assertSame('', $response->getContent());
+    $this->assertSame(204, $response->getStatusCode());
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
   }
 
   /**
@@ -289,6 +303,7 @@ class VisitorsControllerTest extends UnitTestCase {
    * @covers ::doVisitorId
    * @covers ::getDefaultFields
    * @covers ::track
+   * @covers ::getResponse
    */
   public function testTrackBot() {
     $this->device->expects($this->once())
@@ -313,7 +328,7 @@ class VisitorsControllerTest extends UnitTestCase {
       ['server', 'localhost'],
       ['viewed', 'node:1'],
     ];
-    $query->set('_cvar', json_encode($_cvar));
+    $query->set('cvar', json_encode($_cvar));
     $request->server = new ServerBag();
     $request->server->set('HTTP_USER_AGENT', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleBot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36');
     $request->method('getLanguages')->willReturn([]);
@@ -326,6 +341,10 @@ class VisitorsControllerTest extends UnitTestCase {
 
     $response = $this->controller->track($request);
     $this->assertSame('', $response->getContent());
+    $this->assertSame(204, $response->getStatusCode());
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
   }
 
   /**
@@ -345,7 +364,7 @@ class VisitorsControllerTest extends UnitTestCase {
       ['server', 'localhost'],
       ['viewed', 'node:1'],
     ];
-    $query->set('_cvar', json_encode($_cvar));
+    $query->set('cvar', json_encode($_cvar));
     $request->server = new ServerBag();
 
     $request->method('getLanguages')->willReturn([]);
@@ -358,6 +377,10 @@ class VisitorsControllerTest extends UnitTestCase {
 
     $response = $this->controller->track($request);
     $this->assertSame('', $response->getContent());
+    $this->assertSame(204, $response->getStatusCode());
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
   }
 
   /**
@@ -415,7 +438,7 @@ class VisitorsControllerTest extends UnitTestCase {
       ['server', 'localhost'],
       ['viewed', 'node:1'],
     ];
-    $query->set('_cvar', json_encode($_cvar));
+    $query->set('cvar', json_encode($_cvar));
     $request->server = new ServerBag();
 
     $request->method('getLanguages')->willReturn([]);
@@ -458,7 +481,7 @@ class VisitorsControllerTest extends UnitTestCase {
       ['server', 'localhost'],
       ['viewed', 'node:1'],
     ];
-    $query->set('_cvar', json_encode($_cvar));
+    $query->set('cvar', json_encode($_cvar));
     $request->server = new ServerBag();
 
     $request->method('getLanguages')->willReturn([]);
@@ -471,6 +494,119 @@ class VisitorsControllerTest extends UnitTestCase {
 
     $response = $controller->track($request);
     $this->assertSame('', $response->getContent());
+  }
+
+  /**
+   * Tests the track() method with send_image=true.
+   *
+   * @covers ::track
+   * @covers ::getResponse
+   * @covers ::getImageContent
+   */
+  public function testTrackWithSendImageTrue() {
+    $this->device->expects($this->once())
+      ->method('hasLibrary')
+      ->willReturn(TRUE);
+    $request = $this->createMock('\Symfony\Component\HttpFoundation\Request');
+    $request->expects($this->once())
+      ->method('getClientIp')
+      ->willReturn('127.0.0.1');
+    $query = new InputBag();
+    $query->set('send_image', '1');
+    $query->set('h', '1');
+    $query->set('m', '2');
+    $query->set('s', '3');
+    $_cvar = [
+      ['route', 'entity.node.canonical'],
+      ['path', '/node/1'],
+      ['server', 'localhost'],
+      ['viewed', 'node:1'],
+    ];
+    $query->set('cvar', json_encode($_cvar));
+    $request->server = new ServerBag();
+    $request->server->set('HTTP_USER_AGENT', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleBot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36');
+    $request->method('getLanguages')->willReturn([]);
+    $request->query = $query;
+
+    $this->settings->expects($this->once())
+      ->method('get')
+      ->with('bot_retention_log')
+      ->willReturn(0);
+
+    $response = $this->controller->track($request);
+
+    // Verify the GIF image content is returned.
+    $expected_content = hex2bin('47494638396101000100800000000000FFFFFF21F9040100000000002C00000000010001000002024401003B');
+    $this->assertSame($expected_content, $response->getContent());
+    $this->assertSame(200, $response->getStatusCode());
+    $this->assertSame('image/gif', $response->headers->get('Content-Type'));
+    $this->assertSame(strlen($expected_content), (int) $response->headers->get('Content-Length'));
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
+  }
+
+  /**
+   * Tests the track() method with send_image=false.
+   *
+   * @covers ::track
+   * @covers ::getResponse
+   */
+  public function testTrackWithSendImageFalse() {
+    $this->device->expects($this->once())
+      ->method('hasLibrary')
+      ->willReturn(TRUE);
+    $request = $this->createMock('\Symfony\Component\HttpFoundation\Request');
+    $request->expects($this->once())
+      ->method('getClientIp')
+      ->willReturn('127.0.0.1');
+    $query = new InputBag();
+    $query->set('send_image', '0');
+    $query->set('h', '1');
+    $query->set('m', '2');
+    $query->set('s', '3');
+    $_cvar = [
+      ['route', 'entity.node.canonical'],
+      ['path', '/node/1'],
+      ['server', 'localhost'],
+      ['viewed', 'node:1'],
+    ];
+    $query->set('cvar', json_encode($_cvar));
+    $request->server = new ServerBag();
+    $request->server->set('HTTP_USER_AGENT', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleBot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36');
+    $request->method('getLanguages')->willReturn([]);
+    $request->query = $query;
+
+    $this->settings->expects($this->once())
+      ->method('get')
+      ->with('bot_retention_log')
+      ->willReturn(0);
+
+    $response = $this->controller->track($request);
+
+    // Verify empty content and 204 status are returned.
+    $this->assertSame('', $response->getContent());
+    $this->assertSame(204, $response->getStatusCode());
+    $this->assertSame('must-revalidate, no-cache, no-store, private', $response->headers->get('Cache-Control'));
+    $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    $this->assertSame('0', $response->headers->get('Expires'));
+  }
+
+  /**
+   * Tests the getImageContent() method.
+   *
+   * @covers ::getImageContent
+   */
+  public function testGetImageContent() {
+    $reflection = new \ReflectionClass($this->controller);
+    $method = $reflection->getMethod('getImageContent');
+    $method->setAccessible(TRUE);
+
+    $content = $method->invoke($this->controller);
+    $expected_content = hex2bin('47494638396101000100800000000000FFFFFF21F9040100000000002C00000000010001000002024401003B');
+
+    $this->assertSame($expected_content, $content);
+    $this->assertStringStartsWith('GIF89a', $content);
   }
 
 }

@@ -10,7 +10,7 @@ use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\language\Entity\ContentLanguageSettings;
 use Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationUrl;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 use Drupal\user\Plugin\LanguageNegotiation\LanguageNegotiationUser;
 
@@ -21,6 +21,8 @@ use Drupal\user\Plugin\LanguageNegotiation\LanguageNegotiationUser;
  * @group eca_content
  */
 class ContentEventsTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -71,13 +73,11 @@ class ContentEventsTest extends KernelTestBase {
     $config = $this->config('language.negotiation');
 
     // Create the Article content type with revisioning and translation enabled.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
     ContentLanguageSettings::create([
       'id' => 'node.article',
       'target_entity_type_id' => 'node',
@@ -149,24 +149,20 @@ class ContentEventsTest extends KernelTestBase {
     $ecaConfig = Eca::create($eca_config_values);
     $ecaConfig->trustData()->save();
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'type1',
       'name' => 'Type one',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
 
     $this->assertTrue(!isset(ArrayWrite::$array['bundlecreate']), "The configuration only listens for type2, not type1.");
     $this->assertTrue(!isset(ArrayWrite::$array['bundledelete']), "The configuration only listens for type2, not type1.");
 
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $node_type = $this->createContentType([
       'type' => 'type2',
       'name' => 'Type two',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
 
     $this->assertEquals('bundlecreate eca.content_entity.bundlecreate', ArrayWrite::$array['bundlecreate']);
     $this->assertTrue(!isset(ArrayWrite::$array['bundledelete']));

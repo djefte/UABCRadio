@@ -43,10 +43,10 @@
           const $songNameDisplay = $player.find('.audio-player-song-name');
 
           // State variables for playback and mute status
-          let isPlaying = false;
-          let isMuted = false;
+          let isPlaying = 0;
+          let isMuted = 0;
           let prevVolume = 1; // Stores volume before muting
-          let isDraggingProgressBar = false; // Flag to track if the progress bar is being dragged
+          let isDraggingProgressBar = 0; // Flag to track if the progress bar is being dragged
 
           $durationSpan.text(formatTime(audioElement.duration));
 
@@ -57,7 +57,7 @@
               if (audioElement.buffered.length > 0) {
                 const bufferedEnd = audioElement.buffered.end(audioElement.buffered.length - 1);
                 const bufferedPercent = (bufferedEnd / duration) * 100;
-                $bufferedBar.css('width', `${bufferedPercent}%`);
+                $bufferedBar.css('width', bufferedPercent + '%');
               } else {
                 $bufferedBar.css('width', '0%');
               }
@@ -88,7 +88,7 @@
             // Only update if not currently dragging to avoid jerky movement
             if (!isDraggingProgressBar && !isNaN(audioElement.duration) && audioElement.duration > 0) {
               const progress = (audioElement.currentTime / audioElement.duration) * 100;
-              $progressBar.css('width', `${progress}%`);
+              $progressBar.css('width', progress + '%');
             }
             $currentTimeSpan.text(formatTime(audioElement.currentTime));
             updateBufferedBar(); // Call updateBufferedBar on timeupdate for a more responsive feel
@@ -113,7 +113,7 @@
             const containerWidth = rect.width;
 
             const newProgress = (clickX / containerWidth) * 100;
-            $progressBar.css('width', `${newProgress}%`);
+            $progressBar.css('width', newProgress + '%');
 
             const newTime = (clickX / containerWidth) * audioElement.duration;
             if (!isNaN(audioElement.duration)) {
@@ -123,7 +123,7 @@
 
           // Event listener for when the user starts dragging the progress bar
           $progressBarContainer.on('mousedown', (e) => {
-            isDraggingProgressBar = true;
+            isDraggingProgressBar = 1;
             if (isPlaying) {
               audioElement.pause();
             }
@@ -141,7 +141,7 @@
           // Event listener for when the user releases the mouse button
           $(document).on('mouseup', () => {
             if (isDraggingProgressBar) {
-              isDraggingProgressBar = false;
+              isDraggingProgressBar = 0;
               if (isPlaying) {
                 audioElement.play();
               }
@@ -189,11 +189,11 @@
           $volumeSlider.on('input', (e) => {
             audioElement.volume = e.target.value;
             if (audioElement.volume === 0) {
-              isMuted = true;
+              isMuted = 1;
               $volumeHighIcon.hide();
               $volumeMuteIcon.show();
             } else {
-              isMuted = false;
+              isMuted = 0;
               $volumeHighIcon.show();
               $volumeMuteIcon.hide();
               prevVolume = audioElement.volume;
@@ -202,7 +202,7 @@
 
           // Resets player state when audio finishes
           $audioElement.on('ended', () => {
-            isPlaying = false;
+            isPlaying = 0;
             $playIcon.show();
             $pauseIcon.hide();
             $progressBar.css('width', '0%');

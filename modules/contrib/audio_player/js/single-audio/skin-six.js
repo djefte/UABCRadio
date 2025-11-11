@@ -42,11 +42,11 @@
         const $durationSpan = $player.find('.audio-player-duration');
         const $songNameSpan = $player.find('.audio-player-song-name');
 
-        let isPlaying = false;
-        let isSeeking = false; // Flag to prevent timeupdate overriding seek
+        let isPlaying = 0;
+        let isSeeking = 0; // Flag to prevent timeupdate overriding seek
 
         $durationSpan.text(formatTime(audio.duration));
-        
+
         // Function to update the buffered bar
         function updateBufferedBar() {
           const duration = audio.duration;
@@ -54,7 +54,7 @@
             if (audio.buffered.length > 0) {
               const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
               const bufferedPercent = (bufferedEnd / duration) * 100;
-              $bufferedBar.css('width', `${bufferedPercent}%`);
+              $bufferedBar.css('width', bufferedPercent + '%');
             } else {
               $bufferedBar.css('width', '0%');
             }
@@ -123,11 +123,11 @@
         $volumeSlider.on('input', () => {
           audio.volume = $volumeSlider.val();
           if (audio.volume == 0) {
-            audio.muted = true;
+            audio.muted = 1;
             $volumeOnIcon.hide();
             $volumeOffIcon.show();
           } else {
-            audio.muted = false;
+            audio.muted = 0;
             $volumeOnIcon.show();
             $volumeOffIcon.hide();
           }
@@ -137,10 +137,10 @@
         $audio.on('timeupdate', () => {
           if (!isSeeking && !isNaN(audio.duration) && audio.duration > 0) {
             const progress = (audio.currentTime / audio.duration) * 100;
-            $progressBar.css('width', `${progress}%`);
+            $progressBar.css('width', progress + '%');
           }
           $currentTimeSpan.text(formatTime(audio.currentTime));
-          updateBufferedBar(); 
+          updateBufferedBar();
         });
 
         // Update buffered bar as audio buffers (primary event for buffering)
@@ -151,7 +151,7 @@
 
         // Handle clicks on progress bar to seek
         $progressBarWrapper.on('mousedown', (e) => {
-          isSeeking = true;
+          isSeeking = 1;
           if (isPlaying) {
             audio.pause();
           }
@@ -160,12 +160,12 @@
           const width = rect.width;
           const percentage = clickX / width;
           audio.currentTime = audio.duration * percentage;
-          $progressBar.css('width', `${percentage * 100}%`);
+          $progressBar.css('width', (percentage * 100) + '%');
         });
 
         $(document).on('mouseup', () => {
           if (isSeeking) {
-            isSeeking = false;
+            isSeeking = 0;
             if (isPlaying) {
               audio.play();
             }
@@ -181,7 +181,7 @@
 
         // When song ends
         $audio.on('ended', () => {
-          isPlaying = false;
+          isPlaying = 0;
           $playIcon.show();
           $pauseIcon.hide();
           $songInfo.removeClass('audio-player-playing'); // Stop marquee animation

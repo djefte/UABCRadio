@@ -43,9 +43,9 @@
         const $songNameText = $player.find('.audio-player-song-name');
         const $playbackSpeedSelect = $player.find('.audio-player-playback-speed');
 
-        let isPlaying = false;
+        let isPlaying = 0;
         let initialVolume = audio.volume;
-        let isSeeking = false;
+        let isSeeking = 0;
 
         // --- Helper Functions ---
         function updateBufferedBar() {
@@ -54,7 +54,7 @@
             if (audio.buffered.length > 0) {
               const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
               const bufferedPercent = (bufferedEnd / duration) * 100;
-              $bufferedBar.css('width', `${bufferedPercent}%`);
+              $bufferedBar.css('width', bufferedPercent + '%');
             } else {
               $bufferedBar.css('width', '0%');
             }
@@ -90,14 +90,14 @@
         // --- Mute/Unmute and Volume Control ---
         function toggleMuteUnmute() {
           if (audio.muted) {
-            audio.muted = false;
+            audio.muted = 0;
             audio.volume = initialVolume;
             $volumeSlider.val(initialVolume);
             $volumeUpIcon.show();
             $volumeMuteIcon.hide();
           } else {
             initialVolume = audio.volume;
-            audio.muted = true;
+            audio.muted = 1;
             audio.volume = 0; // Set audio volume to 0 when muted
             $volumeSlider.val(0);
             $volumeUpIcon.hide();
@@ -110,11 +110,11 @@
         $volumeSlider.on('input', (e) => {
           audio.volume = e.target.value;
           if (audio.volume == 0) {
-            audio.muted = true;
+            audio.muted = 1;
             $volumeUpIcon.hide();
             $volumeMuteIcon.show();
           } else {
-            audio.muted = false;
+            audio.muted = 0;
             $volumeUpIcon.show();
             $volumeMuteIcon.hide();
             initialVolume = audio.volume; // Update initialVolume as user adjusts
@@ -125,20 +125,18 @@
         $audio.on('timeupdate', () => {
           if (!isSeeking && !isNaN(audio.duration) && audio.duration > 0) {
             const progressPercent = (audio.currentTime / audio.duration) * 100;
-            $progressBar.css('width', `${progressPercent}%`);
+            $progressBar.css('width', progressPercent + '%');
           }
           $currentTimeSpan.text(formatTime(audio.currentTime));
           updateBufferedBar();
         });
-
-
 
       // Function to update metadata once loaded
       const updateMetadata = () => {
           $totalTimeSpan.text(formatTime(audio.duration));
           const audioSrc = audio.src;
           const fileName = audioSrc.substring(audioSrc.lastIndexOf('/') + 1);
-          $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.]+$/, "")));
+          $songNameText.text(decodeURIComponent(fileName.replace(/\.[^/.] + $ / , "")));
           $volumeSlider.val(audio.volume);
           initialVolume = audio.volume; // Set initialVolume once metadata is loaded
           updateBufferedBar();
@@ -156,7 +154,7 @@
 
         // Click on progress bar to seek
         $progressContainer.on('mousedown', (e) => {
-          isSeeking = true;
+          isSeeking = 1;
           if (isPlaying) {
             audio.pause();
           }
@@ -164,12 +162,12 @@
           const width = $progressContainer.outerWidth();
           const seekTime = (clickX / width) * audio.duration;
           audio.currentTime = seekTime;
-          $progressBar.css('width', `${(seekTime / audio.duration) * 100}%`);
+          $progressBar.css('width', ((seekTime / audio.duration) * 100) + '%');
         });
 
         $(document).on('mouseup', () => {
           if (isSeeking) {
-            isSeeking = false;
+            isSeeking = 0;
             if (isPlaying) {
               audio.play();
             }
@@ -190,7 +188,7 @@
 
         // Handle end of song
         $audio.on('ended', () => {
-          isPlaying = false;
+          isPlaying = 0;
           $playIcon.show();
           $pauseIcon.hide();
           audio.currentTime = 0;

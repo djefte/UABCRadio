@@ -60,6 +60,15 @@ final class NavigationDashboardBlock extends BlockBase implements ContainerFacto
       '#theme' => 'menu_region__dashboard',
       '#title' => $this->configuration['label'],
       '#url' => Url::fromRoute('dashboard')->toString(),
+      '#icon' => [
+        '#type' => 'icon',
+        '#pack_id' => 'dashboard',
+        '#icon_id' => 'dashboard',
+        '#settings' => [
+          'class' => 'toolbar-button__icon',
+          'size' => 20,
+        ],
+      ],
       '#attached' => [
         'library' => [
           'dashboard/dashboard.navigation',

@@ -81,7 +81,7 @@
         {% endfor %}
 
         <div class="audio-player-playlist">
-            <h3>Playlist</h3>
+            <h3>{{ ('Playlist')|t }}</h3>
             <div class="audio-player-playlist-content">
                 <ul class="audio-player-playlist-ul" data-playlist="{{ playlist|json_encode }}">
                     {% for song in playlist %}

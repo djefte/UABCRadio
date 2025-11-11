@@ -60,27 +60,12 @@ class DashboardLayoutBuilderForm extends EntityForm {
       '#section_storage' => $section_storage,
       '#prefix' => "<div class='$classes'>",
       '#suffix' => '</div>',
-      '#process' => [[static::class, 'layoutBuilderElementGetKeys']],
       '#attached' => [
         'library' => ['dashboard/dashboard'],
       ],
     ];
     $this->sectionStorage = $section_storage;
     return parent::buildForm($form, $form_state);
-  }
-
-  /**
-   * Form element #process callback.
-   *
-   * Save the layout builder element array parents as a property on the top form
-   * element so that they can be used to access the element within the whole
-   * render array later.
-   *
-   * @see \Drupal\layout_builder\Controller\LayoutBuilderHtmlEntityFormController
-   */
-  public static function layoutBuilderElementGetKeys(array $element, FormStateInterface $form_state, &$form) {
-    $form['#layout_builder_element_keys'] = $element['#array_parents'];
-    return $element;
   }
 
   /**

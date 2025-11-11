@@ -76,10 +76,20 @@ trait TrashStorageTrait {
     $revisionable = $this->getEntityType()->isRevisionable();
 
     foreach ($entities as $entity) {
+      // The original entity can not be loaded if it's soft-deleted, so we need
+      // to set it manually.
+      if (method_exists($entity, 'setOriginal')) {
+        $entity->setOriginal(clone $entity);
+      }
+      else {
+        $entity->original = clone $entity;
+      }
+
       // Allow code to run before restoring from trash.
       $this->getTrashManager()->getHandler($this->entityTypeId)->preTrashRestore($entity);
       $this->invokeHook('pre_trash_restore', $entity);
 
+      $deleted_timestamp = $entity->get($field_name)->value;
       $entity->set($field_name, NULL);
 
       // Always create a new revision if the entity type is revisionable.
@@ -95,7 +105,7 @@ trait TrashStorageTrait {
       $entity->save();
 
       // Allow code to run after restoring from trash.
-      $this->getTrashManager()->getHandler($this->entityTypeId)->postTrashRestore($entity);
+      $this->getTrashManager()->getHandler($this->entityTypeId)->postTrashRestore($entity, $deleted_timestamp);
       $this->invokeHook('trash_restore', $entity);
     }
   }

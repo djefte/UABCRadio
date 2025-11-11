@@ -4045,7 +4045,7 @@
     			a = element("a");
     			t = text(/*label*/ ctx[2]);
     			attr(a, "href", "#pb-sort");
-    			attr(a, "class", a_class_value = `pager__link ${/*linkTypes*/ ctx[1].map(func$1).join(' ')}`);
+    			attr(a, "class", a_class_value = `pager__link ${/*linkTypes*/ ctx[1].map(func).join(' ')}`);
     			attr(a, "aria-label", a_aria_label_value = /*ariaLabel*/ ctx[4] || window.Drupal.t('@location page', { '@location': /*label*/ ctx[2] }));
     			attr(a, "aria-current", a_aria_current_value = /*isCurrent*/ ctx[5] ? 'page' : null);
     			toggle_class(a, "is-active", /*isCurrent*/ ctx[5]);
@@ -4065,7 +4065,7 @@
     		p(ctx, [dirty]) {
     			if (dirty & /*label*/ 4) set_data(t, /*label*/ ctx[2]);
 
-    			if (dirty & /*linkTypes*/ 2 && a_class_value !== (a_class_value = `pager__link ${/*linkTypes*/ ctx[1].map(func$1).join(' ')}`)) {
+    			if (dirty & /*linkTypes*/ 2 && a_class_value !== (a_class_value = `pager__link ${/*linkTypes*/ ctx[1].map(func).join(' ')}`)) {
     				attr(a, "class", a_class_value);
     			}
 
@@ -4099,7 +4099,7 @@
     	};
     }
 
-    const func$1 = item => `pager__link--${item}`;
+    const func = item => `pager__link--${item}`;
     const func_1 = item => `pager__item--${item}`;
 
     function instance$e($$self, $$props, $$invalidate) {
@@ -7049,30 +7049,30 @@
     function create_if_block_9(ctx) {
     	let div;
     	let strong;
-    	let t1;
-    	let span;
-    	let t2_value = /*project*/ ctx[0].module_categories.map(func).join(', ') + "";
     	let t2;
+    	let span;
+    	let t3_value = /*categories*/ ctx[1].join(', ') + "";
+    	let t3;
 
     	return {
     		c() {
     			div = element("div");
     			strong = element("strong");
-    			strong.textContent = "Categories:";
-    			t1 = space();
+    			strong.textContent = `${window.Drupal.t('Categories')}:`;
+    			t2 = space();
     			span = element("span");
-    			t2 = text(t2_value);
+    			t3 = text(t3_value);
     			attr(div, "class", "pb-detail-modal__categories");
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
     			append(div, strong);
-    			append(div, t1);
+    			append(div, t2);
     			append(div, span);
-    			append(span, t2);
+    			append(span, t3);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*project*/ 1 && t2_value !== (t2_value = /*project*/ ctx[0].module_categories.map(func).join(', ') + "")) set_data(t2, t2_value);
+    			if (dirty & /*categories*/ 2 && t3_value !== (t3_value = /*categories*/ ctx[1].join(', ') + "")) set_data(t3, t3_value);
     		},
     		d(detaching) {
     			if (detaching) detach(div);
@@ -7080,7 +7080,7 @@
     	};
     }
 
-    // (48:4) {#if project.project_images.length > 0}
+    // (46:4) {#if project.project_images.length > 0}
     function create_if_block_8(ctx) {
     	let div;
     	let imagecarousel;
@@ -7124,7 +7124,7 @@
     	};
     }
 
-    // (53:4) {#if project.body.value}
+    // (51:4) {#if project.body.value}
     function create_if_block_7(ctx) {
     	let div;
     	let raw_value = /*project*/ ctx[0].body.value + "";
@@ -7147,7 +7147,7 @@
     	};
     }
 
-    // (60:4) {#if PACKAGE_MANAGER}
+    // (58:4) {#if PACKAGE_MANAGER}
     function create_if_block_6(ctx) {
     	let div;
     	let actionbutton;
@@ -7186,7 +7186,7 @@
     	};
     }
 
-    // (67:4) {#if project.is_compatible}
+    // (65:4) {#if project.is_compatible}
     function create_if_block_5(ctx) {
     	let div;
     	let projecticon;
@@ -7235,7 +7235,7 @@
     	};
     }
 
-    // (77:4) {#if !project.is_compatible}
+    // (75:4) {#if !project.is_compatible}
     function create_if_block_4$1(ctx) {
     	let div;
 
@@ -7255,12 +7255,12 @@
     	};
     }
 
-    // (82:4) {#if typeof project.project_usage_total === 'number'}
+    // (80:4) {#if typeof project.project_usage_total === 'number'}
     function create_if_block_3$2(ctx) {
     	let div;
     	let projecticon;
     	let t0;
-    	let t1_value = /*Drupal*/ ctx[1].formatPlural(/*project*/ ctx[0].project_usage_total, `${numberFormatter.format(1)} site reports using this module`, `${numberFormatter.format(/*project*/ ctx[0].project_usage_total)} sites report using this module`) + "";
+    	let t1_value = /*Drupal*/ ctx[2].formatPlural(/*project*/ ctx[0].project_usage_total, `${numberFormatter.format(1)} site reports using this module`, `${numberFormatter.format(/*project*/ ctx[0].project_usage_total)} sites report using this module`) + "";
     	let t1;
     	let current;
 
@@ -7288,7 +7288,7 @@
     			current = true;
     		},
     		p(ctx, dirty) {
-    			if ((!current || dirty & /*project*/ 1) && t1_value !== (t1_value = /*Drupal*/ ctx[1].formatPlural(/*project*/ ctx[0].project_usage_total, `${numberFormatter.format(1)} site reports using this module`, `${numberFormatter.format(/*project*/ ctx[0].project_usage_total)} sites report using this module`) + "")) set_data(t1, t1_value);
+    			if ((!current || dirty & /*project*/ 1) && t1_value !== (t1_value = /*Drupal*/ ctx[2].formatPlural(/*project*/ ctx[0].project_usage_total, `${numberFormatter.format(1)} site reports using this module`, `${numberFormatter.format(/*project*/ ctx[0].project_usage_total)} sites report using this module`) + "")) set_data(t1, t1_value);
     		},
     		i(local) {
     			if (current) return;
@@ -7306,7 +7306,7 @@
     	};
     }
 
-    // (98:4) {#if project.is_covered}
+    // (96:4) {#if project.is_covered}
     function create_if_block_2$2(ctx) {
     	let div;
     	let projecticon;
@@ -7355,7 +7355,7 @@
     	};
     }
 
-    // (110:4) {#if project.is_maintained}
+    // (108:4) {#if project.is_maintained}
     function create_if_block_1$3(ctx) {
     	let div;
     	let projecticon;
@@ -7404,7 +7404,7 @@
     	};
     }
 
-    // (121:4) {#if project.url}
+    // (119:4) {#if project.url}
     function create_if_block$3(ctx) {
     	let div;
     	let button;
@@ -7471,7 +7471,7 @@
     			}
     		});
 
-    	let if_block0 = /*project*/ ctx[0].module_categories.length && create_if_block_9(ctx);
+    	let if_block0 = /*categories*/ ctx[1].length && create_if_block_9(ctx);
     	let if_block1 = /*project*/ ctx[0].project_images.length > 0 && create_if_block_8(ctx);
     	let if_block2 = /*project*/ ctx[0].body.value && create_if_block_7(ctx);
     	let if_block3 = PACKAGE_MANAGER && create_if_block_6(ctx);
@@ -7568,7 +7568,7 @@
     			image.$set(image_changes);
     			if ((!current || dirty & /*project*/ 1) && t1_value !== (t1_value = /*project*/ ctx[0].title + "")) set_data(t1, t1_value);
 
-    			if (/*project*/ ctx[0].module_categories.length) {
+    			if (/*categories*/ ctx[1].length) {
     				if (if_block0) {
     					if_block0.p(ctx, dirty);
     				} else {
@@ -7776,10 +7776,9 @@
     	};
     }
 
-    const func = category => category.name;
-
     function instance$5($$self, $$props, $$invalidate) {
     	let { project } = $$props;
+    	let categories = [];
     	const { Drupal } = window;
 
     	onMount(() => {
@@ -7793,13 +7792,14 @@
     		}
 
     		$$invalidate(0, project.body.value = description.innerHTML, project);
+    		$$invalidate(1, categories = Object.values(project.categories));
     	});
 
     	$$self.$$set = $$props => {
     		if ('project' in $$props) $$invalidate(0, project = $$props.project);
     	};
 
-    	return [project, Drupal];
+    	return [project, categories, Drupal];
     }
 
     class DetailModal extends SvelteComponent {
@@ -7879,7 +7879,7 @@
 
     // (25:10) {:else}
     function create_else_block(ctx) {
-    	let t_value = /*category*/ ctx[2].name + "";
+    	let t_value = /*category*/ ctx[2][1] + "";
     	let t;
 
     	return {
@@ -7890,7 +7890,7 @@
     			insert(target, t, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*moduleCategories*/ 1 && t_value !== (t_value = /*category*/ ctx[2].name + "")) set_data(t, t_value);
+    			if (dirty & /*moduleCategories*/ 1 && t_value !== (t_value = /*category*/ ctx[2][1] + "")) set_data(t, t_value);
     		},
     		d(detaching) {
     			if (detaching) detach(t);
@@ -7900,7 +7900,7 @@
 
     // (23:10) {#if index + 1 !== moduleCategories.length}
     function create_if_block_1$2(ctx) {
-    	let t0_value = /*category*/ ctx[2].name + "";
+    	let t0_value = /*category*/ ctx[2][1] + "";
     	let t0;
     	let t1;
 
@@ -7914,7 +7914,7 @@
     			insert(target, t1, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*moduleCategories*/ 1 && t0_value !== (t0_value = /*category*/ ctx[2].name + "")) set_data(t0, t0_value);
+    			if (dirty & /*moduleCategories*/ 1 && t0_value !== (t0_value = /*category*/ ctx[2][1] + "")) set_data(t0, t0_value);
     		},
     		d(detaching) {
     			if (detaching) detach(t0);
@@ -7942,7 +7942,7 @@
     			if_block.c();
     			t = space();
     			attr(li, "class", "pb-project-categories__item");
-    			toggle_class(li, "pb-project-categories__item--extra", /*category*/ ctx[2].id === 'overflow');
+    			toggle_class(li, "pb-project-categories__item--extra", /*category*/ ctx[2][0] === 'overflow');
     		},
     		m(target, anchor) {
     			insert(target, li, anchor);
@@ -7963,7 +7963,7 @@
     			}
 
     			if (dirty & /*moduleCategories*/ 1) {
-    				toggle_class(li, "pb-project-categories__item--extra", /*category*/ ctx[2].id === 'overflow');
+    				toggle_class(li, "pb-project-categories__item--extra", /*category*/ ctx[2][0] === 'overflow');
     			}
     		},
     		d(detaching) {
@@ -8017,7 +8017,7 @@
 
     	if (extraCategories.length) {
     		const overflowText = window.Drupal.t('+ @count more', { '@count': extraCategories.length });
-    		moduleCategories.push({ id: 'overflow', name: overflowText });
+    		moduleCategories.push(['overflow', overflowText]);
     	}
 
     	$$self.$$set = $$props => {
@@ -8056,7 +8056,7 @@
     	};
     }
 
-    // (65:4) {#if project.is_covered}
+    // (68:4) {#if project.is_covered}
     function create_if_block_3$1(ctx) {
     	let span;
     	let projecticon;
@@ -8090,7 +8090,7 @@
     	};
     }
 
-    // (70:4) {#if project.is_maintained}
+    // (73:4) {#if project.is_maintained}
     function create_if_block_2$1(ctx) {
     	let span;
     	let projecticon;
@@ -8124,7 +8124,7 @@
     	};
     }
 
-    // (75:4) {#if toggleView === 'Grid' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
+    // (78:4) {#if toggleView === 'Grid' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
     function create_if_block_1$1(ctx) {
     	let div;
     	let span;
@@ -8153,7 +8153,7 @@
     	};
     }
 
-    // (86:4) {#if toggleView === 'List' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
+    // (89:4) {#if toggleView === 'List' && typeof project.project_usage_total === 'number' && project.project_usage_total > 0}
     function create_if_block$1(ctx) {
     	let div2;
     	let div0;
@@ -8269,7 +8269,7 @@
     	categories = new Categories({
     			props: {
     				toggleView: /*toggleView*/ ctx[1],
-    				moduleCategories: /*project*/ ctx[0].module_categories
+    				moduleCategories: Object.entries(/*project*/ ctx[0].categories)
     			}
     		});
 
@@ -8373,7 +8373,7 @@
 
     			const categories_changes = {};
     			if (dirty & /*toggleView*/ 2) categories_changes.toggleView = /*toggleView*/ ctx[1];
-    			if (dirty & /*project*/ 1) categories_changes.moduleCategories = /*project*/ ctx[0].module_categories;
+    			if (dirty & /*project*/ 1) categories_changes.moduleCategories = Object.entries(/*project*/ ctx[0].categories);
     			categories.$set(categories_changes);
 
     			if (!current || dirty & /*displayMode*/ 4 && div2_class_value !== (div2_class_value = "pb-project__main pb-project__main--" + /*displayMode*/ ctx[2])) {

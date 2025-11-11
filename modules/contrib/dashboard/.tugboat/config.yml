@@ -1,7 +1,7 @@
 services:
   php:
     # Specify the version of Drupal you wish to use for Tugboat below.
-    image: q0rban/tugboat-drupal:10
+    image: tugboatqa/drupal:11
     default: true
     http: false
     depends: mysql
@@ -28,7 +28,9 @@ services:
         # above that uses the $TUGBOAT_REPO_ID environment variable.
         composer require drupal/dashboard:dev-$TUGBOAT_REPO_ID
         # Install Drupal on the site.
-        php -d memory_limit=-1 vendor/bin/drush \
+        rm -f $DRUPAL_DOCROOT/sites/default/settings.php
+        php -d memory_limit=-1 \
+          vendor/bin/drush.php \
           --yes \
           --db-url=mysql://tugboat:tugboat@mysql:3306/tugboat \
           --site-name="Live preview for ${TUGBOAT_PREVIEW_NAME}" \
@@ -40,14 +42,14 @@ services:
         chmod 2775 $DRUPAL_DOCROOT/sites/default/files
         chmod -R g+w $DRUPAL_DOCROOT/sites/default/files
         # Enable the module.
-        vendor/bin/drush --yes pm:enable dashboard
+        vendor/bin/drush --yes pm:install dashboard
         # Create dummy users.
         vendor/bin/drush --yes user:create author --mail="author@example.com" --password="author"
         vendor/bin/drush --yes user:role:add author author
         vendor/bin/drush --yes user:create editor --mail="editor@example.com" --password="editor"
         vendor/bin/drush --yes user:role:add editor editor
         vendor/bin/drush pm:install navigation --yes
-        # Import the default dashboards and navigation config.
+        # Import the default dashboards.
         vendor/bin/drush config:import --partial --source=$DRUPAL_DOCROOT/modules/contrib/dashboard/.tugboat/config --yes
         # Assign the dashboard roles.
         vendor/bin/drush role:perm:add administrator 'view administrator dashboard,view editor dashboard,view author dashboard'

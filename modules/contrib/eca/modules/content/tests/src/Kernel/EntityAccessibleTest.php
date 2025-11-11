@@ -4,7 +4,7 @@ namespace Drupal\Tests\eca_content\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 
@@ -19,6 +19,8 @@ use Drupal\user\Entity\User;
  * @group eca_content
  */
 class EntityAccessibleTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -55,13 +57,10 @@ class EntityAccessibleTest extends KernelTestBase {
       'roles' => ['test_role_eca'],
     ])->save();
     // Create the Article content type with a standard body field.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
     ]);
-    $node_type->save();
-    node_add_body_field($node_type);
   }
 
   /**

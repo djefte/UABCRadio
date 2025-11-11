@@ -10,7 +10,7 @@ use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\language\Entity\ContentLanguageSettings;
 use Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationUrl;
 use Drupal\node\Entity\Node;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\User;
 use Drupal\user\Plugin\LanguageNegotiation\LanguageNegotiationUser;
 
@@ -21,6 +21,8 @@ use Drupal\user\Plugin\LanguageNegotiation\LanguageNegotiationUser;
  * @group eca_content
  */
 class LoadEntityRefTest extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * The modules.
@@ -77,13 +79,11 @@ class LoadEntityRefTest extends KernelTestBase {
    */
   public function testLoadEntityRef() {
     // Create the Article content type with revisioning and translation enabled.
-    /** @var \Drupal\node\NodeTypeInterface $node_type */
-    $node_type = NodeType::create([
+    $this->createContentType([
       'type' => 'article',
       'name' => 'Article',
       'new_revision' => TRUE,
     ]);
-    $node_type->save();
     ContentLanguageSettings::create([
       'id' => 'node.article',
       'target_entity_type_id' => 'node',

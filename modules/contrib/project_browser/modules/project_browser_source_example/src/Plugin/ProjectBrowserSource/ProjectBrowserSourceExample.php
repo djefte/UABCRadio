@@ -112,10 +112,7 @@ final class ProjectBrowserSourceExample extends ProjectBrowserSourceBase {
       $categories = [];
       foreach ($project_from_source['categories'] as $category) {
         [$id, $name] = explode(':', $category);
-        $categories[] = [
-          'id' => $id,
-          'name' => $name,
-        ];
+        $categories[$id] = $name;
       }
 
       $projects[] = new Project(

@@ -40,6 +40,7 @@ class TrashServiceProvider extends ServiceProviderBase {
 
     // Decorate entity query factories.
     if ($container->hasDefinition('workspaces.entity.query.sql')) {
+      $priority = 10;
       $factory = [
         'service' => 'workspaces.entity.query.sql',
         'class' => WorkspacesQueryFactory::class,
@@ -50,6 +51,7 @@ class TrashServiceProvider extends ServiceProviderBase {
       ];
     }
     else {
+      $priority = 100;
       $factory = [
         'service' => 'entity.query.sql',
         'class' => CoreQueryFactory::class,
@@ -62,13 +64,13 @@ class TrashServiceProvider extends ServiceProviderBase {
     if ($container->hasDefinition($factory['service'])) {
       $definition = (new ChildDefinition($factory['service']))
         ->setClass($factory['class'])
-        ->setDecoratedService('entity.query.sql', NULL, 100);
+        ->setDecoratedService('entity.query.sql', NULL, $priority);
       $container->setDefinition('trash.entity.query.sql', $definition);
     }
     if ($container->hasDefinition($pgsql_factory['service'])) {
       $definition = (new ChildDefinition($pgsql_factory['service']))
         ->setClass($pgsql_factory['class'])
-        ->setDecoratedService('pgsql.entity.query.sql', NULL, 100);
+        ->setDecoratedService('pgsql.entity.query.sql', NULL, $priority);
       $container->setDefinition('trash.pgsql.entity.query.sql', $definition);
     }
 

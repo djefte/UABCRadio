@@ -55,7 +55,7 @@ class ModelerApiLocalAction extends DeriverBase implements ContainerDeriverInter
         if ($this->modelerApiService->getRouteByName($name)) {
           $this->derivatives[$name] = [
             'route_name' => $name,
-            'title' => $this->t('Add new model'),
+            'title' => $owner->getPluginDefinition()['uiLabelNewModel'],
             'appears_on' => ['entity.' . $type . '.collection'],
           ];
         }
@@ -64,7 +64,7 @@ class ModelerApiLocalAction extends DeriverBase implements ContainerDeriverInter
       if ($this->modelerApiService->getRouteByName($name)) {
         $this->derivatives[$name] = [
           'route_name' => $name,
-          'title' => $hasAddForm ? $this->t('Add new model with modeler') : $this->t('Add new model'),
+          'title' => $hasAddForm ? $owner->getPluginDefinition()['uiLabelNewModelWithModeler'] : $owner->getPluginDefinition()['uiLabelNewModel'],
           'appears_on' => ['entity.' . $type . '.collection'],
         ];
       }

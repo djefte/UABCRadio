@@ -17,7 +17,6 @@
 
       const EqualizerEffects = window.EqualizerEffects; // Will be undefined or the object
 
-
       once('audio_player_skin_two_playlist', '.audio-player-container.skin-two-playlist', context).forEach(function (playerElement) {
 
         const $audioPlayerContainer = $(playerElement);
@@ -76,7 +75,7 @@
         // Equalizer canvas (only if EqualizerEffects is available)
         const $equalizerCanvas = EqualizerEffects ? $audioPlayerContainer.find('.audio-player-equalizer-canvas') : $();
         const equalizerCanvas = $equalizerCanvas[0];
-        const canvasCtx = equalizerCanvas ? equalizerCanvas.getContext('2d') : null;
+        const canvasCtx = equalizerCanvas ? equalizerCanvas.getContext('2d') : undefined;
 
         const element = $audioPlayerContainer.find('.audio-player-progress-bar')[0]; // get the first element directly
         let colorData = {}; // Declare colorData
@@ -87,14 +86,14 @@
         }
 
         let currentSongIndex = 0;
-        let isPlaying = false;
-        let isMuted = false;
-        let isRandom = false;
-        let isAutoplay = true;
+        let isPlaying = 0;
+        let isMuted = 0;
+        let isRandom = 0;
+        let isAutoplay = 1;
         let lastVolume = 1;
 
-        // Use a data attribute for initial visibility, defaults to true if not set.
-        let initialShowEqualizer = $audioPlayerContainer.data('show-equalizer') !== false;
+        // Use a data attribute for initial visibility, defaults to 1 if not set.
+        let initialShowEqualizer = $audioPlayerContainer.data('show-equalizer') !== 0;
 
         // Equalizer effect type: default to 'waveform'
         // let equalizerEffectType = 'waveform';
@@ -103,19 +102,20 @@
           equalizerEffectType = 'waveform'; // Default if not specified and EQ is present
         }
 
-
         // AudioContext for Equalizer
         let audioContext;
         let analyser;
         let bufferLength;
         let timeDomainDataArray;
         let frequencyDataArray;
-        let animationFrameId = null; // Will store the ID returned by EqualizerEffects.animate
+        let animationFrameId = undefined; // Will store the ID returned by EqualizerEffects.animate
 
         // --- Utility Functions ---
 
         function formatTime(seconds) {
-          if (isNaN(seconds) || seconds < 0) return "0:00";
+          if (isNaN(seconds) || seconds < 0) {
+            return "0:00";
+          }
           const minutes = Math.floor(seconds / 60);
           const secs = Math.floor(seconds % 60);
           return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
@@ -154,7 +154,7 @@
           $songSubTitle.text(song.subTitle);
 
           $playlistUl.find('li').removeClass('audio-player-active-song');
-          const $activeItem = $playlistUl.find(`li[data-index="${currentSongIndex}"]`);
+          const $activeItem = $playlistUl.find('li[data-index="' + currentSongIndex + '"]');
           $activeItem.addClass('audio-player-active-song');
 
           consolelog('$activeItem', $activeItem);
@@ -187,7 +187,7 @@
           }
 
           if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext = new(window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             // Connect the audio source to the analyser
             const sourceNode = audioContext.createMediaElementSource(audioSource);
@@ -216,7 +216,7 @@
             // ensure animation is stopped and clear canvas if applicable.
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
+                animationFrameId = undefined;
             }
             if (equalizerCanvas && canvasCtx) {
                 canvasCtx.clearRect(0, 0, equalizerCanvas.width, equalizerCanvas.height);
@@ -228,7 +228,7 @@
           equalizerCanvas.width = equalizerCanvas.offsetWidth;
           equalizerCanvas.height = equalizerCanvas.offsetHeight;
 
-          const selectedEffect = EqualizerEffects.effects[equalizerEffectType] ?? '';
+          const selectedEffect = EqualizerEffects.effects[equalizerEffectType] || '';
           if (selectedEffect) {
             animationFrameId = EqualizerEffects.animate(selectedEffect);
           } else {
@@ -236,7 +236,7 @@
             canvasCtx.clearRect(0, 0, equalizerCanvas.width, equalizerCanvas.height);
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
+                animationFrameId = undefined;
             }
           }
         }
@@ -290,7 +290,7 @@
             loadSong(currentSongIndex);
           }
           audioSource.play();
-          isPlaying = true;
+          isPlaying = 1;
           updatePlayPauseIcons();
           if (EqualizerEffects) {
             startEqualizerAnimation();
@@ -313,7 +313,7 @@
             }
           }
           audioSource.play();
-          isPlaying = true;
+          isPlaying = 1;
           updatePlayPauseIcons();
           if (EqualizerEffects) {
             startEqualizerAnimation();
@@ -322,11 +322,11 @@
 
         function setVolume(volume) {
           audioSource.volume = volume;
-          $customVolumeSliderFill.css('width', `${volume * 100}%`);
+          $customVolumeSliderFill.css('width', (volume * 100) + '%');
           if (volume === 0) {
-            isMuted = true;
+            isMuted = 1;
           } else {
-            isMuted = false;
+            isMuted = 0;
           }
           updateVolumeIcon();
         }
@@ -334,14 +334,14 @@
         function toggleMute() {
           if (isMuted) {
             audioSource.volume = lastVolume;
-            isMuted = false;
+            isMuted = 0;
           } else {
             lastVolume = audioSource.volume;
             audioSource.volume = 0;
-            isMuted = true;
+            isMuted = 1;
           }
           updateVolumeIcon();
-          $customVolumeSliderFill.css('width', `${audioSource.volume * 100}%`);
+          $customVolumeSliderFill.css('width', (audioSource.volume * 100) + '%');
         }
 
         // --- Event Listeners ---
@@ -353,7 +353,7 @@
 
         // Only attach equalizer effect buttons if EqualizerEffects is available
         if (EqualizerEffects) {
-          $equalizerEffectButtons.on('click', function() {
+          $equalizerEffectButtons.on('click', function () {
             equalizerEffectType = $(this).data('effect');
             $equalizerEffectButtons.removeClass('audio-player-active-effect');
             $(this).addClass('audio-player-active-effect');
@@ -372,10 +372,9 @@
           });
         }
 
-
         $audioSource.on('timeupdate', () => {
           const progress = (audioSource.currentTime / audioSource.duration) * 100;
-          $progressBar.css('width', `${progress}%`);
+          $progressBar.css('width', progress + '%');
           $currentTimeSpan.text(formatTime(audioSource.currentTime));
         });
 
@@ -397,7 +396,7 @@
               const bufferedStart = audioSource.buffered.start(audioSource.buffered.length - 1 - i);
               if (bufferedEnd > audioSource.currentTime && bufferedStart <= audioSource.currentTime) {
                 const bufferWidth = (bufferedEnd / audioSource.duration) * 100;
-                $bufferBar.css('width', `${bufferWidth}%`);
+                $bufferBar.css('width', bufferWidth + '%');
                 break;
               }
             }
@@ -408,7 +407,7 @@
           if (isAutoplay) {
             playNextSong();
           } else {
-            isPlaying = false;
+            isPlaying = 0;
             updatePlayPauseIcons();
             $progressBar.css('width', '0%');
             $currentTimeSpan.text('0:00');
@@ -416,7 +415,7 @@
             if (EqualizerEffects) {
               if (animationFrameId) {
                   cancelAnimationFrame(animationFrameId);
-                  animationFrameId = null;
+                  animationFrameId = undefined;
               }
               if (equalizerCanvas && canvasCtx) {
                 canvasCtx.clearRect(0, 0, equalizerCanvas.width, equalizerCanvas.height);
@@ -434,9 +433,9 @@
         });
 
         // Volume Slider functionality
-        let isDraggingVolume = false;
+        let isDraggingVolume = 0;
         $customVolumeSlider.on('mousedown touchstart', (e) => {
-          isDraggingVolume = true;
+          isDraggingVolume = 1;
           const event = e.type === 'touchstart' ? e.originalEvent.touches[0] : e;
           updateVolumeFromEvent(event);
           e.preventDefault();
@@ -451,7 +450,7 @@
         });
 
         $(document).on('mouseup touchend', () => {
-          isDraggingVolume = false;
+          isDraggingVolume = 0;
         });
 
         function updateVolumeFromEvent(e) {
@@ -534,7 +533,6 @@
           }
         });
 
-
         // Initial setup
         $autoplayBtnSvg.addClass('audio-player-active');
         if (musicList && musicList.length > 0) {
@@ -542,7 +540,7 @@
         }
 
         function updatePlaylistDurations() {
-          $playlistUl.find('li').each(function(index) {
+          $playlistUl.find('li').each(function (index) {
             const $listItem = $(this);
             const songSrc = $listItem.data('src'); // Get the song src from data-src attribute
 
@@ -563,7 +561,7 @@
             if (index !== currentSongIndex) {
                 $playerSection.addClass('playing');
               loadSong(index);
-              isPlaying = true; // Automatically play when a new song is selected from playlist
+              isPlaying = 1; // Automatically play when a new song is selected from playlist
 
               // CRITICAL CHANGE: Only call setupEqualizer and attempt to resume
               // when the user explicitly clicks play.
@@ -614,13 +612,12 @@
             $playerControls.removeClass('audio-player-hidden');
             $playlistDiv.removeClass('audio-player-hidden');
           }
-          $equalizerEffectButtons.filter(`[data-effect="${equalizerEffectType}"]`).addClass('audio-player-active-effect');
+          $equalizerEffectButtons.filter('[data-effect="' + equalizerEffectType + '"]').addClass('audio-player-active-effect');
         } else {
           // If EqualizerEffects is not present, hide equalizer related elements and buttons.
           $equalizerCanvas.hide();
           $equalizerEffectButtons.hide(); // Hide the equalizer effect buttons
         }
-
 
         $(window).on('resize', () => {
           // Only resize and re-init EqualizerEffects if it's available

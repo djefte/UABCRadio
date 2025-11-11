@@ -59,7 +59,10 @@
     <div class="pb-project__body pb-project__body--{displayMode}">
       {@html project.body.summary}
     </div>
-    <Categories {toggleView} moduleCategories={project.module_categories} />
+    <Categories
+      {toggleView}
+      moduleCategories={Object.entries(project.categories)}
+    />
   </div>
   <div class="pb-project__icons pb-project__icons--{displayMode}">
     {#if project.is_covered}

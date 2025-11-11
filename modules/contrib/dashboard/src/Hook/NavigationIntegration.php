@@ -15,6 +15,26 @@ class NavigationIntegration {
   public function __construct(protected ModuleHandlerInterface $moduleHandler) {}
 
   /**
+   * Provide default block for navigation.
+   */
+  #[Hook('navigation_defaults')]
+  public function navigationBlockDefaults(): array {
+    $blocks = [];
+
+    $blocks[] = [
+      'delta' => 0,
+      'configuration' => [
+        'id' => 'navigation_dashboard',
+        'label' => 'Dashboard',
+        'label_display' => FALSE,
+        'provider' => 'dashboard',
+      ],
+    ];
+
+    return $blocks;
+  }
+
+  /**
    * Hide dashboard blocks from the blocks UI, and mark our navigation as safe.
    *
    * @todo Revisit if https://www.drupal.org/project/drupal/issues/3443882 lands.
@@ -58,6 +78,7 @@ class NavigationIntegration {
       'variables' => [
         'url' => [],
         'title' => NULL,
+        'icon' => NULL,
       ],
     ];
     return $items;

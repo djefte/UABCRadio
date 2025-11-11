@@ -8,7 +8,10 @@
         "Drupal"
     ],
     "require": {
-        "drupal/core": "^10.2 || ^11"
+        "drupal/core": "^11.2"
+    },
+    "require-dev": {
+        "drupal/coffee": "*"
     },
     "authors": [
         {

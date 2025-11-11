@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\Dashboard\Kernel;
 
+use PHPUnit\Framework\Attributes\Group;
 use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\user\Traits\UserCreationTrait;
@@ -11,9 +12,8 @@ use Drupal\dashboard\Entity\Dashboard;
 
 /**
  * Tests for dashboard access control handler.
- *
- * @group dashboard
  */
+#[Group('dashboard')]
 class DashboardAccessControlHandlerTest extends KernelTestBase {
 
   use UserCreationTrait {
@@ -28,6 +28,7 @@ class DashboardAccessControlHandlerTest extends KernelTestBase {
    */
   protected static $modules = [
     'dashboard',
+    'layout_builder',
     'system',
     'user',
   ];

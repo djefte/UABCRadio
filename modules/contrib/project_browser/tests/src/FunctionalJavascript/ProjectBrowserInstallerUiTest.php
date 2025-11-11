@@ -128,7 +128,7 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     // well.
     // @see \Drupal\project_browser_test\TestActivator::getStatus()
     $message = 'Unable to install modules pinky_brain due to missing modules pinky_brain';
-    $this->assertPageHasText($message);
+    $this->assertPageHasText($message, 30000);
     $this->assertSession()->statusMessageContains($message, 'error');
 
     // We should have been scrolled to the messages area, which is above the
@@ -679,6 +679,22 @@ final class ProjectBrowserInstallerUiTest extends WebDriverTestBase {
     // Nothing is selected, so we shouldn't see a button to clear the selection.
     $this->assertPageHasText('No projects selected');
     $assert_session->buttonNotExists('Clear selection');
+  }
+
+  /**
+   * Tests that the messages set by projects while installing are shown.
+   */
+  public function testMessagesSetByProjectsAreShown(): void {
+    TestActivator::handle('drupal/cream_cheese');
+    $this->drupalGet('project-browser/project_browser_test_mock');
+    $messages_to_set = ["This message is from Cream cheese on a bagel", "For testing purpose only."];
+    TestActivator::setMessagesOnActivate('drupal/cream_cheese', $messages_to_set);
+    $card = $this->waitForProject('Cream cheese on a bagel');
+    $card->pressButton('Install Cream cheese on a bagel');
+    $this->waitForProjectToBeInstalled($card);
+    foreach ($messages_to_set as $message) {
+      $this->assertPageHasText($message);
+    }
   }
 
   /**

@@ -170,7 +170,7 @@ class LeafletService {
     }
 
     // Add the Leaflet Fullscreen library, if requested.
-    if (isset($map['settings']['fullscreen']) && $map['settings']['fullscreen']['control']) {
+    if (isset($map['settings']['fullscreen']) && !empty($map['settings']['fullscreen']['control'])) {
       $attached_libraries[] = 'leaflet/leaflet.fullscreen';
     }
 

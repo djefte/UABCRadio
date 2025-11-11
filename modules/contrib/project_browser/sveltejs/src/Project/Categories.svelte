@@ -8,7 +8,7 @@
     const overflowText = Drupal.t('+ @count more', {
       '@count': extraCategories.length,
     });
-    moduleCategories.push({ id: 'overflow', name: overflowText });
+    moduleCategories.push(['overflow', overflowText]);
   }
 </script>
 
@@ -18,12 +18,12 @@
       {#each moduleCategories || [] as category, index}
         <li
           class="pb-project-categories__item"
-          class:pb-project-categories__item--extra={category.id === 'overflow'}
+          class:pb-project-categories__item--extra={category[0] === 'overflow'}
         >
           {#if index + 1 !== moduleCategories.length}
-            {category.name},
+            {category[1]},
           {:else}
-            {category.name}
+            {category[1]}
           {/if}
         </li>
       {/each}

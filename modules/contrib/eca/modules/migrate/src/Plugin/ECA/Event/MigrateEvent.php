@@ -2,8 +2,13 @@
 
 namespace Drupal\eca_migrate\Plugin\ECA\Event;
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\eca\Attribute\Token;
+use Drupal\eca\Plugin\CleanupInterface;
+use Drupal\eca\Plugin\DataType\DataTransferObject;
 use Drupal\eca\Plugin\ECA\Event\EventBase;
+use Drupal\eca_migrate\Event\EcaMigrateEvents;
+use Drupal\eca_migrate\Event\EcaMigrateProcessEvent;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateIdMapMessageEvent;
 use Drupal\migrate\Event\MigrateImportEvent;
@@ -23,7 +28,7 @@ use Drupal\migrate\Event\MigrateRowDeleteEvent;
  *   eca_version_introduced = "1.0.0"
  * )
  */
-class MigrateEvent extends EventBase {
+class MigrateEvent extends EventBase implements CleanupInterface {
 
   /**
    * {@inheritdoc}
@@ -85,7 +90,55 @@ class MigrateEvent extends EventBase {
       'event_name' => MigrateEvents::PRE_ROW_SAVE,
       'event_class' => MigratePreRowSaveEvent::class,
     ];
+    $actions['process'] = [
+      'label' => 'Processing migration row value',
+      'event_name' => EcaMigrateEvents::PROCESS,
+      'event_class' => EcaMigrateProcessEvent::class,
+    ];
     return $actions;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    $configuration = parent::defaultConfiguration();
+
+    if ($this->pluginId === 'migrate:process') {
+      $configuration['token_name'] = '';
+    }
+
+    return $configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state): array {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    if ($this->pluginId === 'migrate:process') {
+      $form['token_name'] = [
+        '#type' => 'textfield',
+        '#title' => $this->t('Token name holding the processed value'),
+        '#default_value' => $this->configuration['token_name'],
+        '#description' => $this->t('The name of the token to hold the processed value.'),
+        '#required' => TRUE,
+        '#eca_token_reference' => TRUE,
+      ];
+    }
+
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state): void {
+    parent::submitConfigurationForm($form, $form_state);
+    if ($this->pluginId === 'migrate:process') {
+      $this->configuration['token_name'] = $form_state->getValue('token_name');
+    }
   }
 
   /**
@@ -141,6 +194,12 @@ class MigrateEvent extends EventBase {
     classes: [
       MigratePreRowSaveEvent::class,
       MigrateRowDeleteEvent::class,
+      EcaMigrateProcessEvent::class,
+    ],
+    properties: [
+      new Token(name: 'source', description: 'The current migration row source and its properties. Source properties can be accessed by [row:source:PROPERTY_NAME].'),
+      new Token(name: 'destination', description: 'The current migration row destination and its properties. Destination properties can be accessed by [row:destination:PROPERTY_NAME]. However, such properties only exist if they have been processed before during the migration of the current row.'),
+      new Token(name: 'is_stub', description: 'Whether the current migration row is a stub.'),
     ]
   )]
   #[Token(
@@ -171,6 +230,20 @@ class MigrateEvent extends EventBase {
     classes: [
       MigrateIdMapMessageEvent::class,
     ]
+  )]
+  #[Token(
+    name: 'value',
+    description: 'The migration row value to process.',
+    classes: [
+      EcaMigrateProcessEvent::class,
+    ],
+  )]
+  #[Token(
+    name: 'destination_property',
+    description: 'The destination property.',
+    classes: [
+      EcaMigrateProcessEvent::class,
+    ],
   )]
   public function getData(string $key): mixed {
     $event = $this->event;
@@ -225,6 +298,14 @@ class MigrateEvent extends EventBase {
         ) {
           return $event->getRow();
         }
+        if ($event instanceof EcaMigrateProcessEvent) {
+          $row = $event->getRow();
+          return DataTransferObject::create([
+            'source' => $row->getSource(),
+            'destination' => $row->getDestination(),
+            'is_stub' => $row->isStub(),
+          ]);
+        }
         break;
 
       case 'destination_id_values':
@@ -253,9 +334,35 @@ class MigrateEvent extends EventBase {
         }
         break;
 
+      case 'value':
+        if ($event instanceof EcaMigrateProcessEvent) {
+          return $event->getValue();
+        }
+        break;
+
+      case 'destination_property':
+        if ($event instanceof EcaMigrateProcessEvent) {
+          return $event->getDestinationProperty();
+        }
+        break;
+
     }
 
     return parent::getData($key);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function cleanupAfterSuccessors(): void {
+    $event = $this->event;
+    if ($event instanceof EcaMigrateProcessEvent) {
+      $token_name = $this->configuration['token_name'];
+      if ($this->tokenService->hasTokenData($token_name)) {
+        $processed_value = $this->tokenService->getTokenData($token_name);
+        $event->setValue($processed_value);
+      }
+    }
   }
 
 }

@@ -19,6 +19,11 @@ class AnthropicConfigForm extends ConfigFormBase {
   const CONFIG_NAME = 'ai_provider_anthropic.settings';
 
   /**
+   * Default provider ID.
+   */
+  const PROVIDER_ID = 'anthropic';
+
+  /**
    * The AI provider manager.
    *
    * @var \Drupal\ai\AiProviderPluginManager
@@ -102,6 +107,7 @@ class AnthropicConfigForm extends ConfigFormBase {
     $form['moderation_checkbox'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('No Moderation Needed'),
+      '#default_value' => $disabled ? 1 : 0,
       '#description' => $this->t('I hereby understand that Anthropic is being run without moderation, which might lead to me sending a prompt that will be seen as malicious to Anthropic, THAT WILL GET ME BANNED.'),
     ];
 
@@ -157,14 +163,32 @@ class AnthropicConfigForm extends ConfigFormBase {
       $config->save();
     }
 
-    // Set some defaults.
-    $this->aiProviderManager->defaultIfNone('chat', 'anthropic', 'claude-3-5-sonnet-latest');
-    $this->aiProviderManager->defaultIfNone('chat_with_image_json', 'anthropic', 'claude-3-5-sonnet-latest');
-    $this->aiProviderManager->defaultIfNone('chat_with_complex_json', 'anthropic', 'claude-3-5-sonnet-latest');
-    $this->aiProviderManager->defaultIfNone('chat_with_tools', 'anthropic', 'claude-3-5-sonnet-latest');
-    $this->aiProviderManager->defaultIfNone('chat_with_structured_response', 'anthropic', 'claude-3-5-sonnet-latest');
+    // Set default models.
+    $this->setDefaultModels();
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Set default models for the AI provider.
+   */
+  private function setDefaultModels() {
+    // Create provider instance.
+    $provider = $this->aiProviderManager->createInstance(static::PROVIDER_ID);
+
+    // Check if getSetupData() method exists and is callable.
+    if (is_callable([$provider, 'getSetupData'])) {
+      // Fetch setup data.
+      $setup_data = $provider->getSetupData();
+
+      // Ensure the setup data is valid.
+      if (!empty($setup_data) && is_array($setup_data) && !empty($setup_data['default_models']) && is_array($setup_data['default_models'])) {
+        // Loop through and set default models for each operation type.
+        foreach ($setup_data['default_models'] as $op_type => $model_id) {
+          $this->aiProviderManager->defaultIfNone($op_type, static::PROVIDER_ID, $model_id);
+        }
+      }
+    }
   }
 
 }

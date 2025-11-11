@@ -4,6 +4,7 @@ namespace Drupal\modeler_api\Plugin\ModelerApiModelOwner;
 
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Component\Plugin\PluginInspectionInterface;
+use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -40,6 +41,7 @@ abstract class ModelOwnerBase extends PluginBase implements ModelOwnerInterface 
     protected EntityTypeManagerInterface $entityTypeManager,
     protected Api $api,
     protected ModelerPluginManager $modelerPluginManager,
+    protected UuidInterface $uuidGenerator,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -56,6 +58,7 @@ abstract class ModelOwnerBase extends PluginBase implements ModelOwnerInterface 
       $container->get('entity_type.manager'),
       $container->get('modeler_api.service'),
       $container->get('plugin.manager.modeler_api.modeler'),
+      $container->get('uuid'),
     );
   }
 
@@ -139,24 +142,25 @@ abstract class ModelOwnerBase extends PluginBase implements ModelOwnerInterface 
     $id = $modeler->generateId();
     $label = $this->getLabel($model) . ' (' . $this->t('clone') . ')';
     $data = $this->getModelData($model);
+    $newModel = NULL;
     if ($data !== '') {
       $owner = $this->api->findOwner($model);
       $modeler->parseData($owner, $data);
       $modeler->clone($owner, $id, $label);
       $newModel = $this->api->prepareModelFromData($modeler->getRawData(), $this->getPluginId(), $this->getModelerId($model), TRUE);
-      if ($newModel) {
-        $newModel->save();
-      }
-      else {
-        $newModel = clone $model;
-      }
     }
-    else {
+    if ($newModel === NULL) {
+      $entityType = $this->entityTypeManager->getDefinition($this->configEntityTypeId());
       $newModel = clone $model;
-      $newModel->set('id', $id);
+      $newModel->set($entityType->getKey('id'), $id);
+      $newModel->setOriginalId($id);
+      $newModel->enforceIsNew();
+      if ($entityType->hasKey('uuid')) {
+        $newModel->set($entityType->getKey('uuid'), $this->uuidGenerator->generate());
+      }
       $this->setLabel($newModel, $label);
-      $newModel->save();
     }
+    $newModel->save();
     return $newModel;
   }
 
@@ -283,6 +287,20 @@ abstract class ModelOwnerBase extends PluginBase implements ModelOwnerInterface 
    */
   final public function getVersion(ConfigEntityInterface $model): string {
     return $model->getThirdPartySetting('modeler_api', 'version', '');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  final public function setStorage(ConfigEntityInterface $model, string $storage): ModelOwnerInterface {
+    return $this->setThirdPartySetting($model, 'storage', $storage);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  final public function getStorage(ConfigEntityInterface $model): string {
+    return $model->getThirdPartySetting('modeler_api', 'storage', '');
   }
 
   /**
@@ -497,7 +515,10 @@ abstract class ModelOwnerBase extends PluginBase implements ModelOwnerInterface 
     if ($modeler->getPluginId() === 'fallback') {
       return NULL;
     }
-    $method = Settings::value($this, $modeler, 'storage', $this->defaultStorageMethod());
+    $method = $this->getStorage($model);
+    if ($method === '') {
+      $method = Settings::value($this, $modeler, 'storage', $this->defaultStorageMethod());
+    }
     if ($model->isNew() && $method === Settings::STORAGE_OPTION_SEPARATE) {
       // A new model has no ID, so we can't store externally.
       // Keep it in third-party until the entity got saved the first time.

@@ -6,8 +6,8 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Plugin\Context\EntityContext;
+use Drupal\dashboard\DashboardInterface;
 use Drupal\dashboard\DashboardManager;
-use Drupal\dashboard\Entity\Dashboard;
 use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -58,7 +58,7 @@ class DashboardController extends ControllerBase {
   /**
    * Builds the response.
    */
-  public function build(?Dashboard $dashboard) {
+  public function build(?DashboardInterface $dashboard) {
     $build = [];
     /** @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $sectionStorageManager */
     if ($dashboard === NULL) {

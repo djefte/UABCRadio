@@ -31,6 +31,12 @@ easy_email.settings:
   title: 'Settings'
   weight: 20
 
+easy_email.theme_settings:
+  route_name: easy_email.theme_settings
+  base_route: entity.easy_email_type.collection
+  title: 'Theme settings'
+  weight: 30
+
 entity.easy_email_type.preview:
   route_name: entity.easy_email_type.preview
   base_route: entity.easy_email_type.edit_form

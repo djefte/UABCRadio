@@ -2,6 +2,7 @@
 
 namespace Drupal\audio_player\Plugin\Field\FieldFormatter;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -313,7 +314,15 @@ class AudioPlayerMediaFieldFormatter extends EntityReferenceFormatterBase implem
             if ($file) {
               $video_uri = $file->getFileUri();
 
-              $video_uri_absolute = $this->fileUrlGenerator->generateAbsoluteString($video_uri);
+              // Ensure the file is accessible to the user before
+              // generating the URL.
+              if ($file->access('view')) {
+                $video_uri_absolute = $this->fileUrlGenerator->generateAbsoluteString($video_uri);
+              }
+              else {
+                return [];
+              }
+
               $video_uri_parsed = parse_url($video_uri_absolute);
               $video_uri_path = $video_uri_parsed['path'] ?? '';
 
@@ -324,6 +333,7 @@ class AudioPlayerMediaFieldFormatter extends EntityReferenceFormatterBase implem
                 $audio_name = urldecode($audio_name);
               }
               $audio_name = audio_player_generate_name($audio_name);
+              $audio_name = Html::escape($audio_name);
 
               $audios[$delta] = [
                 'original_url' => $video_uri_path,

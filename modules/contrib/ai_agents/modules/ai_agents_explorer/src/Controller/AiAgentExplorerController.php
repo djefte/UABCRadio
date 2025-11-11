@@ -2,14 +2,14 @@
 
 namespace Drupal\ai_agents_explorer\Controller;
 
-use Drupal\ai_agents\PluginInterfaces\ConfigAiAgentInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Utility\Token;
 use Drupal\ai\AiProviderPluginManager;
 use Drupal\ai_agents\PluginInterfaces\AiAgentInterface;
+use Drupal\ai_agents\PluginInterfaces\ConfigAiAgentInterface;
 use Drupal\ai_agents\PluginManager\AiAgentManager;
 use Drupal\ai_agents\Task\Task;
-use Drupal\Core\Utility\Token;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -222,6 +222,7 @@ class AiAgentExplorerController extends ControllerBase {
       $converter = new \League\CommonMark\CommonMarkConverter();
       $response = $converter->convert($response)->__toString();
     }
+
     return new JsonResponse([
       'success' => TRUE,
       'message' => $response,

@@ -7,7 +7,6 @@ namespace Drupal\Tests\ai_agents\Kernel\PluginBase;
 use Drupal\ai_agents\Plugin\AiFunctionCall\AiAgentWrapper;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\ai_agents\Plugin\AiFunctionCall\GetEntityFieldInformation;
-use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -15,7 +14,6 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @group ai_agents
  */
-#[Group('ai_agents')]
 final class AiAgentEntityWrapperTest extends KernelTestBase {
 
   /**

@@ -3,7 +3,7 @@
 namespace Drupal\Tests\eca_config\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\node\Entity\NodeType;
+use Drupal\Tests\eca\ContentTypeCreationTrait;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 
@@ -11,6 +11,8 @@ use Drupal\user\Entity\User;
  * Base class for plugin tests of the "eca_config" module.
  */
 abstract class Base extends KernelTestBase {
+
+  use ContentTypeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -48,8 +50,7 @@ abstract class Base extends KernelTestBase {
       'administer site configuration',
     ]);
     // Create an article as node type.
-    $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
-    $node_type->save();
+    $this->createContentType(['type' => 'article', 'name' => 'Article']);
   }
 
 }

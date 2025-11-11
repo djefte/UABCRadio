@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\trash\PathAlias\PathAliasIntegrationTrait;
 use Drupal\trash\TrashManagerInterface;
 
 /**
@@ -16,6 +17,7 @@ use Drupal\trash\TrashManagerInterface;
 class DefaultTrashHandler implements TrashHandlerInterface {
 
   use StringTranslationTrait;
+  use PathAliasIntegrationTrait;
 
   /**
    * The ID of the entity type managed by this handler.
@@ -40,7 +42,10 @@ class DefaultTrashHandler implements TrashHandlerInterface {
   /**
    * {@inheritdoc}
    */
-  public function postTrashDelete(EntityInterface $entity): void {}
+  public function postTrashDelete(EntityInterface $entity): void {
+    // Automatically delete associated path aliases to match core's behavior.
+    $this->deleteAssociatedPathAliases($entity);
+  }
 
   /**
    * {@inheritdoc}
@@ -50,7 +55,10 @@ class DefaultTrashHandler implements TrashHandlerInterface {
   /**
    * {@inheritdoc}
    */
-  public function postTrashRestore(EntityInterface $entity): void {}
+  public function postTrashRestore(EntityInterface $entity, int|string $deleted_timestamp): void {
+    // Automatically restore associated path aliases.
+    $this->restoreAssociatedPathAliases($entity, $deleted_timestamp);
+  }
 
   /**
    * {@inheritdoc}

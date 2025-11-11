@@ -119,6 +119,16 @@ class SitemapMenuTest extends SitemapMenuTestBase {
     $this->assertSession()->linkExists($node_1_title);
     $this->assertSession()->linkExists($node_2_title);
 
+    // Configure module to show tools menu.
+    $this->saveSitemapForm([
+      'plugins[menu:tools][enabled]' => TRUE,
+    ]);
+    $this->drupalGet('/sitemap');
+
+    // Check leaf and expanded CSS class.
+    $this->assertEquals('leaf', $this->getSession()->getPage()->findLink('Example title')->getParent()->getAttribute('class'));
+    $this->assertEquals('expanded', $this->getSession()->getPage()->findLink('Menu test root')->getParent()->getAttribute('class'));
+
     // Check anon user doesn't see "Inaccessible" text for the admin link.
     $this->drupalLogin($this->anonUser);
     $this->drupalGet('/sitemap');
