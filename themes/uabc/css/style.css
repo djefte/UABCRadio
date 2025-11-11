@@ -13567,27 +13567,38 @@ footer .region-footer a {
 }
 .radio-verde {
   margin: auto;
-  width: 50vw;
+  width: 44vw;
+}
+.radio-verde iframe {
+  width: 100%;
+  aspect-ratio: 1/0.65;
 }
 
 @media (min-width: 576px) {
   .radio-verde {
-    width: 45vw;
+    width: 40vw;
     padding-top: 20px;
+  }
+}
+@media (min-width: 640px) {
+  .radio-verde {
+    width: 34vw;
+    padding-top: 0px;
   }
 }
 @media (min-width: 768px) {
   .radio-verde {
-    width: 361px;
+    width: 40vw;
   }
-  .radio-verde iframe {
-    width: 100%;
-    aspect-ratio: 1/0.6;
+}
+@media (min-width: 860px) {
+  .radio-verde {
+    width: 35vw;
   }
 }
 @media (min-width: 992px) {
   .radio-verde {
-    width: 300px;
+    width: 240px;
     margin-left: -20px;
   }
 }
@@ -13595,15 +13606,6 @@ footer .region-footer a {
   .radio-verde {
     margin-left: auto;
     padding-top: 0;
-  }
-}
-@media screen and (min-width: 640px) and (max-width: 767px) {
-  .radio-verde {
-    width: 42vw;
-  }
-  .radio-verde iframe {
-    width: 98%;
-    aspect-ratio: 1/0.6;
   }
 }
 .area-radio-infantil {
